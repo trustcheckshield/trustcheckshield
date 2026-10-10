@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TrustCheck Shield</title>
+<style>
+:root{--bg-color:#f1f4ed;--card:#fff;--ink:#1f332b;--mute:#566a61;--accent-green:#2d5a4c;--accent-orange:#d9822b;--orange-bg:#fdf3e7;--orange-ink:#7a4812;--line:#dfe6db;--soft:#f7f9f4;--on-green:#fff;
+--lowbg:#e6f4ea;--lowfg:#137333;--medbg:#fef3dc;--medfg:#8f5200;--highbg:#fce8e6;--highfg:#b3261e;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg-color:#121a17;--card:#1a2622;--ink:#e8efe9;--mute:#9db0a6;--accent-green:#7fc4a9;--orange-bg:#2e2412;--orange-ink:#f0c58a;--line:#2b3a34;--soft:#16201c;--on-green:#10211a;--lowbg:#17301f;--lowfg:#7fd39a;--medbg:#3a2d12;--medfg:#f0b861;--highbg:#3b1b19;--highfg:#f2918a}}
+:root[data-theme="dark"]{--bg-color:#121a17;--card:#1a2622;--ink:#e8efe9;--mute:#9db0a6;--accent-green:#7fc4a9;--orange-bg:#2e2412;--orange-ink:#f0c58a;--line:#2b3a34;--soft:#16201c;--on-green:#10211a;--lowbg:#17301f;--lowfg:#7fd39a;--medbg:#3a2d12;--medfg:#f0b861;--highbg:#3b1b19;--highfg:#f2918a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg-color);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+.shell{max-width:760px;margin:0 auto;padding:18px 16px 110px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:24px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;color:var(--accent-green)}
+.mark{width:32px;height:32px;border-radius:9px;background:var(--accent-green);color:var(--on-green);display:grid;place-items:center}
+.right{display:flex;align-items:center;gap:12px}
+#welcome{font-weight:600;color:var(--mute);font-size:14px}
+.btn{font:inherit;font-weight:600;border:0;border-radius:10px;padding:11px 18px;cursor:pointer;background:var(--accent-green);color:var(--on-green)}
+.btn.ghost{background:transparent;color:var(--accent-green);border:1px solid var(--line)}
+:is(button,input,textarea,summary):focus-visible{outline:3px solid var(--accent-orange);outline-offset:2px}
+h1{font:700 clamp(26px,6vw,36px)/1.15 "Iowan Old Style",Georgia,serif;color:var(--accent-green);margin-bottom:6px}
+.lead{color:var(--mute);margin-bottom:18px;max-width:54ch}
+.tools{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+.tool{text-align:left;font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;cursor:pointer;display:grid;gap:4px}
+.tool .ic{font-size:22px}.tool b{font-size:14px;color:var(--accent-green)}.tool span.d{font-size:12px;color:var(--mute);line-height:1.35}
+.tool[aria-pressed="true"]{border:2px solid var(--accent-green);padding:13px;background:var(--soft)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:14px}
+.card h2{font-size:16px;margin-bottom:4px;color:var(--accent-green)}
+.card .sd{color:var(--mute);font-size:13px;margin-bottom:12px}
+.field{display:flex;gap:10px;flex-wrap:wrap}.field input{flex:1 1 220px;min-width:0}
+input,textarea{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:10px;background:var(--soft);color:var(--ink);font:inherit}
+textarea{min-height:130px;resize:vertical}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.chip{font:inherit;font-size:13px;font-weight:600;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--soft);color:var(--mute);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent-green);color:var(--on-green);border-color:var(--accent-green)}
+.err{color:var(--highfg);font-size:14px;margin-top:10px}
+.note{color:var(--mute);font-size:13px;margin-top:10px}
+.res{margin-top:18px;padding-top:18px;border-top:1px solid var(--line)}
+.badge{display:inline-block;padding:6px 14px;border-radius:999px;font-weight:700;font-size:14px;margin-bottom:10px}
+.badge.sm{padding:2px 10px;font-size:12px;margin:0}
+.low{background:var(--lowbg);color:var(--lowfg)}.medium{background:var(--medbg);color:var(--medfg)}.high{background:var(--highbg);color:var(--highfg)}
+.verdict{margin-bottom:6px}
+.lbl{font-weight:700;color:var(--accent-green);font-size:14px;margin-top:14px;margin-bottom:4px}
+.txt{color:var(--mute);font-size:14px}
+ul.sig{list-style:none;padding:0;display:grid;gap:6px}
+ul.sig li{font-size:14px;padding-left:16px;position:relative}
+ul.sig li::before{content:"";position:absolute;left:0;top:.6em;width:6px;height:6px;border-radius:50%;background:var(--accent-orange)}
+.hl{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:14px;white-space:pre-wrap;word-break:break-word;max-height:220px;overflow:auto}
+mark{background:var(--highbg);color:var(--highfg);border-radius:4px;padding:0 3px;font-weight:600}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.banner{display:flex;gap:12px;background:var(--orange-bg);border:1px solid var(--accent-orange);border-radius:14px;padding:14px 16px;margin:6px 0 26px;color:var(--orange-ink);font-size:14px}
+.banner b.tag{background:var(--accent-orange);color:#fff;border-radius:6px;padding:2px 8px;font-size:12px;height:fit-content;white-space:nowrap}
+h3.sec{font:700 22px/1.2 "Iowan Old Style",Georgia,serif;color:var(--accent-green);margin-top:22px}
+.sub{color:var(--mute);margin:4px 0 14px;font-size:14px}
+.steps{display:grid;gap:10px}
+.step{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.step .n{font-weight:700;font-size:13px;color:var(--accent-orange)}
+.step h4{font-size:15px;color:var(--accent-green);margin:2px 0 6px}
+.step ul{list-style:none;padding:0;display:grid;gap:5px}
+.step li{font-size:13px;padding-left:16px;position:relative}
+.step li::before{content:"";position:absolute;left:0;top:.55em;width:6px;height:6px;border-radius:50%;background:var(--accent-orange)}
+/* profile */
+.who{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.avatar{width:52px;height:52px;border-radius:50%;background:var(--accent-green);color:var(--on-green);display:grid;place-items:center;font-weight:800;font-size:22px}
+.nm{font-weight:700;font-size:18px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin-bottom:14px;font-size:14px}
+.kv .k{color:var(--mute)}.kv .v{font-weight:600;word-break:break-all}
+ul.hist{list-style:none;padding:0;display:grid;gap:10px;margin-top:6px}
+.hi{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--soft)}
+.hrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ht{font-weight:600;font-size:13px}.hd{margin-left:auto;font-size:12px;color:var(--mute)}
+.hin{font-size:13px;color:var(--mute);margin-top:4px;word-break:break-all}
+details.faq{border-top:1px solid var(--line);padding:10px 0}
+details.faq summary{cursor:pointer;font-weight:600;font-size:14px}
+details.faq p{font-size:14px;color:var(--mute);margin-top:6px}
+/* nav */
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:center;gap:8px;padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px))}
+.bar button{flex:1;max-width:260px;font:inherit;font-size:13px;font-weight:600;border:0;border-radius:12px;background:transparent;color:var(--mute);padding:8px;cursor:pointer;display:grid;gap:2px;justify-items:center}
+.bar button .ic{font-size:21px}
+.bar button.on{background:var(--soft);color:var(--accent-green)}
+/* modal */
+#modal{position:fixed;inset:0;background:rgba(18,30,25,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50;overflow:auto}
+.box{background:var(--card);border:1px solid var(--line);border-radius:20px;width:100%;max-width:420px;padding:26px;position:relative}
+.box h2{font:700 22px/1.2 "Iowan Old Style",Georgia,serif;color:var(--accent-green);text-align:center}
+.box .s{text-align:center;color:var(--mute);font-size:14px;margin:6px 0 18px}
+.x{position:absolute;top:10px;right:12px;background:none;border:0;font-size:24px;line-height:1;color:var(--mute);cursor:pointer;padding:6px}
+.prov{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;margin-bottom:10px;border:1px solid var(--line);border-radius:10px;background:var(--soft);color:var(--ink);font:inherit;font-weight:600;cursor:pointer}
+.prov i{font-style:normal;font-weight:800;width:22px;height:22px;border-radius:6px;background:var(--accent-green);color:var(--on-green);display:grid;place-items:center;font-size:13px}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.row3 .prov{margin:0;padding:11px 6px;font-size:13px;flex-direction:column;gap:4px}
+.div{text-align:center;font-weight:700;color:var(--mute);font-size:13px;margin:18px 0 6px;display:flex;align-items:center;gap:10px}
+.div::before,.div::after{content:"";flex:1;height:1px;background:var(--line)}
+.fine{text-align:center;color:var(--mute);font-size:12px}
+.pane label{display:block;font-weight:600;font-size:14px;margin-bottom:6px}
+.pane .btn{width:100%;margin-top:10px}
+.back{display:block;margin:10px auto 0;background:none;border:0;color:var(--mute);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.demo{background:var(--medbg);color:var(--medfg);border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:12px}
+.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0 0 0 0)}
+label.btn{display:inline-block;text-align:center}
+.vh:focus-visible+label{outline:3px solid var(--accent-orange);outline-offset:2px}
+.res{transition:opacity .2s}.res.fade{opacity:0}
+a.btn{display:inline-block;text-decoration:none;text-align:center}
+.report{background:var(--orange-bg);border:1px solid var(--accent-orange);border-radius:14px;padding:16px;margin-bottom:14px;color:var(--orange-ink);font-size:14px}
+.report h3{font-size:16px;margin-bottom:6px}
+.report ol{margin:8px 0 12px 20px;display:grid;gap:4px}
+[hidden]{display:none!important}
+@media (min-width:600px){.tools{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div class="logo"><span class="mark" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></span>TrustCheck Shield</div>
+    <div class="right"><span id="welcome" hidden></span><button class="btn" id="authBtn" type="button">Login</button></div>
+  </header>
+
+  <!-- HOME -->
+  <main id="v-home">
+    <h1>What would you like to check?</h1>
+    <p class="lead">Choose a tool. Every check runs on the text in your browser, and nothing is sent anywhere.</p>
+    <div class="tools" role="group" aria-label="Security tools">
+      <button class="tool" type="button" data-t="url" aria-pressed="true"><span class="ic">🔗</span><b>Link / URL Inspector</b><span class="d">Links, short links, APK, EXE and ZIP downloads</span></button>
+      <button class="tool" type="button" data-t="msg" aria-pressed="false"><span class="ic">💬</span><b>Universal Message Scam Checker</b><span class="d">KYC, job, UPI and gaming reward scams</span></button>
+      <button class="tool" type="button" data-t="upi" aria-pressed="false"><span class="ic">📱</span><b>Number &amp; UPI Checker</b><span class="d">Suspicious phone numbers and UPI handles</span></button>
+      <button class="tool" type="button" data-t="qr" aria-pressed="false"><span class="ic">📷</span><b>QR Code Scanner</b><span class="d">Fake QR code and quishing detection</span></button>
+    </div>
+
+    <section class="card" id="t-url">
+      <h2>Link / URL Inspector</h2><p class="sd">Paste a website link or an APK download link.</p>
+      <div class="field"><input id="url" type="text" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Paste a web, Chrome or APK link" aria-label="Link to check"><button class="btn" id="urlGo" type="button">Check risk</button></div>
+      <div class="err" id="urlE" role="alert" hidden></div>
+      <p class="note">Brackets, quotes and extra characters around a link are cleaned up automatically.</p>
+      <div class="res" id="urlR" hidden aria-live="polite"></div>
+      <h3 class="sec">A thoughtful pause, in three steps</h3>
+      <p class="sub" id="stepsSub">Check a link and these steps update to match it.</p>
+      <div class="steps" id="steps"></div>
+    </section>
+
+    <section class="card" id="t-msg" hidden>
+      <h2>Universal Message Scam Checker</h2><p class="sd">Choose where the message came from, then paste it.</p>
+      <div class="chips" id="plat" role="group" aria-label="Message source"></div>
+      <textarea id="msg" aria-label="Message text" placeholder="Paste the suspicious message here"></textarea>
+      <div class="err" id="msgE" role="alert" hidden></div>
+      <button class="btn" id="msgGo" type="button" style="margin-top:12px;width:100%">Check message</button>
+      <div class="res" id="msgR" hidden aria-live="polite"></div>
+    </section>
+
+    <section class="card" id="t-upi" hidden>
+      <h2>Number &amp; UPI Checker</h2><p class="sd">Enter a phone number or a UPI ID such as name@bank.</p>
+      <div class="field"><input id="upi" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="9876543210 or name@bank" aria-label="Phone number or UPI ID"><button class="btn" id="upiGo" type="button">Check number or ID</button></div>
+      <div class="err" id="upiE" role="alert" hidden></div>
+      <p class="note">This checks the format and wording only. It cannot tell whether a number or ID has been reported.</p>
+      <div class="res" id="upiR" hidden aria-live="polite"></div>
+    </section>
+
+    <section class="card" id="t-qr" hidden>
+      <h2>QR Code Scanner</h2><p class="sd">Check a QR code before you open the link or pay.</p>
+      <div class="row"><input class="vh" id="qrCam" type="file" accept="image/*" capture="environment"><label class="btn" id="camLbl" for="qrCam">Scan with camera</label><input class="vh" id="qrFile" type="file" accept="image/*"><label class="btn ghost" id="upLbl" for="qrFile">Upload QR image</label></div>
+      <label for="qrTxt" class="txt" style="display:block;margin-bottom:6px">Or paste what the QR code contains</label>
+      <textarea id="qrTxt" style="min-height:70px" placeholder="https://… or upi://pay?…"></textarea>
+      <div class="err" id="qrE" role="alert" hidden></div>
+      <button class="btn" id="qrGo" type="button" style="margin-top:12px;width:100%">Check QR content</button>
+      <p class="note">Scan with camera opens your phone's camera app so you can take a picture of the QR code. Upload QR image lets you pick a screenshot from your gallery. Pictures are read on your device and are not uploaded.</p>
+      <div class="res" id="qrR" hidden aria-live="polite"></div>
+    </section>
+
+    <div class="banner"><b class="tag">Local check</b><div><strong>Text pattern analysis only.</strong> These tools read text as typed or pasted. They do not open websites or check DNS, ownership, reputation, certificates, live redirects or whether a number has been reported. A Low Risk result is not proof of safety.</div></div>
+  </main>
+
+  <!-- PROFILE -->
+  <main id="v-profile" hidden>
+    <h1>Profile</h1>
+    <p class="lead">Your account, your past checks and help in one place.</p>
+    <section class="card"><h2>Account</h2><div id="acct" style="margin-top:12px"></div></section>
+    <section class="card"><h2>Scan History</h2><p class="sd">Saved in this browser for your account only. Newest checks appear first.</p>
+      <ul class="hist" id="hist"></ul>
+      <button class="btn ghost" id="clr" type="button" style="margin-top:12px" hidden>Clear history</button></section>
+    <section class="card"><h2>Support / Help &amp; Report Fraud</h2><p class="sd">Report a scam first, then read answers to common questions.</p>
+      <div class="report"><h3>Report Fraud</h3>
+        <p>If you lost money or shared a code, act fast. Quick reports give the best chance of stopping a transfer.</p>
+        <ol>
+          <li>Call your bank on the number printed on your card and ask them to block the card, UPI or account.</li>
+          <li>Call 1930, the national cyber crime helpline, or file a report at cybercrime.gov.in.</li>
+          <li>Report suspicious calls, SMS and WhatsApp numbers on the Sanchar Saathi portal.</li>
+          <li>Keep evidence: screenshots, phone numbers, UPI IDs, links and transaction IDs. Do not delete the chat.</li>
+          <li>Block and report the sender inside the app you received it on.</li>
+        </ol>
+        <div class="row" style="margin:0"><a class="btn" id="call" href="tel:1930" target="_top" rel="noopener">Call 1930</a><a class="btn ghost" href="https://cybercrime.gov.in" target="_blank" rel="noopener noreferrer">Report at cybercrime.gov.in</a><a class="btn ghost" href="https://sancharsaathi.gov.in" target="_blank" rel="noopener noreferrer">Sanchar Saathi</a></div>
+        <p style="margin-top:12px;font-size:13px">If the dialer does not open, dial <strong>1930</strong> yourself or <button class="chip" id="copy1930" type="button">Copy number</button></p>
+      </div>
+      <details class="faq"><summary>How does TrustCheck Shield work?</summary><p>It looks for known scam patterns in the text you give it, using rules that run in your browser. Nothing you paste is uploaded.</p></details>
+      <details class="faq"><summary>Does Low Risk mean something is safe?</summary><p>No. Low Risk only means no common warning signs were found in the text. New scams can look clean, so stay careful.</p></details>
+      <details class="faq"><summary>Why was a real site or message flagged?</summary><p>The rules are strict on purpose. Words such as login, verify and free are often used in scams, so they raise the risk even on honest pages. Check the sender or site another way.</p></details>
+      <details class="faq"><summary>What if I already clicked or shared an OTP?</summary><p>Call your bank right away using the number on your card, and block the card or UPI. Change your passwords. Then report the fraud to the national helpline 1930 or at cybercrime.gov.in.</p></details>
+      <details class="faq"><summary>How do I report a scam message or number?</summary><p>Block and report the sender inside the app (WhatsApp, Instagram, Telegram, your SMS app or your email service). For fraud involving money, call 1930 or use cybercrime.gov.in.</p></details>
+      <details class="faq"><summary>Why is a short link or a download flagged?</summary><p>Short links such as bit.ly hide the real address, and APK, EXE, SCR and ZIP files can carry malware. A file named EICAR is an antivirus test file, harmless by design, but it is flagged on purpose.</p></details>
+      <details class="faq"><summary>What are color prediction and gaming reward scams?</summary><p>Messages promising welcome gifts or bonuses from apps such as 91Club, then asking you to log in, recharge or pay a fee to withdraw. The winnings never arrive. Do not deposit money or share bank details.</p></details>
+      <details class="faq"><summary>Where is my history stored?</summary><p>Only in this browser on this device. Clearing history here, or your browser data, removes it.</p></details>
+    </section>
+  </main>
+</div>
+
+<nav class="bar" aria-label="Main">
+  <button type="button" id="nav-home" class="on" aria-current="page"><span class="ic">🏠</span>Home</button>
+  <button type="button" id="nav-profile"><span class="ic">👤</span>Profile</button>
+</nav>
+
+<div id="modal" role="dialog" aria-modal="true" aria-labelledby="mt" hidden>
+  <div class="box">
+    <button class="x" id="mx" type="button" aria-label="Close">&times;</button>
+    <h2 id="mt">Sign in to TrustCheck Shield</h2>
+    <p class="s" id="ms">Sign in to run checks and see your results.</p>
+    <div class="pane" id="p-opts">
+      <button class="prov" type="button" data-p="Google"><i>G</i>Continue with Google</button>
+      <button class="prov" type="button" data-p="Microsoft"><i>M</i>Continue with Microsoft</button>
+      <div class="row3">
+        <button class="prov" type="button" data-p="Facebook"><i>f</i>Facebook</button>
+        <button class="prov" type="button" data-p="Instagram"><i>I</i>Instagram</button>
+        <button class="prov" type="button" id="mobBtn"><i>#</i>Mobile</button>
+      </div>
+    </div>
+    <div class="pane" id="p-email" hidden>
+      <label for="em" id="emL">Email ID</label>
+      <input id="em" type="email" inputmode="email" autocomplete="off" placeholder="name@example.com">
+      <div class="err" id="emE" role="alert" hidden></div>
+      <button class="btn" id="emGo" type="button">Continue</button>
+      <button class="back" type="button" data-back>Back to options</button>
+    </div>
+    <div class="pane" id="p-mob" hidden>
+      <label for="mb">10-digit mobile number</label>
+      <input id="mb" type="tel" inputmode="numeric" maxlength="10" autocomplete="off" placeholder="9876543210">
+      <div class="err" id="mbE" role="alert" hidden></div>
+      <button class="btn" id="mbGo" type="button">Send verification code</button>
+      <button class="back" type="button" data-back>Back to options</button>
+    </div>
+    <div class="pane" id="p-otp" hidden>
+      <div class="demo" id="demo"></div>
+      <label for="ot">4-digit verification code</label>
+      <input id="ot" type="text" inputmode="numeric" maxlength="4" autocomplete="one-time-code" placeholder="0000">
+      <div class="err" id="otE" role="alert" hidden></div>
+      <button class="btn" id="otGo" type="button">Verify and log in</button>
+      <button class="back" type="button" data-back>Back to options</button>
+    </div>
+    <div class="div">Security Access Required</div>
+    <p class="fine">Demo sign-in: nothing is sent or verified. Your details stay in this browser.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+const err=(id,m)=>{const e=$(id);e.textContent=m;e.hidden=false};
+const toks=s=>s.split(/[^a-z0-9]+/).filter(Boolean);
+const rate=(s,hi,med)=>s>=hi?"High":s>=med?"Medium":"Low";
+let user=null,phone="",code="",lastFocus=null;
+const store=(()=>{try{const t="__tcs";localStorage.setItem(t,"1");localStorage.removeItem(t);return localStorage}catch(e){const m={};return{getItem:k=>(k in m?m[k]:null),setItem:(k,v)=>{m[k]=String(v)},removeItem:k=>{delete m[k]}}}})();
+const SK="tcs_session";
+function hash(x){let h=5381;for(let i=0;i<x.length;i++)h=((h<<5)+h+x.charCodeAt(i))>>>0;return h.toString(36)}
+function loadSession(){try{const u=JSON.parse(store.getItem(SK)||"null");return u&&u.id&&u.name&&Array.isArray(u.contact)?u:null}catch(e){return null}}
+user=loadSession();
+
+/* ===== history ===== */
+const hkey=()=>user?"history_"+user.id:null;
+function hist(){const k=hkey();if(!k)return[];try{const h=JSON.parse(store.getItem(k)||"[]");return Array.isArray(h)?h:[]}catch(e){return[]}}
+function logScan(type,input,level){const k=hkey();if(!k)return;const h=hist();h.unshift({type:type,input:input.replace(/\s+/g," ").slice(0,60),level:level,t:Date.now()});try{store.setItem(k,JSON.stringify(h.slice(0,50)))}catch(e){}}
+
+/* ===== auth ===== */
+const panes=["p-opts","p-email","p-mob","p-otp"];
+function pane(id,sub){panes.forEach(p=>$(p).hidden=p!==id);$("ms").textContent=sub||"Sign in to run checks and see your results.";
+  ["emE","mbE","otE"].forEach(e=>$(e).hidden=true);
+  const f={"p-email":"em","p-mob":"mb","p-otp":"ot"}[id];if(f){$(f).value="";setTimeout(()=>$(f).focus(),0)}}
+function openModal(){lastFocus=document.activeElement;pane("p-opts");$("modal").hidden=false;setTimeout(()=>$("p-opts").querySelector("button").focus(),0)}
+function closeModal(){$("modal").hidden=true;if(lastFocus&&lastFocus.focus)lastFocus.focus()}
+function paint(){$("authBtn").textContent=user?"Logout":"Login";$("welcome").hidden=!user;if(user)$("welcome").textContent="Hi, "+user.name}
+function login(u){user=u;try{store.setItem(SK,JSON.stringify(u))}catch(e){}paint();$("modal").hidden=true;if(!$("v-profile").hidden)drawProfile()}
+function clearScreen(){["urlR","msgR","upiR","qrR"].forEach(i=>$(i).hidden=true);["url","msg","upi","qrTxt"].forEach(i=>$(i).value="");["urlE","msgE","upiE","qrE"].forEach(i=>$(i).hidden=true);steps(null);$("stepsSub").textContent="Check a link and these steps update to match it."}
+function logout(){user=null;try{store.removeItem(SK)}catch(e){}paint();clearScreen();if(!$("v-profile").hidden)drawProfile();openModal()}
+function gate(){if(user)return true;openModal();return false}
+document.querySelectorAll("[data-p]").forEach(b=>b.addEventListener("click",()=>{const p=b.dataset.p;pane.p=p;
+  $("emL").textContent="Your "+p+" email ID";$("em").placeholder="name@"+p.toLowerCase()+".com";pane("p-email","Sign in with "+p)}));
+$("mobBtn").addEventListener("click",()=>pane("p-mob","Mobile number sign-in"));
+document.querySelectorAll("[data-back]").forEach(b=>b.addEventListener("click",()=>pane("p-opts")));
+$("emGo").addEventListener("click",()=>{const v=$("em").value.trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v))return err("emE","Enter a valid email ID, such as name@example.com.");
+  const n=v.split("@")[0].replace(/[._\-+0-9]+/g," ").trim().split(" ")[0]||"User";
+  login({id:v.toLowerCase(),name:n.charAt(0).toUpperCase()+n.slice(1),via:pane.p||"Email",contact:["Email ID",v]})});
+$("mbGo").addEventListener("click",()=>{const v=$("mb").value.trim();
+  if(!/^\d{10}$/.test(v))return err("mbE","Enter exactly 10 digits, with no spaces or country code.");
+  phone=v;code=String(Math.floor(1000+Math.random()*9000));
+  $("demo").textContent="Demo mode: no text message is sent. Your verification code is "+code+".";
+  pane("p-otp","Code requested for the number ending in "+phone.slice(-4))});
+$("otGo").addEventListener("click",()=>{const v=$("ot").value.trim();
+  if(!/^\d{4}$/.test(v))return err("otE","Enter the 4-digit code.");
+  if(v!==code)return err("otE","That code does not match. Check it and try again.");
+  login({id:"mobile_"+hash(phone),name:"User",via:"Mobile number",contact:["Mobile number","Ending in "+phone.slice(-4)]})});
+["em","mb","ot"].forEach(id=>$(id).addEventListener("keydown",e=>{if(e.key==="Enter")$({em:"emGo",mb:"mbGo",ot:"otGo"}[id]).click()}));
+$("mx").addEventListener("click",closeModal);
+$("modal").addEventListener("click",e=>{if(e.target===$("modal"))closeModal()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("modal").hidden)closeModal()});
+$("authBtn").addEventListener("click",()=>user?logout():openModal());
+
+/* ===== navigation ===== */
+function view(v){["home","profile"].forEach(x=>{$("v-"+x).hidden=x!==v;const b=$("nav-"+x);b.classList.toggle("on",x===v);if(x===v)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
+  if(v==="profile")drawProfile();window.scrollTo(0,0)}
+$("nav-home").addEventListener("click",()=>view("home"));
+$("nav-profile").addEventListener("click",()=>view("profile"));
+function pick(t){document.querySelectorAll(".tool").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.t===t)));["url","msg","upi","qr"].forEach(x=>$("t-"+x).hidden=x!==t);}
+document.querySelectorAll(".tool").forEach(b=>b.addEventListener("click",()=>pick(b.dataset.t)));
+
+/* ===== result renderer ===== */
+function show(id,r,hl){
+  const b=$(id);b.textContent="";
+  b.append(mk("div","badge "+r.level.toLowerCase(),LBL[r.level]),mk("p","verdict",r.desc));if(r.note)b.append(mk("p","note",r.note));
+  if(hl)b.append(hl);
+  if(r.signals&&r.signals.length){b.append(mk("div","lbl","What stood out"));const ul=mk("ul","sig");r.signals.forEach(s=>ul.append(mk("li","",s)));b.append(ul)}
+  b.append(mk("div","lbl","What to do"),mk("p","txt",r.rec));
+  const nb=mk("button","btn ghost",id==="qrR"?"Scan Another":"Check Another");nb.type="button";nb.style.marginTop="16px";nb.addEventListener("click",RESET[id]);b.append(nb);
+  b.classList.remove("fade");b.hidden=false;
+  try{b.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"nearest"})}catch(e){}}
+
+/* ===== URL analysis ===== */
+const LBL={High:"High Risk",Medium:"Caution",Low:"Low Risk"};
+const OFFICIAL=["google.com"];
+const USERCONTENT=["sites.google.com","drive.google.com","docs.google.com","forms.google.com","script.google.com","drive.usercontent.google.com"];
+const REPOS=["apkpure.com","apkmirror.com","apkmody.io","happymod.com","uptodown.com","aptoide.com","apkcombo.com","mediafire.com","mega.nz","4shared.com","sendspace.com","gofile.io"];
+const CORE=["login","signin","verify","free","mod"];
+const MORE=["account","bank","otp","claim","kyc","prize","reward","password","wallet"];
+const SUBWORDS=["secure","login","signin","verify","account","update","support","wallet","kyc","billing","recovery","confirm"];
+const BRANDS=["paypal","google","microsoft","apple","amazon","facebook","instagram","whatsapp","netflix","paytm","phonepe","sbi","hdfc","icici","flipkart","irctc","telegram","binance","linkedin","airtel","jio","fedex","delhivery"];
+const BRANDOK=["amazonaws.com","microsoftonline.com","googleapis.com","googleusercontent.com","gstatic.com","paypalobjects.com","fbcdn.net","facebook.net","windowsupdate.com"];
+const BRANDDOM=["paypal.com","google.com","microsoft.com","apple.com","amazon.in","amazon.com","facebook.com","instagram.com","whatsapp.com","netflix.com","sbi.co.in","hdfcbank.com","icicibank.com","paytm.com","phonepe.com","flipkart.com"];
+const SHORT=["bit.ly","tinyurl.com","t.co","goo.gl","is.gd","cutt.ly","rb.gy","ow.ly","shorturl.at","tiny.cc","t.ly","rebrand.ly","bl.ink","s.id","v.gd","lnkd.in","buff.ly","tr.ee"];
+const BADTLD=["zip","mov","top","xyz","click","link","icu","cfd","sbs","rest","tk","ml","ga","cf","gq"];
+const SLD=["co","com","org","net","gov","ac","edu","nic"];
+const EXE=["apk","xapk","exe","scr","msi","bat","cmd","com","jar","vbs","ps1","dmg","pkg","lnk","iso","hta","pif","dll"];
+const ARC=["zip","rar","7z","gz","tar","cab","tgz"];
+const TRUSTDL=["github.com","githubusercontent.com","python.org","nodejs.org","mozilla.org","apache.org"];
+const REDIR=["url","redirect","redirect_uri","next","goto","link","target","dest","destination","return","returnurl","continue"];
+const SECRETP=["password","passwd","pass","pwd","otp","pin","cvv","token","card","cardnumber"];
+const REC={file:"Do not download or open the file. Get apps and programs only from the official store or the company's own website.",
+  eicar:"This is an antivirus test name. Download it only on purpose, and expect your antivirus to react.",
+  short:"Do not open short links from people you do not know. Ask for the full address, or use the shortener's preview option.",
+  ip:"Do not enter any details on a page reached through a number address.",
+  phish:"Do not enter passwords, codes or payment details. Type the company's real address yourself."};
+const isHost=(h,r)=>h===r||h.endsWith("."+r);
+function parse(raw){
+  let s=raw.trim();if(!s||/\s/.test(s))return null;
+  if(/^[a-z][a-z0-9+.-]*:/i.test(s)&&!/^https?:\/\//i.test(s)&&!/^[^/]+:\d+/.test(s))return null;
+  if(!/^https?:\/\//i.test(s))s="https://"+s;
+  try{const u=new URL(s);if(!/^https?:$/.test(u.protocol))return null;
+    const ip=/^\d{1,3}(\.\d{1,3}){3}$/.test(u.hostname);
+    if(!ip&&(!u.hostname.includes(".")||u.hostname.split(".").pop().length<2))return null;return u}catch(e){return null}}
+function extractUrl(raw){
+  let s=String(raw||"").trim();if(!s)return null;
+  s=s.replace(/\[\s*\.\s*\]|\(\s*\.\s*\)|\{\s*\.\s*\}/g,".").replace(/hxxp/gi,"http").replace(/\\+/g,"/");
+  const md=s.match(/\]\(\s*([^)\s]+)\s*\)/);if(md)s=md[1];
+  const tail=x=>x.replace(/[.,;:!?'"`]+$/,"");
+  const m=s.match(/(?:^|[^a-z0-9])(h?t{1,3}ps?)\s*:?\s*\/{1,3}\s*([^\s<>"'`\]\)}]+)/i);
+  if(m)return (/s$/i.test(m[1])?"https":"http")+"://"+tail(m[2]);
+  const b=s.match(/(?:^|[^a-z0-9@.\-])((?:[a-z0-9-]+\.)+[a-z]{2,}(?::\d+)?(?:[\/?#][^\s<>"'`\]\)}]*)?|\d{1,3}(?:\.\d{1,3}){3}(?::\d+)?(?:[\/?#][^\s<>"'`\]\)}]*)?)/i);
+  return b?"https://"+tail(b[1]):null}
+function reg(l){const n=l.length;if(n<=2)return l.join(".");if(l[n-1].length===2&&SLD.includes(l[n-2]))return l.slice(-3).join(".");return l.slice(-2).join(".")}
+function analyze(u){
+  const host=u.hostname.toLowerCase(),labels=host.split("."),ip=/^\d{1,3}(\.\d{1,3}){3}$/.test(host)||host.startsWith("[");
+  const main=ip?host:reg(labels),mainLabel=main.split(".")[0],subs=ip?[]:labels.slice(0,labels.length-main.split(".").length);
+  const path=u.pathname,qs=u.search,pq=(path+qs).toLowerCase(),proto=u.protocol.replace(":","").toUpperCase();
+  let seg=path.split("/").pop().toLowerCase();try{seg=decodeURIComponent(seg)}catch(e){}
+  const ext=(seg.match(/\.([a-z0-9]{1,5})$/)||[])[1]||"";
+  const qf=(qs.toLowerCase().match(/([^=&\/]+)\.(apk|xapk|exe|scr|msi|bat|cmd|jar|vbs|zip|rar|7z)(?:&|$)/)||[])[2]||"";
+  const fext=(EXE.includes(ext)||ARC.includes(ext))&&seg.length>ext.length+1?ext:qf;
+  const sig=[],flags=new Set();let score=0,hard=false;
+  const add=(w,t,f,crit)=>{score+=w;sig.push({w:w,t:t});if(f)flags.add(f);if(crit)hard=true};
+  const r={host:host,main:main,proto:proto,path:path,qs:qs,ext:fext||ext};
+  if(!u.username&&!ip&&OFFICIAL.some(o=>isHost(host,o))&&!USERCONTENT.some(o=>isHost(host,o))&&!EXE.includes(fext)&&!/[?&](url|q|redirect|continue|link)=https?/i.test(qs)){
+    r.level="Low";r.official=true;r.flags=[];
+    r.desc="The domain "+host+" belongs to Google by name ("+main+"). Nothing in the address text looks unusual.";
+    r.rec="This matches an official Google address. Check that the page asks for what you expect, and sign in only on addresses that end in google.com.";
+    r.signals=["Main domain is "+main+", which is a Google domain.","The link uses "+proto+(proto==="HTTPS"?", which is encrypted.":".")];return r}
+  const all=toks(host+" "+pq),repo=REPOS.find(d=>isHost(host,d));
+  /* downloads and test files */
+  if(/eicar/.test(pq)||/\.com\.txt$/.test(seg))add(5,"Antivirus test signature: the name \"EICAR\" or a .com.txt file is in the link. It is a harmless test file, but your antivirus will react to it and real malware sometimes copies the name.","eicar",true);
+  else if(fext){
+    if(fext==="apk"||fext==="xapk")add(5,"Direct Android installer (."+fext+"). Installing outside the Play Store skips its security checks.","file",true);
+    else if(EXE.includes(fext))add(5,"Program file (."+fext+"). It can run on your device and install malware.","file",true);
+    else{const t=TRUSTDL.some(d=>isHost(host,d));add(t?2:4,"Compressed archive (."+fext+"). Archives are often used to hide malware from scanners."+(t?" This host is well known, so check what is inside.":""),"file")}}
+  if(/\.(pdf|docx?|xlsx?|jpe?g|png|txt|mp3|mp4)\.(exe|scr|zip|apk|bat|js|vbs|rar)$/.test(seg))add(3,"Disguised file name: a document name followed by a program or archive ending.","file");
+  if(repo)add(4,"Third-party file host ("+main+"). Files here are not checked by an official store.","file");
+  else if(!fext&&all.includes("apk"))add(3,"The word \"apk\" appears in the address, which points to an Android installer.","file");
+  /* host structure */
+  if(ip){const priv=/^(10\.|127\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host);
+    add(priv?2:4,priv?"The address is a private network number ("+host+"), not a public website.":"The link uses a number ("+host+") instead of a site name. Real services almost always use a name.","ip")}
+  if(labels.some(l=>l.startsWith("xn--")))add(4,"The name contains lookalike characters (xn--).","phish");
+  if(u.username||u.password)add(4,"Text before an @ sign is ignored by the browser. The real site is "+host+".","phish");
+  if(u.protocol==="http:")add(1,"The link uses HTTP, so it is not encrypted.");
+  if(u.port&&!["80","443"].includes(u.port))add(1,"The link uses the unusual port "+u.port+".");
+  if(!ip){
+    if(subs.length>=3)add(2,"The name has "+subs.length+" subdomain levels before "+main+", which can bury the real site name.","phish");
+    const hy=(host.match(/-/g)||[]).length;if(hy>=3)add(2,"The name has "+hy+" hyphens.");else if(hy===2)add(1,"The name has 2 hyphens.");
+    const sw=[...new Set(toks(subs.join(" ")).filter(x=>SUBWORDS.includes(x)))];
+    if(sw.length)add(2,"Phishing-style subdomain word"+(sw.length>1?"s":"")+": "+sw.join(", ")+".","phish");
+    const bd=BRANDDOM.find(d=>host.includes(d)&&!isHost(host,d));
+    if(bd)add(5,"The text \""+bd+"\" appears inside the address, but the real site is "+main+".","phish",true);
+    const b=!bd&&!BRANDOK.includes(main)&&BRANDS.find(x=>host.split(/[.\-]/).some(p=>p===x||p.startsWith(x))&&mainLabel!==x);
+    if(b)add(4,"The brand name \""+b+"\" is used, but the main domain is "+main+", not "+b+".","phish",true);
+    if(!bd&&!b){
+      const norm=mainLabel.replace(/0/g,"o").replace(/1/g,"l").replace(/3/g,"e").replace(/5/g,"s").replace(/rn/g,"m").replace(/vv/g,"w"),col=x=>x.replace(/(.)\1+/g,"$1");
+      const lk=BRANDS.find(x=>mainLabel!==x&&(norm===x||col(mainLabel)===col(x)));
+      if(lk)add(5,"The name \""+mainLabel+"\" is a lookalike spelling of \""+lk+"\".","phish",true)}
+    if(BADTLD.includes(labels[labels.length-1]))add(1,"The ending ."+labels[labels.length-1]+" is overused by short-lived sites.");
+    if(SHORT.includes(main))add(2,"Short link ("+main+"): the real destination is hidden until you open it.","short")}
+  /* query string and path */
+  const qp=[...u.searchParams.entries()];
+  const rd=qp.find(x=>REDIR.includes(x[0].toLowerCase())&&/^(https?:)?\/\//i.test(x[1]));
+  if(rd)add(2,"The link forwards you to another site through the \""+rd[0]+"\" setting in its query string.","phish");
+  const sp=qp.find(x=>SECRETP.includes(x[0].toLowerCase()));
+  if(sp)add(3,"The query string carries a sensitive field (\""+sp[0]+"\"). Real sites never ask for secrets inside a link.","phish");
+  if(/(https?:\/\/|https?%3a)/i.test(path))add(2,"A second web address is hidden inside the path.","phish");
+  if((qs.match(/%[0-9a-f]{2}/gi)||[]).length>=10)add(1,"Heavily encoded text in the query string, which can hide its purpose.");
+  if(qs.length>150)add(1,"The query string is very long.");
+  if(u.href.length>120)add(1,"The link is very long, which can hide where it leads.");
+  /* keywords */
+  const hits=[...new Set(all.filter(w=>CORE.includes(w)))],more=[...new Set(all.filter(w=>MORE.includes(w)))];
+  if(hits.length)add(4,"Flagged word"+(hits.length>1?"s":"")+" in the address: "+hits.join(", ")+". Pages like this are often used for phishing.","phish",true);
+  if(more.length)add(1,"Account-related words found: "+more.join(", ")+".");
+  const level=hard||score>=4?"High":score>=2?"Medium":"Low";
+  sig.sort((a,b)=>b.w-a.w);r.signals=sig.map(x=>x.t);r.flags=[...flags];r.level=level;
+  const top=r.signals[0]||"";
+  r.desc=level==="High"?"This link is very likely dangerous. Main reason: "+top:level==="Medium"?"Parts of this link look unusual. Main reason: "+top:sig.length?"Only a minor pattern was found in "+host+".":"No suspicious patterns found in the address text for "+host+".";
+  r.rec=({High:"Do not open this link. ",Medium:"Be careful before you open this link. ",Low:"Normal care applies. This result does not confirm that the site is safe. "})[level]+r.flags.map(f=>REC[f]).slice(0,2).join(" ")+(level==="Low"?"Never share passwords or one-time codes on a page you did not open yourself.":"");
+  return r}
+
+function stepCard(n,h,items){const d=mk("div","step");const ul=mk("ul");items.forEach(i=>ul.append(mk("li","",i)));d.append(mk("div","n",n),mk("h4","",h),ul);return d}
+function steps(r){
+  const box=$("steps");box.textContent="";
+  if(!r){box.append(
+    stepCard("01 / PASTE","Bring the link here",["Paste a complete website, download or APK link.","The text stays in your browser.","The check reads the protocol, host name, path and query string."]),
+    stepCard("02 / NOTICE","Review the address patterns",["Looks for APK, EXE, SCR and ZIP downloads and antivirus test files.","Looks for number addresses, short links and fake subdomains.","Looks for words such as login, verify, free and mod, and for forwarding tricks."]),
+    stepCard("03 / DECIDE","Choose your next step",["Use the result as one input, not the final word.","Never share passwords or one-time codes on a link you did not open yourself.","Check who runs a site before you download anything from it."]));return}
+  const clip=(x,n)=>x.length>n?x.slice(0,n)+"…":x;
+  const c1=["Protocol: "+r.proto+(r.proto==="HTTPS"?" (encrypted).":" (not encrypted)."),"Host name: "+r.host+".","Main domain: "+r.main+".","Path: "+(clip(r.path,34)||"/")+(r.ext?" (file type ."+r.ext+")":"")+".","Query string: "+(r.qs?clip(r.qs,34):"none")+"."];
+  const c2=r.signals.length?r.signals:["No unusual patterns were found in the host name, path or query string.","No downloads, test files, number addresses or lookalike names were found.","This only covers the address text."];
+  const d=r.official?["Verdict: Low Risk. The address matches an official Google domain.","Check that the page asks only for what you expect.","Sign in only on addresses that end in google.com."]
+    :["Verdict: "+LBL[r.level]+(r.level==="Low"?", based on the address text only.":".")].concat(r.flags.slice(0,2).map(f=>REC[f]));
+  if(d.length<3)d.push(r.level==="Low"?"Check who runs the site before you download or pay.":"If it came in a message, do not reply to it.");
+  box.append(stepCard("01 / PASTE","Analysis for "+r.host,c1),stepCard("02 / NOTICE","What stood out",c2),stepCard("03 / DECIDE","Your next step",d));
+  $("stepsSub").textContent="These steps now match the link you checked."}
+function scanUrl(){
+  if(!gate())return;const raw=$("url").value,cl=extractUrl(raw),u=cl?parse(cl):null;
+  if(!u){err("urlE","No web address was found in that text. Paste a link such as https://example.com/page or example.com/page.");$("urlR").hidden=true;return}
+  $("urlE").hidden=true;const r=analyze(u);
+  if(cl!==raw.trim())r.note="Cleaned up and checked as: "+u.href;
+  show("urlR",r);steps(r);logScan("Link",u.href,r.level)}
+
+/* ===== message analysis ===== */
+const PLAT={"WhatsApp":"On WhatsApp, be wary of unknown numbers, job offers, gaming groups and \"wrong number\" chats. Block and report the sender inside the app.",
+"Instagram DM":"Instagram messages from accounts you do not follow that offer prizes, jobs, brand deals or investments are a common scam. Report the account.",
+"Telegram":"Telegram groups that promise daily income, trading tips or gaming rewards are a common fraud route. Leave the group and report it.",
+"SMS":"Banks send SMS from sender names, not personal numbers, and never ask for your OTP or PIN. Do not reply with codes.",
+"Email":"Check the sender's real address, not only the display name. Do not open attachments or links you did not expect."};
+let plat="WhatsApp";
+Object.keys(PLAT).forEach(k=>{const b=mk("button","chip",k);b.type="button";b.setAttribute("aria-pressed",String(k===plat));
+  b.addEventListener("click",()=>{plat=k;document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",String(c===b)))});$("plat").append(b)});
+const RULES=[
+{l:"Color prediction or betting platform",w:5,tip:"Color prediction and betting apps are often rigged and can be illegal. Do not deposit, recharge or share bank details.",re:/\b(91 ?club|tiranga( games?)?|daman( games?)?|wingo|jalwa|ssj ?fin|ok ?win|bdg ?win|rajaluck|goa ?games?|(colou?r|number) prediction|prediction (group|hack|tips?|app)|satta|matka|betting (id|app|tips?)|sure ?shot)\b/gi},
+{l:"Gaming, casino or betting offer",w:3,re:/\b(rummy|teen ?patti|aviator|casino|online betting|ludo (earn|cash|game)|dream ?11|fantasy (cricket|league))\b/gi},
+{l:"Welcome gift, bonus or reward bait",w:3,re:/\b(welcome (gift|bonus|reward)s?|(free|gift|bonus|reward) (code|coupon|voucher|cash|money|recharge)|(claim|get|collect|win)[^.\n]{0,20}(gift|reward|bonus|cash)|(gift|reward|bonus)s?[^.\n]{0,15}(waiting|ready|credited|unlocked)|(first|1st) (deposit|recharge) bonus|sign ?up bonus|register (and|&) (get|win|earn))\b/gi},
+{l:"Login or recharge to claim or withdraw",w:4,tip:"Real rewards never need you to log in, recharge or pay a fee to withdraw them.",re:/\b(log ?in (now |here |today )?to (claim|get|withdraw|receive|collect)|(recharge|deposit|pay)[^.\n]{0,20}(to )?(withdraw|unlock|claim)|withdraw(al)? (limit|failed|pending|blocked)|unlock (your )?withdraw(al)?)\b/gi},
+{l:"Prize or lottery claim",w:3,re:/\b(lottery|lucky draw|jackpot|winner|you (have )?won|claim (your )?(prize|reward|gift)|congratulations?[^.\n]{0,40}(won|selected))\b/gi},
+{l:"Urgent KYC or details update",w:3,tip:"Banks do not ask you to update KYC through links or messages. Use the bank's official app or visit a branch.",re:/\b(kyc|know your customer|pan (card )?(update|verification)|aadhaar (update|link)|update (your )?(details|account))\b/gi},
+{l:"Account, card or SIM block threat",w:3,re:/\b(account|card|upi|wallet|sim)[^.\n]{0,30}(block(ed)?|suspend(ed)?|deactivat(ed|ion)|frozen|freeze|closed|expire[sd]?)\b/gi},
+{l:"Utility or net banking cut-off threat",w:3,re:/\b(electricity|power|gas|net ?banking|pan card)[^.\n]{0,40}(disconnect(ed|ion)?|cut off|block(ed)?|deactivat(ed|ion)|terminated|suspend(ed)?)\b/gi},
+{l:"Unauthorized UPI or refund request",w:5,tip:"You never need your UPI PIN to receive money. Decline any collect request you did not start.",re:/\b(collect request|request money|approve (the |this )?(request|payment)|accept (the |this )?(collect )?request|(receive|get|claim)[^.\n]{0,25}(enter|using|with) (your )?(upi )?pin|scan (this )?qr[^.\n]{0,25}(receive|get|claim|refund)|(refund|cashback)[^.\n]{0,25}(upi pin|scan|accept)|(mistakenly|wrongly|by mistake)[^.\n]{0,25}(sent|transferred|credited)[^.\n]{0,25}(return|send back|refund))\b/gi},
+{l:"Fake parcel or delivery notice",w:3,re:/\b(parcel|package|courier|delivery|shipment|customs)[^.\n]{0,50}(held|failed|pending|undelivered|fee|charge|reschedule|address|redeliver)/gi},
+{l:"Crypto or investment bait",w:3,re:/\b(crypto|bitcoin|usdt|forex|trading (group|tips)|guaranteed (returns?|profit)|double your (money|investment)|daily (profit|income)|investment (plan|opportunity)|stock tips)\b/gi},
+{l:"Request for OTP, PIN or password",w:5,tip:"Never share an OTP, PIN or password with anyone, even if they say they work for your bank.",re:/\b(share|send|tell|enter|provide|confirm)[^.\n]{0,25}(otp|pin|cvv|password|passcode|card number)\b|\b(otp|cvv|upi pin)[^.\n]{0,20}(share|send)/gi},
+{l:"Fee or advance payment request",w:3,re:/\b(processing fee|registration fee|joining fee|training fee|activation fee|security deposit|refundable deposit|pay (a )?(small )?(fee|amount)|send (me )?money|gift cards?)\b/gi},
+{l:"Fake job offer",w:3,tip:"Real employers do not charge fees or pay for likes, reviews or tasks.",re:/\b(hiring|vacanc(y|ies)|job offer|work from home|part[- ]time|data entry|typing job|earn (up to )?(₹|rs\.?|inr)? ?\d[\d,]*\s?(per|a|every|daily|weekly|monthly)|salary (₹|rs\.?|inr)? ?\d+|no (experience|investment) (needed|required)|joining fee|training fee|task (based|work)|(like|subscribe|review)[^.\n]{0,15}tasks?|prepaid tasks?|hr (manager|team))\b/gi},
+{l:"Remote access app request",w:4,re:/\b(anydesk|teamviewer|quicksupport|screen ?share|remote (access|support))\b/gi},
+{l:"Fake arrest or legal threat",w:4,re:/\b(digital arrest|arrest warrant|legal action against you|narcotics|cbi officer)\b/gi},
+{l:"Emergency money request",w:3,re:/\b(i am (in|stuck)[^.\n]{0,30}(hospital|airport|trouble)|your (son|daughter|relative)[^.\n]{0,20}(accident|arrest))\b/gi},
+{l:"Asks you to contact an unknown number",w:2,re:/\b(call|whatsapp|contact|message|text) (us |me )?(now |today )?(on|at)?:? ?(\+?91[\s-]?)?[6-9]\d{9}\b/gi},
+{p:"Telegram",l:"Paid signals or VIP group pitch",w:3,re:/\b(vip (group|channel|signals?)|paid signals?|pump (group|signals?)|join (my|our|the) (group|channel))\b/gi},
+{p:"Instagram DM",l:"Fake brand deal or account warning",w:2,re:/\b(brand (deal|collab)|paid (promotion|collab)|follow (and|&) (win|earn)|giveaway winner|copyright (violation|infringement)|account (will be )?(deleted|disabled))\b/gi},
+{p:"Email",l:"Unexpected attachment or invoice",w:2,re:/\b(attached (invoice|file|document|statement)|payment (advice|receipt)|invoice (attached|no\.?)|open the attachment|\.(zip|exe|scr|html?))\b/gi},
+{n:1,l:"Authority name used to scare you",w:2,re:/\b(police|customs|cyber ?crime|court|income tax (notice|department))\b/gi},
+{n:1,l:"Pressure to act fast",w:2,re:/\b(urgent(ly)?|immediately|within \d+ ?(hours?|hrs?|minutes?|mins?)|last chance|act now|expires? (today|soon)|final (notice|warning)|today only)\b/gi},
+{n:1,l:"Pushes you to click or install",w:2,re:/\b(click (here|the link|below)|tap (here|the link)|open (the )?link|download (the )?(app|apk)|install (the )?app)\b/gi},
+{n:1,l:"Generic greeting or account warning",w:1,re:/\b(dear (customer|user|account holder|valued)|verify your (account|identity|email)|your (mailbox|storage) is full|password (will )?expire)/gi}];
+const LINKRE=/\b(?:https?:\/\/|www\.)[^\s<>"')\]}]+|\b(?:[a-z0-9-]+\.)+(?:com|in|net|org|xyz|top|link|click|co|info|app|cc|ly|me|online|site|live|shop|vip|icu|apk|zip)(?:\/[^\s<>"')\]}]*)?/gi;
+function evalMsg(txt,pl){
+  let score=0,lure=false,short=false;const sig=[],ranges=[],tips=[];
+  RULES.forEach(R=>{if(R.p&&R.p!==pl)return;const re=new RegExp(R.re.source,"gi");let m,first=null;
+    while((m=re.exec(txt))){if(!first)first=m[0];ranges.push([m.index,m.index+m[0].length]);if(m[0].length===0)re.lastIndex++}
+    if(first){score+=R.w;if(!R.n)lure=true;if(R.tip&&tips.indexOf(R.tip)<0)tips.push(R.tip);sig.push(R.l+": \""+first.slice(0,50)+"\"")}});
+  const lre=new RegExp(LINKRE.source,"gi");let m,n=0;
+  while((m=lre.exec(txt))&&n<3){if(m.index>0&&txt[m.index-1]==="@")continue;
+    const s=m[0].replace(/[.,;!?\]}]+$/,""),u=parse(s);if(!u)continue;n++;
+    const a=analyze(u);ranges.push([m.index,m.index+s.length]);
+    if(a.flags.indexOf("short")>=0)short=true;
+    if(a.level==="High"){score+=4;sig.push("Link to "+a.host+" is High Risk. "+a.signals[0])}
+    else if(a.level==="Medium"){score+=2;sig.push("Link to "+a.host+" needs Caution. "+a.signals[0])}
+    else{score+=1;sig.push("The message contains a link ("+a.host+"). Do not tap links you did not expect.")}}
+  const letters=txt.replace(/[^a-z]/gi,"");
+  if(letters.length>30&&letters.replace(/[^A-Z]/g,"").length/letters.length>0.5){score+=1;sig.push("Most of the message is in capital letters.")}
+  if(/[!?]{3,}/.test(txt)){score+=1;sig.push("Repeated exclamation or question marks.")}
+  if(short&&lure){score=Math.max(score,5);sig.unshift("Short link combined with reward, bank, job or scam wording. Scammers use short links to hide the real address.")}
+  return{level:rate(score,5,2),sig:sig,ranges:ranges,tips:tips}}
+function hlNode(txt,ranges){
+  ranges.sort((a,b)=>a[0]-b[0]);const m=[];
+  ranges.forEach(r=>{const l=m[m.length-1];if(l&&r[0]<=l[1])l[1]=Math.max(l[1],r[1]);else m.push([r[0],r[1]])});
+  const w=mk("div"),d=mk("div","hl");let i=0;
+  m.forEach(x=>{if(x[0]>i)d.append(document.createTextNode(txt.slice(i,x[0])));d.append(mk("mark","",txt.slice(x[0],x[1])));i=x[1]});
+  if(i<txt.length)d.append(document.createTextNode(txt.slice(i)));
+  w.append(mk("div","lbl","Your message, with warning signs marked"),d);return w}
+function scanMsg(){
+  if(!gate())return;const txt=$("msg").value.trim();
+  if(txt.length<8){err("msgE","Paste the full message first. It needs at least a few words.");$("msgR").hidden=true;return}
+  $("msgE").hidden=true;
+  const e=evalMsg(txt,plat),level=e.level;
+  const r={level:level,signals:e.sig,
+    desc:level==="High"?"This message matches several common fraud patterns. Treat it as a scam until proven otherwise.":level==="Medium"?"This message has patterns that scammers often use. Be careful.":"No common scam patterns were found in this message text. That does not prove it is genuine.",
+    rec:(level==="High"?"Do not reply, click any link, install anything or share codes. Block and report the sender. If you already acted, call your bank and 1930 straight away. ":level==="Medium"?"Do not click links or share details. Confirm with the company using a phone number or website you already trust. ":"Stay careful with links and requests for money or codes. ")+e.tips.slice(0,2).join(" ")+" "+PLAT[plat]};
+  show("msgR",r,e.ranges.length?hlNode(txt,e.ranges):null);logScan("Message ("+plat+")",txt,level)}
+
+/* ===== number and UPI ===== */
+const HANDLES=["okaxis","oksbi","okhdfcbank","okicici","ybl","ibl","axl","paytm","apl","upi","sbi","hdfcbank","icici","axisbank","pnb","boi","cnrb","kotak","yesbank","indus","fbl","aubank","freecharge","postbank","unionbank","airtel","jio","slice"];
+const UPIWORDS=["refund","lottery","kyc","prize","reward","cashback","claim","support","care","helpdesk","customer","official","bank","rbi","govt","tax","loan","offer","winner","gift","verify"];
+const UPIRE=/^[a-z0-9._-]{2,64}@[a-z][a-z0-9]{1,30}$/i;
+function upiId(id){
+  const p=id.toLowerCase().split("@"),name=p[0],h=p[1],sig=[];let s=0;
+  if(!HANDLES.includes(h)){s+=2;sig.push("The handle @"+h+" is not one of the common UPI handles. Confirm it in your payment app.")}
+  const w=toks(name).filter(x=>UPIWORDS.includes(x));
+  if(w.length){s+=3;sig.push("The ID contains \""+w.join("\", \"")+"\". Scam IDs often use words that sound official.")}
+  if((name.match(/\d/g)||[]).length>=8&&!/^\d{10}$/.test(name)){s+=1;sig.push("The ID has many digits and does not look like a phone number.")}
+  return{s:s,sig:sig}}
+function checkUpi(v){
+  const s=v.trim();
+  if(s.includes("@")){
+    if(!UPIRE.test(s))return null;const x=upiId(s),level=rate(x.s,4,2);
+    return{level:level,signals:x.sig,
+      desc:level==="High"?"This UPI ID has patterns often seen in fraud.":level==="Medium"?"Parts of this UPI ID deserve a closer look.":"Nothing unusual in the format of this UPI ID. This cannot show whether it has been reported.",
+      rec:"Check the name your payment app shows before you pay. You never need a PIN to receive money, so refuse any request to enter your PIN for a refund or prize."}}
+  const p=s.replace(/[\s-]/g,""),m=p.match(/^(?:\+?91|0)?([6-9]\d{9})$/),sig=[];let sc=0;
+  if(m){if(/(\d)\1{6,}/.test(m[1])){sc+=1;sig.push("The number has a long run of the same digit.")}}
+  else if(/^\+\d{8,15}$/.test(p)){sc+=2;sig.push("This is an international number ("+p.slice(0,4)+"…). Scam calls and messages often come from numbers you do not expect.")}
+  else return null;
+  const level=rate(sc,4,2);
+  return{level:level,signals:sig,
+    desc:level==="Low"?"The format looks like a normal "+(m?"Indian mobile":"international")+" number. This cannot show whether it has been reported.":"This number has a pattern worth a closer look. This cannot show whether it has been reported.",
+    rec:"Do not share OTPs, PINs or card details with anyone who calls or messages you, even if they say they are from your bank. Hang up and call the number printed on your card."}}
+function scanUpi(){
+  if(!gate())return;const v=$("upi").value,r=checkUpi(v);
+  if(!r){err("upiE","Enter a 10-digit mobile number, a number with a + country code, or a UPI ID such as name@bank.");$("upiR").hidden=true;return}
+  $("upiE").hidden=true;show("upiR",r);logScan("Number / UPI",v.trim(),r.level)}
+
+/* ===== QR ===== */
+function qrAnalyze(t){
+  const sig=[];let sc=0,desc,rec;
+  if(/^upi:\/\//i.test(t)){
+    let q;try{q=new URL(t).searchParams}catch(e){q=new URLSearchParams()}
+    const pa=q.get("pa")||"",pn=q.get("pn"),am=q.get("am");sc=1;
+    sig.push("This is a payment QR code. Scanning it leads to paying money, not receiving it.");
+    if(pn)sig.push("Payee name in the code: "+pn+". Check it matches who you mean to pay.");
+    if(am){sc+=1;sig.push("The code already sets an amount: "+am+".")}
+    if(UPIRE.test(pa)){const x=upiId(pa);sc+=x.s;sig.push.apply(sig,x.sig)}else{sc+=2;sig.push("The payee ID is missing or malformed.")}
+    const level=rate(sc,4,2);
+    return{level:level,signals:sig,desc:level==="Low"?"A normal-looking payment QR code. This cannot show whether the payee is genuine.":"This payment QR code has details worth checking before you pay.",
+      rec:"Scan payment QR codes only when you want to pay. If anyone says you will receive money by scanning, it is a scam. Check the payee name your app shows before you enter an amount."}}
+  const u=parse(t);
+  if(u){const a=analyze(u);a.signals=a.signals.concat(["A QR code hides the link until you scan it. Read the address your phone shows before you open it."]);
+    a.rec+=" If the code is a sticker on a poster, parking meter or table, check that it has not been stuck over the original.";return a}
+  const sch=t.match(/^([a-z][a-z0-9+.-]*):/i);
+  if(sch){sc=2;sig.push("The code starts an action of type \""+sch[1].toLowerCase()+":\" such as a call, text, email or Wi-Fi join.");
+    return{level:"Medium",signals:sig,desc:"This QR code does more than show text.",rec:"Read what your phone asks you to do before you allow it. Do not join networks or send messages you did not plan to."}}
+  return{level:"Low",signals:[],desc:"This QR code contains plain text and no link. Nothing suspicious was found.",rec:"Plain text is not harmful on its own. Be careful if it tells you to call a number or send money."}}
+function qrRun(val){
+  if(!gate())return;const t=val.trim();
+  if(!t){err("qrE","Scan a QR code, upload an image, or paste its contents first.");$("qrR").hidden=true;return}
+  $("qrE").hidden=true;const r=qrAnalyze(t);show("qrR",r);logScan("QR code",t,r.level)}
+let decoder=null,bdBad=false;
+const cv=document.createElement("canvas"),cx=cv.getContext("2d",{willReadFrequently:true});
+function loadJsQR(){
+  return new Promise(res=>{
+    if(window.jsQR)return res(true);
+    const s=document.createElement("script");
+    s.src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js";
+    s.onload=()=>res(!!window.jsQR);s.onerror=()=>res(false);
+    document.head.append(s);setTimeout(()=>res(!!window.jsQR),8000)})}
+async function decodeSource(src,w,h){
+  const k=Math.min(1,1600/Math.max(w,h));cv.width=Math.max(1,Math.round(w*k));cv.height=Math.max(1,Math.round(h*k));
+  cx.drawImage(src,0,0,cv.width,cv.height);
+  if("BarcodeDetector" in window&&!bdBad){
+    try{if(!decoder)decoder=new BarcodeDetector({formats:["qr_code"]});const r=await decoder.detect(cv);if(r.length)return r[0].rawValue}
+    catch(e){bdBad=true}}
+  if(window.jsQR){const d=cx.getImageData(0,0,cv.width,cv.height),q=window.jsQR(d.data,d.width,d.height,{inversionAttempts:"attemptBoth"});if(q&&q.data)return q.data}
+  return null}
+function loadImg(f){return new Promise((ok,no)=>{const u=URL.createObjectURL(f),i=new Image();i.onload=()=>{ok(i);URL.revokeObjectURL(u)};i.onerror=()=>{URL.revokeObjectURL(u);no()};i.src=u})}
+async function onQrFile(e){
+  const f=e.target.files&&e.target.files[0];e.target.value="";if(!f)return;
+  if(!user){openModal();return}
+  $("qrE").hidden=true;
+  try{
+    await loadJsQR();
+    const i=await loadImg(f),val=await decodeSource(i,i.naturalWidth,i.naturalHeight);
+    if(!val){err("qrE","No QR code was found in that picture. Try again with the whole code in view, steady and well lit, or paste the QR contents below.");return}
+    $("qrTxt").value=val;qrRun(val)}
+  catch(x){err("qrE","That picture could not be opened. Try another photo or a JPG or PNG screenshot, or paste the QR contents below.")}}
+["qrCam","qrFile"].forEach(id=>$(id).addEventListener("change",onQrFile));
+["camLbl","upLbl"].forEach(id=>$(id).addEventListener("click",e=>{if(!user){e.preventDefault();openModal()}}));
+$("qrGo").addEventListener("click",()=>qrRun($("qrTxt").value));
+
+/* ===== profile ===== */
+function drawHist(h){
+  const L=$("hist");L.textContent="";$("clr").hidden=!user||!h.length;
+  if(!user){L.append(mk("li","txt","Sign in to see your scan history."));return}
+  if(!h.length){L.append(mk("li","txt","No checks yet. Results from all four tools appear here."));return}
+  h.forEach(x=>{const li=mk("li","hi"),top=mk("div","hrow");
+    top.append(mk("span","badge sm "+x.level.toLowerCase(),LBL[x.level]||x.level),mk("span","ht",x.type),
+      mk("span","hd",new Date(x.t).toLocaleString([],{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})));
+    li.append(top,mk("div","hin",x.input));L.append(li)})}
+function drawProfile(){
+  const a=$("acct");a.textContent="";const h=hist();
+  if(!user){a.append(mk("p","txt","You are signed out. Sign in to run checks and see your account details."));
+    const b=mk("button","btn","Login");b.type="button";b.style.marginTop="12px";b.addEventListener("click",openModal);a.append(b)}
+  else{
+    const top=mk("div","who"),d=mk("div");
+    d.append(mk("div","nm",user.name),mk("span","badge sm low","Signed in"));
+    top.append(mk("div","avatar",user.name.charAt(0).toUpperCase()),d);a.append(top);
+    const kv=mk("div","kv");
+    [["Status","Logged in"],["Sign-in method",user.via],[user.contact[0],user.contact[1]],["Checks saved here",String(h.length)]].forEach(p=>kv.append(mk("span","k",p[0]),mk("span","v",p[1])));
+    a.append(kv);const b=mk("button","btn ghost","Logout");b.type="button";b.addEventListener("click",logout);a.append(b)}
+  drawHist(h)}
+let armed=false;
+$("clr").addEventListener("click",()=>{
+  if(!armed){armed=true;$("clr").textContent="Tap again to clear history";setTimeout(()=>{armed=false;$("clr").textContent="Clear history"},4000);return}
+  armed=false;try{if(hkey())store.removeItem(hkey())}catch(e){}$("clr").textContent="Clear history";drawProfile()});
+
+/* ===== wire up ===== */
+function hideRes(id){const b=$(id);if(b.hidden)return;b.classList.add("fade");setTimeout(()=>{b.hidden=true;b.classList.remove("fade")},200)}
+const RESET={
+  urlR(){$("url").value="";$("urlE").hidden=true;hideRes("urlR");steps(null);$("stepsSub").textContent="Check a link and these steps update to match it.";$("url").focus()},
+  msgR(){$("msg").value="";$("msgE").hidden=true;hideRes("msgR");$("msg").focus()},
+  upiR(){$("upi").value="";$("upiE").hidden=true;hideRes("upiR");$("upi").focus()},
+  qrR(){$("qrTxt").value="";$("qrCam").value="";$("qrFile").value="";$("qrE").hidden=true;hideRes("qrR")}};
+$("copy1930").addEventListener("click",()=>{
+  const b=$("copy1930"),done=()=>{b.textContent="Copied: 1930";setTimeout(()=>{b.textContent="Copy number"},2500)};
+  const fb=()=>{try{const t=document.createElement("textarea");t.value="1930";t.style.position="fixed";t.style.opacity="0";document.body.append(t);t.select();document.execCommand("copy");t.remove();done()}catch(e){b.textContent="Dial 1930"}};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText("1930").then(done,fb);else fb()});
+$("urlGo").addEventListener("click",scanUrl);$("url").addEventListener("keydown",e=>{if(e.key==="Enter")scanUrl()});
+$("msgGo").addEventListener("click",scanMsg);
+$("upiGo").addEventListener("click",scanUpi);$("upi").addEventListener("keydown",e=>{if(e.key==="Enter")scanUpi()});
+window.addEventListener("storage",e=>{if(e.key!==SK)return;const was=user;user=loadSession();paint();
+  if(!user&&was){clearScreen();openModal()}else if(user&&!was)$("modal").hidden=true;
+  if(!$("v-profile").hidden)drawProfile()});
+paint();steps(null);if(!user)openModal();
+})();
+</script>
+</body>
+</html>
