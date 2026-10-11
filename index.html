@@ -103,6 +103,15 @@ details.faq p{font-size:14px;color:var(--mute);margin-top:6px}
 label.btn{display:inline-block;text-align:center}
 .vh:focus-visible+label{outline:3px solid var(--accent-orange);outline-offset:2px}
 .res{transition:opacity .2s}.res.fade{opacity:0}
+main{animation:vin .22s ease}
+@keyframes vin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){main{animation:none}}
+.bk{font:inherit;font-weight:600;font-size:15px;color:var(--accent-green);background:transparent;border:0;padding:6px 0;margin-bottom:10px;cursor:pointer}
+.menu{width:100%;display:flex;align-items:center;gap:10px;font:inherit;text-align:left;background:transparent;border:0;border-top:1px solid var(--line);padding:15px 2px;color:var(--ink);cursor:pointer}
+.menu:first-of-type{border-top:0}
+.menu .ml{flex:1;font-weight:600}
+.menu .cnt{color:var(--mute);font-size:13px}
+.menu .ar{color:var(--mute);font-size:18px}
 a.btn{display:inline-block;text-decoration:none;text-align:center}
 .report{background:var(--orange-bg);border:1px solid var(--accent-orange);border-radius:14px;padding:16px;margin-bottom:14px;color:var(--orange-ink);font-size:14px}
 .report h3{font-size:16px;margin-bottom:6px}
@@ -176,9 +185,10 @@ a.btn{display:inline-block;text-decoration:none;text-align:center}
     <h1>Profile</h1>
     <p class="lead">Your account, your past checks and help in one place.</p>
     <section class="card"><h2>Account</h2><div id="acct" style="margin-top:12px"></div></section>
-    <section class="card"><h2>Scan History</h2><p class="sd">Saved in this browser for your account only. Newest checks appear first.</p>
-      <ul class="hist" id="hist"></ul>
-      <button class="btn ghost" id="clr" type="button" style="margin-top:12px" hidden>Clear history</button></section>
+    <section class="card"><h2>History &amp; Privacy</h2>
+      <button class="menu" id="mHist" type="button"><span class="ml">🕘 Scan History</span><span class="cnt" id="histCnt"></span><span class="ar" aria-hidden="true">›</span></button>
+      <button class="menu" id="mPriv" type="button"><span class="ml">🔒 Privacy Policy</span><span class="ar" aria-hidden="true">›</span></button>
+    </section>
     <section class="card"><h2>Support / Help &amp; Report Fraud</h2><p class="sd">Report a scam first, then read answers to common questions.</p>
       <div class="report"><h3>Report Fraud</h3>
         <p>If you lost money or shared a code, act fast. Quick reports give the best chance of stopping a transfer.</p>
@@ -200,6 +210,27 @@ a.btn{display:inline-block;text-decoration:none;text-align:center}
       <details class="faq"><summary>Why is a short link or a download flagged?</summary><p>Short links such as bit.ly hide the real address, and APK, EXE, SCR and ZIP files can carry malware. A file named EICAR is an antivirus test file, harmless by design, but it is flagged on purpose.</p></details>
       <details class="faq"><summary>What are color prediction and gaming reward scams?</summary><p>Messages promising welcome gifts or bonuses from apps such as 91Club, then asking you to log in, recharge or pay a fee to withdraw. The winnings never arrive. Do not deposit money or share bank details.</p></details>
       <details class="faq"><summary>Where is my history stored?</summary><p>Only in this browser on this device. Clearing history here, or your browser data, removes it.</p></details>
+    </section>
+  </main>
+
+  <!-- SCAN HISTORY (sub-view of Profile) -->
+  <main id="v-history" hidden>
+    <button class="bk" id="hBack" type="button">← Back</button>
+    <h1>Scan History</h1>
+    <p class="lead">Saved in this browser for your account only. Newest checks appear first.</p>
+    <section class="card">
+      <ul class="hist" id="hist"></ul>
+      <button class="btn ghost" id="clr" type="button" style="margin-top:14px;width:100%" hidden>Clear history</button>
+    </section>
+  </main>
+
+  <!-- PRIVACY POLICY (sub-view of Profile) -->
+  <main id="v-privacy" hidden>
+    <button class="bk" id="pBack" type="button">← Back</button>
+    <h1>Privacy Policy</h1>
+    <section class="card">
+      <h2>Privacy Policy &amp; Disclaimer:</h2>
+      <p class="txt" style="color:var(--ink);margin-top:8px">TrustCheck Shield is an educational and threat analysis tool designed for awareness. Results are generated based on pattern analysis and public security databases. Users should verify through official sources before making financial decisions.</p>
     </section>
   </main>
 </div>
@@ -280,7 +311,7 @@ function closeModal(){$("modal").hidden=true;if(lastFocus&&lastFocus.focus)lastF
 function paint(){$("authBtn").textContent=user?"Logout":"Login";$("welcome").hidden=!user;if(user)$("welcome").textContent="Hi, "+user.name}
 function login(u){user=u;try{store.setItem(SK,JSON.stringify(u))}catch(e){}paint();$("modal").hidden=true;if(!$("v-profile").hidden)drawProfile()}
 function clearScreen(){["urlR","msgR","upiR","qrR"].forEach(i=>$(i).hidden=true);["url","msg","upi","qrTxt"].forEach(i=>$(i).value="");["urlE","msgE","upiE","qrE"].forEach(i=>$(i).hidden=true);steps(null);$("stepsSub").textContent="Check a link and these steps update to match it."}
-function logout(){user=null;try{store.removeItem(SK)}catch(e){}paint();clearScreen();if(!$("v-profile").hidden)drawProfile();openModal()}
+function logout(){user=null;try{store.removeItem(SK)}catch(e){}paint();clearScreen();if(!$("v-history").hidden)view("profile");else if(!$("v-profile").hidden)drawProfile();openModal()}
 function gate(){if(user)return true;openModal();return false}
 document.querySelectorAll("[data-p]").forEach(b=>b.addEventListener("click",()=>{const p=b.dataset.p;pane.p=p;
   $("emL").textContent="Your "+p+" email ID";$("em").placeholder="name@"+p.toLowerCase()+".com";pane("p-email","Sign in with "+p)}));
@@ -306,16 +337,21 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("modal").hidden)
 $("authBtn").addEventListener("click",()=>user?logout():openModal());
 
 /* ===== navigation ===== */
-function view(v){["home","profile"].forEach(x=>{$("v-"+x).hidden=x!==v;const b=$("nav-"+x);b.classList.toggle("on",x===v);if(x===v)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
-  if(v==="profile")drawProfile();window.scrollTo(0,0)}
+const VIEWS=["home","profile","history","privacy"];
+function view(v){
+  VIEWS.forEach(x=>$("v-"+x).hidden=x!==v);
+  const tab=v==="home"?"home":"profile";
+  ["home","profile"].forEach(x=>{const b=$("nav-"+x);b.classList.toggle("on",x===tab);if(x===tab)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
+  if(v==="profile")drawProfile();if(v==="history")drawHistView();
+  window.scrollTo(0,0)}
 $("nav-home").addEventListener("click",()=>view("home"));
 $("nav-profile").addEventListener("click",()=>view("profile"));
-function pick(t){document.querySelectorAll(".tool").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.t===t)));["url","msg","upi","qr"].forEach(x=>$("t-"+x).hidden=x!==t);}
+function pick(t){document.querySelectorAll(".tool").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.t===t)));const same=!$("t-"+t).hidden;["url","msg","upi","qr"].forEach(x=>$("t-"+x).hidden=x!==t);if(!same)["urlR","msgR","upiR","qrR"].forEach(i=>$(i).hidden=true)}
 document.querySelectorAll(".tool").forEach(b=>b.addEventListener("click",()=>pick(b.dataset.t)));
 
 /* ===== result renderer ===== */
 function show(id,r,hl){
-  const b=$(id);b.textContent="";
+  const b=$(id);b.textContent="";["urlR","msgR","upiR","qrR"].forEach(x=>{if(x!==id)$(x).hidden=true});
   b.append(mk("div","badge "+r.level.toLowerCase(),LBL[r.level]),mk("p","verdict",r.desc));if(r.note)b.append(mk("p","note",r.note));
   if(hl)b.append(hl);
   if(r.signals&&r.signals.length){b.append(mk("div","lbl","What stood out"));const ul=mk("ul","sig");r.signals.forEach(s=>ul.append(mk("li","",s)));b.append(ul)}
@@ -641,16 +677,20 @@ async function onQrFile(e){
 $("qrGo").addEventListener("click",()=>{if(!gate())return;const t=$("qrTxt").value.trim();if(!validQr(t)){err("qrE","Invalid QR content. Please paste a valid QR URL, UPI string, or readable text.");$("qrR").hidden=true;return}qrRun(t)});
 
 /* ===== profile ===== */
-function drawHist(h){
-  const L=$("hist");L.textContent="";$("clr").hidden=!user||!h.length;
-  if(!user){L.append(mk("li","txt","Sign in to see your scan history."));return}
+function drawHistView(){
+  const L=$("hist");L.textContent="";const h=hist();$("clr").hidden=!h.length;
   if(!h.length){L.append(mk("li","txt","No checks yet. Results from all four tools appear here."));return}
   h.forEach(x=>{const li=mk("li","hi"),top=mk("div","hrow");
     top.append(mk("span","badge sm "+x.level.toLowerCase(),LBL[x.level]||x.level),mk("span","ht",x.type),
       mk("span","hd",new Date(x.t).toLocaleString([],{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})));
     li.append(top,mk("div","hin",x.input));L.append(li)})}
+let armed=false;
+$("clr").addEventListener("click",()=>{
+  if(!armed){armed=true;$("clr").textContent="Tap again to clear history";setTimeout(()=>{armed=false;$("clr").textContent="Clear history"},4000);return}
+  armed=false;$("clr").textContent="Clear history";try{if(hkey())store.removeItem(hkey())}catch(e){}drawHistView()});
 function drawProfile(){
   const a=$("acct");a.textContent="";const h=hist();
+  $("histCnt").textContent=user?h.length+(h.length===1?" check":" checks"):"";
   if(!user){a.append(mk("p","txt","You are signed out. Sign in to run checks and see your account details."));
     const b=mk("button","btn","Login");b.type="button";b.style.marginTop="12px";b.addEventListener("click",openModal);a.append(b)}
   else{
@@ -659,12 +699,11 @@ function drawProfile(){
     top.append(mk("div","avatar",user.name.charAt(0).toUpperCase()),d);a.append(top);
     const kv=mk("div","kv");
     [["Status","Logged in"],["Sign-in method",user.via],[user.contact[0],user.contact[1]],["Checks saved here",String(h.length)]].forEach(p=>kv.append(mk("span","k",p[0]),mk("span","v",p[1])));
-    a.append(kv);const b=mk("button","btn ghost","Logout");b.type="button";b.addEventListener("click",logout);a.append(b)}
-  drawHist(h)}
-let armed=false;
-$("clr").addEventListener("click",()=>{
-  if(!armed){armed=true;$("clr").textContent="Tap again to clear history";setTimeout(()=>{armed=false;$("clr").textContent="Clear history"},4000);return}
-  armed=false;try{if(hkey())store.removeItem(hkey())}catch(e){}$("clr").textContent="Clear history";drawProfile()});
+    a.append(kv);const b=mk("button","btn ghost","Logout");b.type="button";b.addEventListener("click",logout);a.append(b)}}
+$("mHist").addEventListener("click",()=>{if(!user){openModal();return}view("history")});
+$("mPriv").addEventListener("click",()=>view("privacy"));
+$("hBack").addEventListener("click",()=>view("profile"));
+$("pBack").addEventListener("click",()=>view("profile"));
 
 /* ===== wire up ===== */
 function hideRes(id){const b=$(id);if(b.hidden)return;b.classList.add("fade");setTimeout(()=>{b.hidden=true;b.classList.remove("fade")},200)}
@@ -681,7 +720,7 @@ $("urlGo").addEventListener("click",scanUrl);$("url").addEventListener("keydown"
 $("msgGo").addEventListener("click",scanMsg);
 $("upiGo").addEventListener("click",scanUpi);$("upi").addEventListener("keydown",e=>{if(e.key==="Enter")scanUpi()});
 window.addEventListener("storage",e=>{if(e.key!==SK)return;const was=user;user=loadSession();paint();
-  if(!user&&was){clearScreen();openModal()}else if(user&&!was)$("modal").hidden=true;
+  if(!user&&was){clearScreen();if(!$("v-history").hidden)view("profile");openModal()}else if(user&&!was)$("modal").hidden=true;
   if(!$("v-profile").hidden)drawProfile()});
 paint();steps(null);if(!user)openModal();
 })();
