@@ -1,128 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"> <!-- THREE-FILE VERSION: this page loads style.css and script.js -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>TrustCheck Shield</title>
-<style>
-:root{--bg-color:#f1f4ed;--card:#fff;--ink:#1f332b;--mute:#566a61;--accent-green:#2d5a4c;--accent-orange:#d9822b;--orange-bg:#fdf3e7;--orange-ink:#7a4812;--line:#dfe6db;--soft:#f7f9f4;--on-green:#fff;
---lowbg:#e6f4ea;--lowfg:#137333;--medbg:#fef3dc;--medfg:#8f5200;--highbg:#fce8e6;--highfg:#b3261e;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg-color:#121a17;--card:#1a2622;--ink:#e8efe9;--mute:#9db0a6;--accent-green:#7fc4a9;--orange-bg:#2e2412;--orange-ink:#f0c58a;--line:#2b3a34;--soft:#16201c;--on-green:#10211a;--lowbg:#17301f;--lowfg:#7fd39a;--medbg:#3a2d12;--medfg:#f0b861;--highbg:#3b1b19;--highfg:#f2918a}}
-:root[data-theme="dark"]{--bg-color:#121a17;--card:#1a2622;--ink:#e8efe9;--mute:#9db0a6;--accent-green:#7fc4a9;--orange-bg:#2e2412;--orange-ink:#f0c58a;--line:#2b3a34;--soft:#16201c;--on-green:#10211a;--lowbg:#17301f;--lowfg:#7fd39a;--medbg:#3a2d12;--medfg:#f0b861;--highbg:#3b1b19;--highfg:#f2918a}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-*{box-sizing:border-box;margin:0}
-body{background:var(--bg-color);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;min-height:100vh}
-.shell{max-width:760px;margin:0 auto;padding:18px 16px 110px}
-header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:24px}
-.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;color:var(--accent-green)}
-.mark{width:32px;height:32px;border-radius:9px;background:var(--accent-green);color:var(--on-green);display:grid;place-items:center}
-.right{display:flex;align-items:center;gap:12px}
-#welcome{font-weight:600;color:var(--mute);font-size:14px}
-.btn{font:inherit;font-weight:600;border:0;border-radius:10px;padding:11px 18px;cursor:pointer;background:var(--accent-green);color:var(--on-green)}
-.btn.ghost{background:transparent;color:var(--accent-green);border:1px solid var(--line)}
-:is(button,input,textarea,summary):focus-visible{outline:3px solid var(--accent-orange);outline-offset:2px}
-h1{font:700 clamp(26px,6vw,36px)/1.15 "Iowan Old Style",Georgia,serif;color:var(--accent-green);margin-bottom:6px}
-.lead{color:var(--mute);margin-bottom:18px;max-width:54ch}
-.tools{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
-.tool{text-align:left;font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;cursor:pointer;display:grid;gap:4px}
-.tool .ic{font-size:22px}.tool b{font-size:14px;color:var(--accent-green)}.tool span.d{font-size:12px;color:var(--mute);line-height:1.35}
-.tool[aria-pressed="true"]{border:2px solid var(--accent-green);padding:13px;background:var(--soft)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:14px}
-.card h2{font-size:16px;margin-bottom:4px;color:var(--accent-green)}
-.card .sd{color:var(--mute);font-size:13px;margin-bottom:12px}
-.field{display:flex;gap:10px;flex-wrap:wrap}.field input{flex:1 1 220px;min-width:0}
-input,textarea{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:10px;background:var(--soft);color:var(--ink);font:inherit}
-textarea{min-height:130px;resize:vertical}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
-.chip{font:inherit;font-size:13px;font-weight:600;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--soft);color:var(--mute);cursor:pointer}
-.chip[aria-pressed="true"]{background:var(--accent-green);color:var(--on-green);border-color:var(--accent-green)}
-.err{color:var(--highfg);font-size:14px;margin-top:10px}
-.note{color:var(--mute);font-size:13px;margin-top:10px}
-.res{margin-top:18px;padding-top:18px;border-top:1px solid var(--line)}
-.badge{display:inline-block;padding:6px 14px;border-radius:999px;font-weight:700;font-size:14px;margin-bottom:10px}
-.badge.sm{padding:2px 10px;font-size:12px;margin:0}
-.low{background:var(--lowbg);color:var(--lowfg)}.medium{background:var(--medbg);color:var(--medfg)}.high{background:var(--highbg);color:var(--highfg)}
-.verdict{margin-bottom:6px}
-.lbl{font-weight:700;color:var(--accent-green);font-size:14px;margin-top:14px;margin-bottom:4px}
-.txt{color:var(--mute);font-size:14px}
-ul.sig{list-style:none;padding:0;display:grid;gap:6px}
-ul.sig li{font-size:14px;padding-left:16px;position:relative}
-ul.sig li::before{content:"";position:absolute;left:0;top:.6em;width:6px;height:6px;border-radius:50%;background:var(--accent-orange)}
-.hl{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:14px;white-space:pre-wrap;word-break:break-word;max-height:220px;overflow:auto}
-mark{background:var(--highbg);color:var(--highfg);border-radius:4px;padding:0 3px;font-weight:600}
-.row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
-.banner{display:flex;gap:12px;background:var(--orange-bg);border:1px solid var(--accent-orange);border-radius:14px;padding:14px 16px;margin:6px 0 26px;color:var(--orange-ink);font-size:14px}
-.banner b.tag{background:var(--accent-orange);color:#fff;border-radius:6px;padding:2px 8px;font-size:12px;height:fit-content;white-space:nowrap}
-h3.sec{font:700 22px/1.2 "Iowan Old Style",Georgia,serif;color:var(--accent-green);margin-top:22px}
-.sub{color:var(--mute);margin:4px 0 14px;font-size:14px}
-.steps{display:grid;gap:10px}
-.step{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-.step .n{font-weight:700;font-size:13px;color:var(--accent-orange)}
-.step h4{font-size:15px;color:var(--accent-green);margin:2px 0 6px}
-.step ul{list-style:none;padding:0;display:grid;gap:5px}
-.step li{font-size:13px;padding-left:16px;position:relative}
-.step li::before{content:"";position:absolute;left:0;top:.55em;width:6px;height:6px;border-radius:50%;background:var(--accent-orange)}
-/* profile */
-.who{display:flex;align-items:center;gap:14px;margin-bottom:14px}
-.avatar{width:52px;height:52px;border-radius:50%;background:var(--accent-green);color:var(--on-green);display:grid;place-items:center;font-weight:800;font-size:22px}
-.nm{font-weight:700;font-size:18px}
-.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin-bottom:14px;font-size:14px}
-.kv .k{color:var(--mute)}.kv .v{font-weight:600;word-break:break-all}
-ul.hist{list-style:none;padding:0;display:grid;gap:10px;margin-top:6px}
-.hi{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--soft)}
-.hrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.ht{font-weight:600;font-size:13px}.hd{margin-left:auto;font-size:12px;color:var(--mute)}
-.hin{font-size:13px;color:var(--mute);margin-top:4px;word-break:break-all}
-details.faq{border-top:1px solid var(--line);padding:10px 0}
-details.faq summary{cursor:pointer;font-weight:600;font-size:14px}
-details.faq p{font-size:14px;color:var(--mute);margin-top:6px}
-/* nav */
-.bar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:center;gap:8px;padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px))}
-.bar button{flex:1;max-width:260px;font:inherit;font-size:13px;font-weight:600;border:0;border-radius:12px;background:transparent;color:var(--mute);padding:8px;cursor:pointer;display:grid;gap:2px;justify-items:center}
-.bar button .ic{font-size:21px}
-.bar button.on{background:var(--soft);color:var(--accent-green)}
-/* modal */
-#modal{position:fixed;inset:0;background:rgba(18,30,25,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50;overflow:auto}
-.box{background:var(--card);border:1px solid var(--line);border-radius:20px;width:100%;max-width:420px;padding:26px;position:relative}
-.box h2{font:700 22px/1.2 "Iowan Old Style",Georgia,serif;color:var(--accent-green);text-align:center}
-.box .s{text-align:center;color:var(--mute);font-size:14px;margin:6px 0 18px}
-.x{position:absolute;top:10px;right:12px;background:none;border:0;font-size:24px;line-height:1;color:var(--mute);cursor:pointer;padding:6px}
-.prov{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;margin-bottom:10px;border:1px solid var(--line);border-radius:10px;background:var(--soft);color:var(--ink);font:inherit;font-weight:600;cursor:pointer}
-.prov i{font-style:normal;font-weight:800;width:22px;height:22px;border-radius:6px;background:var(--accent-green);color:var(--on-green);display:grid;place-items:center;font-size:13px}
-.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.row3 .prov{margin:0;padding:11px 6px;font-size:13px;flex-direction:column;gap:4px}
-.div{text-align:center;font-weight:700;color:var(--mute);font-size:13px;margin:18px 0 6px;display:flex;align-items:center;gap:10px}
-.div::before,.div::after{content:"";flex:1;height:1px;background:var(--line)}
-.fine{text-align:center;color:var(--mute);font-size:12px}
-.pane label{display:block;font-weight:600;font-size:14px;margin-bottom:6px}
-.pane .btn{width:100%;margin-top:10px}
-.back{display:block;margin:10px auto 0;background:none;border:0;color:var(--mute);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
-.demo{background:var(--medbg);color:var(--medfg);border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:12px}
-.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0 0 0 0)}
-label.btn{display:inline-block;text-align:center}
-.vh:focus-visible+label{outline:3px solid var(--accent-orange);outline-offset:2px}
-.res{transition:opacity .2s}.res.fade{opacity:0}
-main{animation:vin .22s ease}
-@keyframes vin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){main{animation:none}}
-.bk{font:inherit;font-weight:600;font-size:15px;color:var(--accent-green);background:transparent;border:0;padding:6px 0;margin-bottom:10px;cursor:pointer}
-.menu{width:100%;display:flex;align-items:center;gap:10px;font:inherit;text-align:left;background:transparent;border:0;border-top:1px solid var(--line);padding:15px 2px;color:var(--ink);cursor:pointer}
-.menu:first-of-type{border-top:0}
-.menu .ml{flex:1;font-weight:600}
-.menu .cnt{color:var(--mute);font-size:13px}
-.menu .ar{color:var(--mute);font-size:18px}
-.lopt{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 14px;margin-bottom:10px;border:1px solid var(--line);border-radius:10px;background:var(--soft);color:var(--ink);font:inherit;font-weight:600;text-align:left;cursor:pointer}
-.lopt[aria-checked="true"]{border:2px solid var(--accent-green);padding:12px 13px}
-.lopt .ck{color:var(--accent-green);font-weight:800;visibility:hidden}
-.lopt[aria-checked="true"] .ck{visibility:visible}
-a.btn{display:inline-block;text-decoration:none;text-align:center}
-.report{background:var(--orange-bg);border:1px solid var(--accent-orange);border-radius:14px;padding:16px;margin-bottom:14px;color:var(--orange-ink);font-size:14px}
-.report h3{font-size:16px;margin-bottom:6px}
-.report ol{margin:8px 0 12px 20px;display:grid;gap:4px}
-[hidden]{display:none!important}
-@media (min-width:600px){.tools{grid-template-columns:repeat(4,1fr)}}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="shell">
@@ -299,505 +181,329 @@ a.btn{display:inline-block;text-decoration:none;text-align:center}
 window.addEventListener("error",function(e){try{var d=document.getElementById("errbar");if(!d){d=document.createElement("div");d.id="errbar";d.style.cssText="position:fixed;left:8px;right:8px;top:8px;z-index:99;background:#b3261e;color:#fff;padding:10px 12px;border-radius:10px;font:13px/1.4 system-ui,sans-serif;word-break:break-word";d.onclick=function(){d.remove()};document.body.appendChild(d)}d.textContent="Page error: "+(e.message||"unknown")+(e.lineno?" (line "+e.lineno+")":"")+". Tap to dismiss."}catch(x){}});
 </script>
 <script>
-(function(){
-"use strict";
-/* Shows any page error on screen (tap to dismiss). */
-window.addEventListener("error",function(e){try{var d=document.getElementById("errbar");if(!d){d=document.createElement("div");d.id="errbar";d.style.cssText="position:fixed;left:8px;right:8px;top:8px;z-index:99;background:#b3261e;color:#fff;padding:10px 12px;border-radius:10px;font:13px/1.4 system-ui,sans-serif;word-break:break-word";d.onclick=function(){d.remove()};document.body.appendChild(d)}d.textContent="Page error: "+(e.message||"unknown")+(e.lineno?" (line "+e.lineno+")":"")+". Tap to dismiss."}catch(x){}});
-/* If index.html does not match this file, missing elements are replaced by harmless stand-ins instead of crashing. */
-const MISSING=[];
-function ghost(){return new Proxy(function(){},{get:(t,k)=>k===Symbol.toPrimitive||k==="toString"||k==="valueOf"?()=>"":k==="then"?undefined:k==="length"?0:ghost(),set:()=>true,apply:()=>ghost()})}
-const $=id=>document.getElementById(id)||(MISSING.indexOf(id)<0&&MISSING.push(id),ghost());
-function reportMismatch(){
-  const m=[];
-  if(MISSING.length)m.push("index.html does not match app.js (missing: "+MISSING.slice(0,6).join(", ")+(MISSING.length>6?", ...":"")+"). Upload the matching index.html.");
-  if(!ROWS.length)m.push("Translation files i18n1.js and i18n2.js did not load, so only English works.");
-  if(!m.length)return;
-  let d=document.getElementById("errbar");
-  if(!d){d=document.createElement("div");d.id="errbar";d.style.cssText="position:fixed;left:8px;right:8px;top:8px;z-index:99;background:#b3261e;color:#fff;padding:10px 12px;border-radius:10px;font:13px/1.4 system-ui,sans-serif;word-break:break-word";d.onclick=function(){d.remove()};document.body.appendChild(d)}
-  d.textContent="File check: "+m.join(" ")+" Tap to dismiss."}
-const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
-const err=(id,m)=>{const e=$(id);e.textContent=m;e.hidden=false};
-const toks=s=>s.split(/[^a-z0-9]+/).filter(Boolean);
-const rate=(s,hi,med)=>s>=hi?"High":s>=med?"Medium":"Low";
-let user=null,phone="",code="",lastFocus=null;
-const store=(()=>{try{const t="__tcs";localStorage.setItem(t,"1");localStorage.removeItem(t);return localStorage}catch(e){const m={};return{getItem:k=>(k in m?m[k]:null),setItem:(k,v)=>{m[k]=String(v)},removeItem:k=>{delete m[k]}}}})();
-const SK="tcs_session";
-function hash(x){let h=5381;for(let i=0;i<x.length;i++)h=((h<<5)+h+x.charCodeAt(i))>>>0;return h.toString(36)}
-function loadSession(){try{const u=JSON.parse(store.getItem(SK)||"null");return u&&u.id&&u.name&&Array.isArray(u.contact)?u:null}catch(e){return null}}
-user=loadSession();
-
-/* ===== history ===== */
-const hkey=()=>user?"history_"+user.id:null;
-function hist(){const k=hkey();if(!k)return[];try{const h=JSON.parse(store.getItem(k)||"[]");return Array.isArray(h)?h:[]}catch(e){return[]}}
-function logScan(type,input,level){const k=hkey();if(!k)return;const h=hist();h.unshift({type:type,input:input.replace(/\s+/g," ").slice(0,60),level:level,t:Date.now()});try{store.setItem(k,JSON.stringify(h.slice(0,50)))}catch(e){}}
-
-/* ===== auth ===== */
-const panes=["p-opts","p-email","p-mob","p-otp"];
-function pane(id,sub){panes.forEach(p=>$(p).hidden=p!==id);$("ms").textContent=sub||"Sign in to run checks and see your results.";
-  ["emE","mbE","otE"].forEach(e=>$(e).hidden=true);
-  const f={"p-email":"em","p-mob":"mb","p-otp":"ot"}[id];if(f){$(f).value="";setTimeout(()=>$(f).focus(),0)}}
-function openModal(){lastFocus=document.activeElement;pane("p-opts");$("modal").hidden=false;setTimeout(()=>$("p-opts").querySelector("button").focus(),0)}
-function closeModal(){$("modal").hidden=true;if(lastFocus&&lastFocus.focus)lastFocus.focus()}
-function paint(){$("authBtn").textContent=user?"Logout":"Login";$("welcome").hidden=!user;if(user)$("welcome").textContent="Hi, "+user.name}
-function login(u){user=u;try{store.setItem(SK,JSON.stringify(u))}catch(e){}paint();$("modal").hidden=true;if(!$("v-profile").hidden)drawProfile()}
-function clearScreen(){["urlR","msgR","upiR","qrR"].forEach(i=>$(i).hidden=true);["url","msg","upi","qrTxt"].forEach(i=>$(i).value="");["urlE","msgE","upiE","qrE"].forEach(i=>$(i).hidden=true);steps(null);$("stepsSub").textContent="Check a link and these steps update to match it."}
-function logout(){user=null;try{store.removeItem(SK)}catch(e){}paint();clearScreen();if(!$("v-history").hidden)view("profile");else if(!$("v-profile").hidden)drawProfile();openModal()}
-function gate(){if(user)return true;openModal();return false}
-document.querySelectorAll("[data-p]").forEach(b=>b.addEventListener("click",()=>{const p=b.dataset.p;pane.p=p;
-  $("emL").textContent="Your "+p+" email ID";$("em").placeholder="name@"+p.toLowerCase()+".com";pane("p-email","Sign in with "+p)}));
-$("mobBtn").addEventListener("click",()=>pane("p-mob","Mobile number sign-in"));
-document.querySelectorAll("[data-back]").forEach(b=>b.addEventListener("click",()=>pane("p-opts")));
-$("emGo").addEventListener("click",()=>{const v=$("em").value.trim();
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v))return err("emE","Enter a valid email ID, such as name@example.com.");
-  const n=v.split("@")[0].replace(/[._\-+0-9]+/g," ").trim().split(" ")[0]||"User";
-  login({id:v.toLowerCase(),name:n.charAt(0).toUpperCase()+n.slice(1),via:pane.p||"Email",contact:["Email ID",v]})});
-$("mbGo").addEventListener("click",()=>{const v=$("mb").value.trim();
-  if(!/^\d{10}$/.test(v))return err("mbE","Enter exactly 10 digits, with no spaces or country code.");
-  phone=v;code=String(Math.floor(1000+Math.random()*9000));
-  $("demo").textContent="Demo mode: no text message is sent. Your verification code is "+code+".";
-  pane("p-otp","Code requested for the number ending in "+phone.slice(-4))});
-$("otGo").addEventListener("click",()=>{const v=$("ot").value.trim();
-  if(!/^\d{4}$/.test(v))return err("otE","Enter the 4-digit code.");
-  if(v!==code)return err("otE","That code does not match. Check it and try again.");
-  login({id:"mobile_"+hash(phone),name:"User",via:"Mobile number",contact:["Mobile number","Ending in "+phone.slice(-4)]})});
-["em","mb","ot"].forEach(id=>$(id).addEventListener("keydown",e=>{if(e.key==="Enter")$({em:"emGo",mb:"mbGo",ot:"otGo"}[id]).click()}));
-$("mx").addEventListener("click",closeModal);
-$("modal").addEventListener("click",e=>{if(e.target===$("modal"))closeModal()});
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("modal").hidden)closeModal()});
-$("authBtn").addEventListener("click",()=>user?logout():openModal());
-
-/* ===== navigation ===== */
-const VIEWS=["home","profile","history","privacy","language"];
-function view(v){
-  VIEWS.forEach(x=>{const e=$("v-"+x);if(e)e.hidden=x!==v});
-  const tab=v==="home"?"home":"profile";
-  ["home","profile"].forEach(x=>{const b=$("nav-"+x);if(!b)return;b.classList.toggle("on",x===tab);if(x===tab)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
-  if(v==="profile")drawProfile();if(v==="history")drawHistView();
-  window.scrollTo(0,0)}
-$("nav-home").addEventListener("click",()=>view("home"));
-$("nav-profile").addEventListener("click",()=>view("profile"));
-function pick(t){document.querySelectorAll(".tool").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.t===t)));const same=!$("t-"+t).hidden;["url","msg","upi","qr"].forEach(x=>$("t-"+x).hidden=x!==t);if(!same)["urlR","msgR","upiR","qrR"].forEach(i=>$(i).hidden=true)}
-document.querySelectorAll(".tool").forEach(b=>b.addEventListener("click",()=>pick(b.dataset.t)));
-
-/* ===== result renderer ===== */
-function show(id,r,hl){
-  const b=$(id);b.textContent="";["urlR","msgR","upiR","qrR"].forEach(x=>{if(x!==id)$(x).hidden=true});
-  b.append(mk("div","badge "+r.level.toLowerCase(),LBL[r.level]),mk("p","verdict",r.desc));if(r.note)b.append(mk("p","note",r.note));
-  if(hl)b.append(hl);
-  if(r.signals&&r.signals.length){b.append(mk("div","lbl","What stood out"));const ul=mk("ul","sig");r.signals.forEach(s=>ul.append(mk("li","",s)));b.append(ul)}
-  b.append(mk("div","lbl","What to do"),mk("p","txt",r.rec));
-  const nb=mk("button","btn ghost",id==="qrR"?"Scan Another":"Check Another");nb.type="button";nb.style.marginTop="16px";nb.addEventListener("click",RESET[id]);b.append(nb);
-  b.classList.remove("fade");b.hidden=false;
-  try{b.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"nearest"})}catch(e){}}
-
-/* ===== URL analysis ===== */
-const LBL={High:"High Risk",Medium:"Caution",Low:"Low Risk"};
-const OFFICIAL=["google.com"];
-const USERCONTENT=["sites.google.com","drive.google.com","docs.google.com","forms.google.com","script.google.com","drive.usercontent.google.com"];
-const REPOS=["apkpure.com","apkmirror.com","apkmody.io","happymod.com","uptodown.com","aptoide.com","apkcombo.com","mediafire.com","mega.nz","4shared.com","sendspace.com","gofile.io"];
-const CORE=["login","signin","verify","free","mod"];
-const MORE=["account","bank","otp","claim","kyc","prize","reward","password","wallet"];
-const SUBWORDS=["secure","login","signin","verify","account","update","support","wallet","kyc","billing","recovery","confirm"];
-const BRANDS=["paypal","google","microsoft","apple","amazon","facebook","instagram","whatsapp","netflix","paytm","phonepe","sbi","hdfc","icici","flipkart","irctc","telegram","binance","linkedin","airtel","jio","fedex","delhivery"];
-const BRANDOK=["amazonaws.com","microsoftonline.com","googleapis.com","googleusercontent.com","gstatic.com","paypalobjects.com","fbcdn.net","facebook.net","windowsupdate.com"];
-const BRANDDOM=["paypal.com","google.com","microsoft.com","apple.com","amazon.in","amazon.com","facebook.com","instagram.com","whatsapp.com","netflix.com","sbi.co.in","hdfcbank.com","icicibank.com","paytm.com","phonepe.com","flipkart.com"];
-const SHORT=["bit.ly","tinyurl.com","t.co","goo.gl","is.gd","cutt.ly","rb.gy","ow.ly","shorturl.at","tiny.cc","t.ly","rebrand.ly","bl.ink","s.id","v.gd","lnkd.in","buff.ly","tr.ee"];
-const BADTLD=["zip","mov","top","xyz","click","link","icu","cfd","sbs","rest","tk","ml","ga","cf","gq"];
-const SLD=["co","com","org","net","gov","ac","edu","nic"];
-const EXE=["apk","xapk","exe","scr","msi","bat","cmd","com","jar","vbs","ps1","dmg","pkg","lnk","iso","hta","pif","dll"];
-const ARC=["zip","rar","7z","gz","tar","cab","tgz"];
-const TRUSTDL=["github.com","githubusercontent.com","python.org","nodejs.org","mozilla.org","apache.org"];
-const REDIR=["url","redirect","redirect_uri","next","goto","link","target","dest","destination","return","returnurl","continue"];
-const SECRETP=["password","passwd","pass","pwd","otp","pin","cvv","token","card","cardnumber"];
-const REC={file:"Do not download or open the file. Get apps and programs only from the official store or the company's own website.",
-  eicar:"This is an antivirus test name. Download it only on purpose, and expect your antivirus to react.",
-  short:"Do not open short links from people you do not know. Ask for the full address, or use the shortener's preview option.",
-  ip:"Do not enter any details on a page reached through a number address.",
-  phish:"Do not enter passwords, codes or payment details. Type the company's real address yourself."};
-const isHost=(h,r)=>h===r||h.endsWith("."+r);
-function parse(raw){
-  let s=raw.trim();if(!s||/\s/.test(s))return null;
-  if(/^[a-z][a-z0-9+.-]*:/i.test(s)&&!/^https?:\/\//i.test(s)&&!/^[^/]+:\d+/.test(s))return null;
-  if(!/^https?:\/\//i.test(s))s="https://"+s;
-  try{const u=new URL(s);if(!/^https?:$/.test(u.protocol))return null;
-    const ip=/^\d{1,3}(\.\d{1,3}){3}$/.test(u.hostname);
-    if(!ip&&(!u.hostname.includes(".")||u.hostname.split(".").pop().length<2))return null;return u}catch(e){return null}}
-function extractUrl(raw){
-  let s=String(raw||"").trim();if(!s)return null;
-  s=s.replace(/\[\s*\.\s*\]|\(\s*\.\s*\)|\{\s*\.\s*\}/g,".").replace(/hxxp/gi,"http").replace(/\\+/g,"/");
-  const md=s.match(/\]\(\s*([^)\s]+)\s*\)/);if(md)s=md[1];
-  const tail=x=>x.replace(/[.,;:!?'"`]+$/,"");
-  const m=s.match(/(?:^|[^a-z0-9])(h?t{1,3}ps?)\s*:?\s*\/{1,3}\s*([^\s<>"'`\]\)}]+)/i);
-  if(m)return (/s$/i.test(m[1])?"https":"http")+"://"+tail(m[2]);
-  const b=s.match(/(?:^|[^a-z0-9@.\-])((?:[a-z0-9-]+\.)+[a-z]{2,}(?::\d+)?(?:[\/?#][^\s<>"'`\]\)}]*)?|\d{1,3}(?:\.\d{1,3}){3}(?::\d+)?(?:[\/?#][^\s<>"'`\]\)}]*)?)/i);
-  return b?"https://"+tail(b[1]):null}
-function reg(l){const n=l.length;if(n<=2)return l.join(".");if(l[n-1].length===2&&SLD.includes(l[n-2]))return l.slice(-3).join(".");return l.slice(-2).join(".")}
-function analyze(u){
-  const host=u.hostname.toLowerCase(),labels=host.split("."),ip=/^\d{1,3}(\.\d{1,3}){3}$/.test(host)||host.startsWith("[");
-  const main=ip?host:reg(labels),mainLabel=main.split(".")[0],subs=ip?[]:labels.slice(0,labels.length-main.split(".").length);
-  const path=u.pathname,qs=u.search,pq=(path+qs).toLowerCase(),proto=u.protocol.replace(":","").toUpperCase();
-  let seg=path.split("/").pop().toLowerCase();try{seg=decodeURIComponent(seg)}catch(e){}
-  const ext=(seg.match(/\.([a-z0-9]{1,5})$/)||[])[1]||"";
-  const qf=(qs.toLowerCase().match(/([^=&\/]+)\.(apk|xapk|exe|scr|msi|bat|cmd|jar|vbs|zip|rar|7z)(?:&|$)/)||[])[2]||"";
-  const fext=(EXE.includes(ext)||ARC.includes(ext))&&seg.length>ext.length+1?ext:qf;
-  const sig=[],flags=new Set();let score=0,hard=false;
-  const add=(w,t,f,crit)=>{score+=w;sig.push({w:w,t:t});if(f)flags.add(f);if(crit)hard=true};
-  const r={host:host,main:main,proto:proto,path:path,qs:qs,ext:fext||ext};
-  if(!u.username&&!ip&&OFFICIAL.some(o=>isHost(host,o))&&!USERCONTENT.some(o=>isHost(host,o))&&!EXE.includes(fext)&&!/[?&](url|q|redirect|continue|link)=https?/i.test(qs)){
-    r.level="Low";r.official=true;r.flags=[];
-    r.desc="The domain "+host+" belongs to Google by name ("+main+"). Nothing in the address text looks unusual.";
-    r.rec="This matches an official Google address. Check that the page asks for what you expect, and sign in only on addresses that end in google.com.";
-    r.signals=["Main domain is "+main+", which is a Google domain.","The link uses "+proto+(proto==="HTTPS"?", which is encrypted.":".")];return r}
-  const all=toks(host+" "+pq),repo=REPOS.find(d=>isHost(host,d));
-  /* downloads and test files */
-  if(/eicar/.test(pq)||/\.com\.txt$/.test(seg))add(5,"Antivirus test signature: the name \"EICAR\" or a .com.txt file is in the link. It is a harmless test file, but your antivirus will react to it and real malware sometimes copies the name.","eicar",true);
-  else if(fext){
-    if(fext==="apk"||fext==="xapk")add(5,"Direct Android installer (."+fext+"). Installing outside the Play Store skips its security checks.","file",true);
-    else if(EXE.includes(fext))add(5,"Program file (."+fext+"). It can run on your device and install malware.","file",true);
-    else{const t=TRUSTDL.some(d=>isHost(host,d));add(t?2:4,"Compressed archive (."+fext+"). Archives are often used to hide malware from scanners."+(t?" This host is well known, so check what is inside.":""),"file")}}
-  if(/\.(pdf|docx?|xlsx?|jpe?g|png|txt|mp3|mp4)\.(exe|scr|zip|apk|bat|js|vbs|rar)$/.test(seg))add(3,"Disguised file name: a document name followed by a program or archive ending.","file");
-  if(repo)add(4,"Third-party file host ("+main+"). Files here are not checked by an official store.","file");
-  else if(!fext&&all.includes("apk"))add(3,"The word \"apk\" appears in the address, which points to an Android installer.","file");
-  /* host structure */
-  if(ip){const priv=/^(10\.|127\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host);
-    add(priv?2:4,priv?"The address is a private network number ("+host+"), not a public website.":"The link uses a number ("+host+") instead of a site name. Real services almost always use a name.","ip")}
-  if(labels.some(l=>l.startsWith("xn--")))add(4,"The name contains lookalike characters (xn--).","phish");
-  if(u.username||u.password)add(4,"Text before an @ sign is ignored by the browser. The real site is "+host+".","phish");
-  if(u.protocol==="http:")add(1,"The link uses HTTP, so it is not encrypted.");
-  if(u.port&&!["80","443"].includes(u.port))add(1,"The link uses the unusual port "+u.port+".");
-  if(!ip){
-    if(subs.length>=3)add(2,"The name has "+subs.length+" subdomain levels before "+main+", which can bury the real site name.","phish");
-    const hy=(host.match(/-/g)||[]).length;if(hy>=3)add(2,"The name has "+hy+" hyphens.");else if(hy===2)add(1,"The name has 2 hyphens.");
-    const sw=[...new Set(toks(subs.join(" ")).filter(x=>SUBWORDS.includes(x)))];
-    if(sw.length)add(2,"Phishing-style subdomain word"+(sw.length>1?"s":"")+": "+sw.join(", ")+".","phish");
-    const bd=BRANDDOM.find(d=>host.includes(d)&&!isHost(host,d));
-    if(bd)add(5,"The text \""+bd+"\" appears inside the address, but the real site is "+main+".","phish",true);
-    const b=!bd&&!BRANDOK.includes(main)&&BRANDS.find(x=>host.split(/[.\-]/).some(p=>p===x||p.startsWith(x))&&mainLabel!==x);
-    if(b)add(4,"The brand name \""+b+"\" is used, but the main domain is "+main+", not "+b+".","phish",true);
-    if(!bd&&!b){
-      const norm=mainLabel.replace(/0/g,"o").replace(/1/g,"l").replace(/3/g,"e").replace(/5/g,"s").replace(/rn/g,"m").replace(/vv/g,"w"),col=x=>x.replace(/(.)\1+/g,"$1");
-      const lk=BRANDS.find(x=>mainLabel!==x&&(norm===x||col(mainLabel)===col(x)));
-      if(lk)add(5,"The name \""+mainLabel+"\" is a lookalike spelling of \""+lk+"\".","phish",true)}
-    if(BADTLD.includes(labels[labels.length-1]))add(1,"The ending ."+labels[labels.length-1]+" is overused by short-lived sites.");
-    if(SHORT.includes(main))add(2,"Short link ("+main+"): the real destination is hidden until you open it.","short")}
-  /* query string and path */
-  const qp=[...u.searchParams.entries()];
-  const rd=qp.find(x=>REDIR.includes(x[0].toLowerCase())&&/^(https?:)?\/\//i.test(x[1]));
-  if(rd)add(2,"The link forwards you to another site through the \""+rd[0]+"\" setting in its query string.","phish");
-  const sp=qp.find(x=>SECRETP.includes(x[0].toLowerCase()));
-  if(sp)add(3,"The query string carries a sensitive field (\""+sp[0]+"\"). Real sites never ask for secrets inside a link.","phish");
-  if(/(https?:\/\/|https?%3a)/i.test(path))add(2,"A second web address is hidden inside the path.","phish");
-  if((qs.match(/%[0-9a-f]{2}/gi)||[]).length>=10)add(1,"Heavily encoded text in the query string, which can hide its purpose.");
-  if(qs.length>150)add(1,"The query string is very long.");
-  if(u.href.length>120)add(1,"The link is very long, which can hide where it leads.");
-  /* keywords */
-  const hits=[...new Set(all.filter(w=>CORE.includes(w)))],more=[...new Set(all.filter(w=>MORE.includes(w)))];
-  if(hits.length)add(4,"Flagged word"+(hits.length>1?"s":"")+" in the address: "+hits.join(", ")+". Pages like this are often used for phishing.","phish",true);
-  if(more.length)add(1,"Account-related words found: "+more.join(", ")+".");
-  const level=hard||score>=4?"High":score>=2?"Medium":"Low";
-  sig.sort((a,b)=>b.w-a.w);r.signals=sig.map(x=>x.t);r.flags=[...flags];r.level=level;
-  const top=r.signals[0]||"";
-  r.desc=level==="High"?"This link is very likely dangerous. Main reason: "+top:level==="Medium"?"Parts of this link look unusual. Main reason: "+top:sig.length?"Only a minor pattern was found in "+host+".":"No suspicious patterns found in the address text for "+host+".";
-  r.rec=({High:"Do not open this link. ",Medium:"Be careful before you open this link. ",Low:"Normal care applies. This result does not confirm that the site is safe. "})[level]+r.flags.map(f=>REC[f]).slice(0,2).join(" ")+(level==="Low"?"Never share passwords or one-time codes on a page you did not open yourself.":"");
-  return r}
-
-function stepCard(n,h,items){const d=mk("div","step");const ul=mk("ul");items.forEach(i=>ul.append(mk("li","",i)));d.append(mk("div","n",n),mk("h4","",h),ul);return d}
-function steps(r){
-  const box=$("steps");box.textContent="";
-  if(!r){box.append(
-    stepCard("01 / PASTE","Bring the link here",["Paste a complete website, download or APK link.","The text stays in your browser.","The check reads the protocol, host name, path and query string."]),
-    stepCard("02 / NOTICE","Review the address patterns",["Looks for APK, EXE, SCR and ZIP downloads and antivirus test files.","Looks for number addresses, short links and fake subdomains.","Looks for words such as login, verify, free and mod, and for forwarding tricks."]),
-    stepCard("03 / DECIDE","Choose your next step",["Use the result as one input, not the final word.","Never share passwords or one-time codes on a link you did not open yourself.","Check who runs a site before you download anything from it."]));return}
-  const clip=(x,n)=>x.length>n?x.slice(0,n)+"…":x;
-  const c1=["Protocol: "+r.proto+(r.proto==="HTTPS"?" (encrypted).":" (not encrypted)."),"Host name: "+r.host+".","Main domain: "+r.main+".","Path: "+(clip(r.path,34)||"/")+(r.ext?" (file type ."+r.ext+")":"")+".","Query string: "+(r.qs?clip(r.qs,34):"none")+"."];
-  const c2=r.signals.length?r.signals:["No unusual patterns were found in the host name, path or query string.","No downloads, test files, number addresses or lookalike names were found.","This only covers the address text."];
-  const d=r.official?["Verdict: Low Risk. The address matches an official Google domain.","Check that the page asks only for what you expect.","Sign in only on addresses that end in google.com."]
-    :["Verdict: "+LBL[r.level]+(r.level==="Low"?", based on the address text only.":".")].concat(r.flags.slice(0,2).map(f=>REC[f]));
-  if(d.length<3)d.push(r.level==="Low"?"Check who runs the site before you download or pay.":"If it came in a message, do not reply to it.");
-  box.append(stepCard("01 / PASTE","Analysis for "+r.host,c1),stepCard("02 / NOTICE","What stood out",c2),stepCard("03 / DECIDE","Your next step",d));
-  $("stepsSub").textContent="These steps now match the link you checked."}
-function scanUrl(){
-  if(!gate())return;const raw=$("url").value,cl=extractUrl(raw),u=cl?parse(cl):null;
-  if(!u){err("urlE","No web address was found in that text. Paste a link such as https://example.com/page or example.com/page.");$("urlR").hidden=true;return}
-  $("urlE").hidden=true;const r=analyze(u);
-  if(cl!==raw.trim())r.note="Cleaned up and checked as: "+u.href;
-  show("urlR",r);steps(r);logScan("Link",u.href,r.level)}
-
-/* ===== message analysis ===== */
-const PLAT={"WhatsApp":"On WhatsApp, be wary of unknown numbers, job offers, gaming groups and \"wrong number\" chats. Block and report the sender inside the app.",
-"Instagram DM":"Instagram messages from accounts you do not follow that offer prizes, jobs, brand deals or investments are a common scam. Report the account.",
-"Telegram":"Telegram groups that promise daily income, trading tips or gaming rewards are a common fraud route. Leave the group and report it.",
-"SMS":"Banks send SMS from sender names, not personal numbers, and never ask for your OTP or PIN. Do not reply with codes.",
-"Email":"Check the sender's real address, not only the display name. Do not open attachments or links you did not expect."};
-let plat="WhatsApp";
-Object.keys(PLAT).forEach(k=>{const b=mk("button","chip",k);b.type="button";b.setAttribute("aria-pressed",String(k===plat));
-  b.addEventListener("click",()=>{plat=k;document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",String(c===b)))});$("plat").append(b)});
-const RULES=[
-{l:"Color prediction or betting platform",w:5,tip:"Color prediction and betting apps are often rigged and can be illegal. Do not deposit, recharge or share bank details.",re:/\b(91 ?club|tiranga( games?)?|daman( games?)?|wingo|jalwa|ssj ?fin|ok ?win|bdg ?win|rajaluck|goa ?games?|(colou?r|number) prediction|prediction (group|hack|tips?|app)|satta|matka|betting (id|app|tips?)|sure ?shot)\b/gi},
-{l:"Gaming, casino or betting offer",w:3,re:/\b(rummy|teen ?patti|aviator|casino|online betting|ludo (earn|cash|game)|dream ?11|fantasy (cricket|league))\b/gi},
-{l:"Welcome gift, bonus or reward bait",w:3,re:/\b(welcome (gift|bonus|reward)s?|(free|gift|bonus|reward) (code|coupon|voucher|cash|money|recharge)|(claim|get|collect|win)[^.\n]{0,20}(gift|reward|bonus|cash)|(gift|reward|bonus)s?[^.\n]{0,15}(waiting|ready|credited|unlocked)|(first|1st) (deposit|recharge) bonus|sign ?up bonus|register (and|&) (get|win|earn))\b/gi},
-{l:"Login or recharge to claim or withdraw",w:4,tip:"Real rewards never need you to log in, recharge or pay a fee to withdraw them.",re:/\b(log ?in (now |here |today )?to (claim|get|withdraw|receive|collect)|(recharge|deposit|pay)[^.\n]{0,20}(to )?(withdraw|unlock|claim)|withdraw(al)? (limit|failed|pending|blocked)|unlock (your )?withdraw(al)?)\b/gi},
-{l:"Prize or lottery claim",w:3,re:/\b(lottery|lucky draw|jackpot|winner|you (have )?won|claim (your )?(prize|reward|gift)|congratulations?[^.\n]{0,40}(won|selected))\b/gi},
-{l:"Urgent KYC or details update",w:3,tip:"Banks do not ask you to update KYC through links or messages. Use the bank's official app or visit a branch.",re:/\b(kyc|know your customer|pan (card )?(update|verification)|aadhaar (update|link)|update (your )?(details|account))\b/gi},
-{l:"Account, card or SIM block threat",w:3,re:/\b(account|card|upi|wallet|sim)[^.\n]{0,30}(block(ed)?|suspend(ed)?|deactivat(ed|ion)|frozen|freeze|closed|expire[sd]?)\b/gi},
-{l:"Utility or net banking cut-off threat",w:3,re:/\b(electricity|power|gas|net ?banking|pan card)[^.\n]{0,40}(disconnect(ed|ion)?|cut off|block(ed)?|deactivat(ed|ion)|terminated|suspend(ed)?)\b/gi},
-{l:"Unauthorized UPI or refund request",w:5,tip:"You never need your UPI PIN to receive money. Decline any collect request you did not start.",re:/\b(collect request|request money|approve (the |this )?(request|payment)|accept (the |this )?(collect )?request|(receive|get|claim)[^.\n]{0,25}(enter|using|with) (your )?(upi )?pin|scan (this )?qr[^.\n]{0,25}(receive|get|claim|refund)|(refund|cashback)[^.\n]{0,25}(upi pin|scan|accept)|(mistakenly|wrongly|by mistake)[^.\n]{0,25}(sent|transferred|credited)[^.\n]{0,25}(return|send back|refund))\b/gi},
-{l:"Fake parcel or delivery notice",w:3,re:/\b(parcel|package|courier|delivery|shipment|customs)[^.\n]{0,50}(held|failed|pending|undelivered|fee|charge|reschedule|address|redeliver)/gi},
-{l:"Crypto or investment bait",w:3,re:/\b(crypto|bitcoin|usdt|forex|trading (group|tips)|guaranteed (returns?|profit)|double your (money|investment)|daily (profit|income)|investment (plan|opportunity)|stock tips)\b/gi},
-{l:"Request for OTP, PIN or password",w:5,tip:"Never share an OTP, PIN or password with anyone, even if they say they work for your bank.",re:/\b(share|send|tell|enter|provide|confirm)[^.\n]{0,25}(otp|pin|cvv|password|passcode|card number)\b|\b(otp|cvv|upi pin)[^.\n]{0,20}(share|send)/gi},
-{l:"Fee or advance payment request",w:3,re:/\b(processing fee|registration fee|joining fee|training fee|activation fee|security deposit|refundable deposit|pay (a )?(small )?(fee|amount)|send (me )?money|gift cards?)\b/gi},
-{l:"Fake job offer",w:3,tip:"Real employers do not charge fees or pay for likes, reviews or tasks.",re:/\b(hiring|vacanc(y|ies)|job offer|work from home|part[- ]time|data entry|typing job|earn (up to )?(₹|rs\.?|inr)? ?\d[\d,]*\s?(per|a|every|daily|weekly|monthly)|salary (₹|rs\.?|inr)? ?\d+|no (experience|investment) (needed|required)|joining fee|training fee|task (based|work)|(like|subscribe|review)[^.\n]{0,15}tasks?|prepaid tasks?|hr (manager|team))\b/gi},
-{l:"Remote access app request",w:4,re:/\b(anydesk|teamviewer|quicksupport|screen ?share|remote (access|support))\b/gi},
-{l:"Fake arrest or legal threat",w:4,re:/\b(digital arrest|arrest warrant|legal action against you|narcotics|cbi officer)\b/gi},
-{l:"Emergency money request",w:3,re:/\b(i am (in|stuck)[^.\n]{0,30}(hospital|airport|trouble)|your (son|daughter|relative)[^.\n]{0,20}(accident|arrest))\b/gi},
-{l:"Asks you to contact an unknown number",w:2,re:/\b(call|whatsapp|contact|message|text) (us |me )?(now |today )?(on|at)?:? ?(\+?91[\s-]?)?[6-9]\d{9}\b/gi},
-{p:"Telegram",l:"Paid signals or VIP group pitch",w:3,re:/\b(vip (group|channel|signals?)|paid signals?|pump (group|signals?)|join (my|our|the) (group|channel))\b/gi},
-{p:"Instagram DM",l:"Fake brand deal or account warning",w:2,re:/\b(brand (deal|collab)|paid (promotion|collab)|follow (and|&) (win|earn)|giveaway winner|copyright (violation|infringement)|account (will be )?(deleted|disabled))\b/gi},
-{p:"Email",l:"Unexpected attachment or invoice",w:2,re:/\b(attached (invoice|file|document|statement)|payment (advice|receipt)|invoice (attached|no\.?)|open the attachment|\.(zip|exe|scr|html?))\b/gi},
-{n:1,l:"Authority name used to scare you",w:2,re:/\b(police|customs|cyber ?crime|court|income tax (notice|department))\b/gi},
-{n:1,l:"Pressure to act fast",w:2,re:/\b(urgent(ly)?|immediately|within \d+ ?(hours?|hrs?|minutes?|mins?)|last chance|act now|expires? (today|soon)|final (notice|warning)|today only)\b/gi},
-{n:1,l:"Pushes you to click or install",w:2,re:/\b(click (here|the link|below)|tap (here|the link)|open (the )?link|download (the )?(app|apk)|install (the )?app)\b/gi},
-{n:1,l:"Generic greeting or account warning",w:1,re:/\b(dear (customer|user|account holder|valued)|verify your (account|identity|email)|your (mailbox|storage) is full|password (will )?expire)/gi}];
-const LINKRE=/\b(?:https?:\/\/|www\.)[^\s<>"')\]}]+|\b(?:[a-z0-9-]+\.)+(?:com|in|net|org|xyz|top|link|click|co|info|app|cc|ly|me|online|site|live|shop|vip|icu|apk|zip)(?:\/[^\s<>"')\]}]*)?/gi;
-function evalMsg(txt,pl){
-  let score=0,lure=false,short=false;const sig=[],ranges=[],tips=[];
-  RULES.forEach(R=>{if(R.p&&R.p!==pl)return;const re=new RegExp(R.re.source,"gi");let m,first=null;
-    while((m=re.exec(txt))){if(!first)first=m[0];ranges.push([m.index,m.index+m[0].length]);if(m[0].length===0)re.lastIndex++}
-    if(first){score+=R.w;if(!R.n)lure=true;if(R.tip&&tips.indexOf(R.tip)<0)tips.push(R.tip);sig.push(R.l+": \""+first.slice(0,50)+"\"")}});
-  const lre=new RegExp(LINKRE.source,"gi");let m,n=0;
-  while((m=lre.exec(txt))&&n<3){if(m.index>0&&txt[m.index-1]==="@")continue;
-    const s=m[0].replace(/[.,;!?\]}]+$/,""),u=parse(s);if(!u)continue;n++;
-    const a=analyze(u);ranges.push([m.index,m.index+s.length]);
-    if(a.flags.indexOf("short")>=0)short=true;
-    if(a.level==="High"){score+=4;sig.push("Link to "+a.host+" is High Risk. "+a.signals[0])}
-    else if(a.level==="Medium"){score+=2;sig.push("Link to "+a.host+" needs Caution. "+a.signals[0])}
-    else{score+=1;sig.push("The message contains a link ("+a.host+"). Do not tap links you did not expect.")}}
-  const letters=txt.replace(/[^a-z]/gi,"");
-  if(letters.length>30&&letters.replace(/[^A-Z]/g,"").length/letters.length>0.5){score+=1;sig.push("Most of the message is in capital letters.")}
-  if(/[!?]{3,}/.test(txt)){score+=1;sig.push("Repeated exclamation or question marks.")}
-  if(short&&lure){score=Math.max(score,5);sig.unshift("Short link combined with reward, bank, job or scam wording. Scammers use short links to hide the real address.")}
-  return{level:rate(score,5,2),sig:sig,ranges:ranges,tips:tips}}
-const WORDS=new Set("a about above after again all also am an and any are as at be because been before being below between both but by can cannot could did do does doing down during each few for from further had has have having he her here hers him his how if in into is it its just me more most my no nor not now of off on once only or other our out over own same she should so some such than that the their them then there these they this those through to too under until up very was we were what when where which while who whom why will with would you your yours yourself hi hello hey dear sir madam mr mrs ms ok okay yes yeah thanks thank please pls plz sorry bye good morning evening night day today tomorrow tonight yesterday wish wishes happy birthday congrats congratulations welcome account bank card debit credit upi pin otp cvv password login log signin sign verify verification update details link click tap open download install app apk call message msg sms text send sent receive received refund money amount rs inr rupees rupee cash payment pay paid paying transfer transferred transaction txn balance blocked block suspended suspend expire expired expires expiring deactivated activate active urgent urgently immediately immediate soon last chance final notice warning alert limited offer free gift rewards reward bonus coupon voucher prize lottery winner won win claim collect selected lucky draw jackpot recharge deposit withdraw withdrawal withdrawn unlock fee fees charge charges registration processing joining training refundable security job jobs work home part time full earn earning income salary daily weekly monthly per hour hours week month year hiring vacancy vacancies data entry typing task tasks like subscribe review follow share join group channel telegram whatsapp instagram facebook messenger email mail gmail google microsoft apple amazon flipkart paytm phonepe gpay netflix sbi hdfc icici axis kotak pnb airtel jio bsnl irctc aadhaar aadhar pan kyc customer customers user users member name number mobile phone sim electricity bill power gas disconnect disconnected cut parcel package courier delivery delivered shipment customs address held failed pending reschedule track tracking order orders invoice attached attachment file document statement receipt advice police court arrest arrested warrant legal action case officer cbi tax department government govt official support help service services team care helpline contact reply respond confirm confirmed approve approval request requested accept declined reject cancelled cancel complete completed process processed success successful invalid error wrong mistake mistakenly accidentally return back investment invest trading trade crypto bitcoin usdt forex profit profits returns guaranteed double stock stocks market shares ipo plan opportunity club game games gaming play betting bet casino rummy teen patti aviator ludo prediction color colour satta matka dream fantasy cricket match level vip signal signals pump ssjfin daman tiranga wingo jalwa okwin get got give given take taken make made see seen know need needs want wants go going gone come came coming meet meeting met called calling talk speak tell told say said ask asked check checked find found look looking wait waiting stop start started try tried use used using keep kept let put set show shown buy bought sell sold opened close closed read write wrote visit visiting reach reached arrive arrived leave left bring brought feel think thought hope love liked party dinner lunch breakfast food office school college class exam result results ticket tickets flight train bus cab ride car bike house room hotel booking book booked people person friend friends family brother sister mother father mom dad son daughter wife husband boss one two three four five six seven eight nine ten hundred thousand lakh crore minutes minute min mins hrs seconds second new old big small bad best better high low long short fast quick easy hard real fake safe secure trusted genuine original important required mandatory compulsory valid verified unverified suspicious unknown private public personal dont cant wont didnt doesnt isnt arent wasnt werent hasnt havent couldnt wouldnt shouldnt im ive id ill youre youve youll hes shes thats whats theres lets aap aapka aapki aapke apna apni apne main mein mai hum hamara hamari tum tumhara tera tere mera meri mere hai hain ho hoga hogi honge hua hui hue tha thi raha rahi rahe kar karo karna kare karein karke kiya kiye kya kyun kyu kaise kab kahan kaun kitna kitne ka ki ke ko se par pe ne ya aur bhi nahi nahin na haan ji jee bhai behen dost abhi aaj kal ab jab tab agar toh lekin magar isse usse yeh ye woh wo yahan wahan jaldi turant fauran paisa paise khata khate band chalu jayega jayegi jaayega milega milegi milenge mil gaya gayi gaye lo lena liya dena diya dijiye bhejo bheje bhej bhejna bhejiye batao bataye bata dekho dekhe dekh suno sun padhe jeeto jeet inaam warna varna role id ssid type key url title org tel addr city country product item price ref seat event date start end location desc description version model serial batch sku code pa pn am cu tn tr mc".split(" "));
-function known(w){
-  if(WORDS.has(w))return true;
-  for(const x of ["s","es","ed","d","ing","ly","er","ers"])if(w.length>x.length+2&&w.endsWith(x)&&WORDS.has(w.slice(0,-x.length)))return true;
-  return w.endsWith("ing")&&WORDS.has(w.slice(0,-3)+"e")}
-function nonLatin(t){const r=t.replace(/[A-Za-z\u00C0-\u024F]/g,"");try{return new RegExp("\\p{L}","u").test(r)}catch(e){return /[\u0370-\uFFFF]/.test(r)}}
-function readable(t){
-  if(nonLatin(t))return true;
-  const w=t.toLowerCase().replace(/https?:\/\/\S+|www\.\S+|\S+@\S+/g," ").replace(/['\u2019]/g,"").match(/[a-z]{2,}/g)||[];
-  if(!w.length)return false;
-  return w.filter(known).length/w.length>=(w.length>8?0.4:0.5)}
-function hasLink(t){
-  const re=new RegExp(LINKRE.source,"gi");let m;
-  while((m=re.exec(t))){if(m.index>0&&t[m.index-1]==="@")continue;if(parse(m[0].replace(/[.,;!?\]}]+$/,"")))return true}
-  return false}
-function validMsg(t){if(!t)return false;if(hasLink(t))return true;if(t.length<8)return false;return readable(t)}
-function validQr(t){
-  if(!t)return false;
-  if(/^(?:upi|https?|ftp|tel|sms|smsto|mms|mailto|wifi|geo|bitcoin|ethereum|otpauth|mecard|matmsg|begin|market|intent|whatsapp|tg|paytmmp|phonepe|gpay|tez|bhim):\S/i.test(t))return true;
-  if(parse(t))return true;
-  if(/^\d{6,}$/.test(t.replace(/[\s-]/g,"")))return true;
-  try{const j=JSON.parse(t);if(j&&typeof j==="object")return true}catch(e){}
-  const kv=t.split(/[;&|\n]+/).map(x=>x.trim()).filter(Boolean);
-  if(kv.length>=2){const ks=kv.map(x=>(x.match(/^([A-Za-z_ .-]{1,25})[=:]/)||[])[1]).filter(Boolean).map(x=>x.trim().toLowerCase().replace(/[\s_.-]+/g,""));
-    if(ks.length>=2&&ks.filter(known).length>=ks.length/2)return true}
-  return readable(t)}
-function hlNode(txt,ranges){
-  ranges.sort((a,b)=>a[0]-b[0]);const m=[];
-  ranges.forEach(r=>{const l=m[m.length-1];if(l&&r[0]<=l[1])l[1]=Math.max(l[1],r[1]);else m.push([r[0],r[1]])});
-  const w=mk("div"),d=mk("div","hl");let i=0;
-  m.forEach(x=>{if(x[0]>i)d.append(document.createTextNode(txt.slice(i,x[0])));d.append(mk("mark","",txt.slice(x[0],x[1])));i=x[1]});
-  if(i<txt.length)d.append(document.createTextNode(txt.slice(i)));
-  w.append(mk("div","lbl","Your message, with warning signs marked"),d);return w}
-function scanMsg(){
-  if(!gate())return;const txt=$("msg").value.trim();
-  if(!validMsg(txt)){err("msgE","Please enter a valid message or link to analyze.");$("msgR").hidden=true;return}
-  $("msgE").hidden=true;
-  const e=evalMsg(txt,plat),level=e.level;
-  const r={level:level,signals:e.sig,
-    desc:level==="High"?"This message matches several common fraud patterns. Treat it as a scam until proven otherwise.":level==="Medium"?"This message has patterns that scammers often use. Be careful.":"No common scam patterns were found in this message text. That does not prove it is genuine.",
-    rec:(level==="High"?"Do not reply, click any link, install anything or share codes. Block and report the sender. If you already acted, call your bank and 1930 straight away. ":level==="Medium"?"Do not click links or share details. Confirm with the company using a phone number or website you already trust. ":"Stay careful with links and requests for money or codes. ")+e.tips.slice(0,2).join(" ")+" "+PLAT[plat]};
-  show("msgR",r,e.ranges.length?hlNode(txt,e.ranges):null);logScan("Message ("+plat+")",txt,level)}
-
-/* ===== number and UPI ===== */
-const HANDLES=["okaxis","oksbi","okhdfcbank","okicici","ybl","ibl","axl","paytm","apl","upi","sbi","hdfcbank","icici","axisbank","pnb","boi","cnrb","kotak","yesbank","indus","fbl","aubank","freecharge","postbank","unionbank","airtel","jio","slice"];
-const UPIWORDS=["refund","lottery","kyc","prize","reward","cashback","claim","support","care","helpdesk","customer","official","bank","rbi","govt","tax","loan","offer","winner","gift","verify"];
-const UPIRE=/^[a-z0-9._-]{2,64}@[a-z][a-z0-9]{1,30}$/i;
-function upiId(id){
-  const p=id.toLowerCase().split("@"),name=p[0],h=p[1],sig=[];let s=0;
-  if(!HANDLES.includes(h)){s+=2;sig.push("The handle @"+h+" is not one of the common UPI handles. Confirm it in your payment app.")}
-  const w=toks(name).filter(x=>UPIWORDS.includes(x));
-  if(w.length){s+=3;sig.push("The ID contains \""+w.join("\", \"")+"\". Scam IDs often use words that sound official.")}
-  if((name.match(/\d/g)||[]).length>=8&&!/^\d{10}$/.test(name)){s+=1;sig.push("The ID has many digits and does not look like a phone number.")}
-  return{s:s,sig:sig}}
-function checkUpi(v){
-  const s=v.trim();
-  if(s.includes("@")){
-    if(!UPIRE.test(s))return null;const x=upiId(s),level=rate(x.s,4,2);
-    return{level:level,signals:x.sig,
-      desc:level==="High"?"This UPI ID has patterns often seen in fraud.":level==="Medium"?"Parts of this UPI ID deserve a closer look.":"Nothing unusual in the format of this UPI ID. This cannot show whether it has been reported.",
-      rec:"Check the name your payment app shows before you pay. You never need a PIN to receive money, so refuse any request to enter your PIN for a refund or prize."}}
-  const p=s.replace(/[\s-]/g,""),m=p.match(/^(?:\+?91|0)?([6-9]\d{9})$/),sig=[];let sc=0;
-  if(m){if(/(\d)\1{6,}/.test(m[1])){sc+=1;sig.push("The number has a long run of the same digit.")}}
-  else if(/^\+\d{8,15}$/.test(p)){sc+=2;sig.push("This is an international number ("+p.slice(0,4)+"…). Scam calls and messages often come from numbers you do not expect.")}
-  else return null;
-  const level=rate(sc,4,2);
-  return{level:level,signals:sig,
-    desc:level==="Low"?"The format looks like a normal "+(m?"Indian mobile":"international")+" number. This cannot show whether it has been reported.":"This number has a pattern worth a closer look. This cannot show whether it has been reported.",
-    rec:"Do not share OTPs, PINs or card details with anyone who calls or messages you, even if they say they are from your bank. Hang up and call the number printed on your card."}}
-function scanUpi(){
-  if(!gate())return;const v=$("upi").value,r=checkUpi(v);
-  if(!r){err("upiE","Enter a 10-digit mobile number, a number with a + country code, or a UPI ID such as name@bank.");$("upiR").hidden=true;return}
-  $("upiE").hidden=true;show("upiR",r);logScan("Number / UPI",v.trim(),r.level)}
-
-/* ===== QR ===== */
-function qrAnalyze(t){
-  const sig=[];let sc=0,desc,rec;
-  if(/^upi:\/\//i.test(t)){
-    let q;try{q=new URL(t).searchParams}catch(e){q=new URLSearchParams()}
-    const pa=q.get("pa")||"",pn=q.get("pn"),am=q.get("am");sc=1;
-    sig.push("This is a payment QR code. Scanning it leads to paying money, not receiving it.");
-    if(pn)sig.push("Payee name in the code: "+pn+". Check it matches who you mean to pay.");
-    if(am){sc+=1;sig.push("The code already sets an amount: "+am+".")}
-    if(UPIRE.test(pa)){const x=upiId(pa);sc+=x.s;sig.push.apply(sig,x.sig)}else{sc+=2;sig.push("The payee ID is missing or malformed.")}
-    const level=rate(sc,4,2);
-    return{level:level,signals:sig,desc:level==="Low"?"A normal-looking payment QR code. This cannot show whether the payee is genuine.":"This payment QR code has details worth checking before you pay.",
-      rec:"Scan payment QR codes only when you want to pay. If anyone says you will receive money by scanning, it is a scam. Check the payee name your app shows before you enter an amount."}}
-  const u=parse(t);
-  if(u){const a=analyze(u);a.signals=a.signals.concat(["A QR code hides the link until you scan it. Read the address your phone shows before you open it."]);
-    a.rec+=" If the code is a sticker on a poster, parking meter or table, check that it has not been stuck over the original.";return a}
-  const sch=t.match(/^([a-z][a-z0-9+.-]*):/i);
-  if(sch){sc=2;sig.push("The code starts an action of type \""+sch[1].toLowerCase()+":\" such as a call, text, email or Wi-Fi join.");
-    return{level:"Medium",signals:sig,desc:"This QR code does more than show text.",rec:"Read what your phone asks you to do before you allow it. Do not join networks or send messages you did not plan to."}}
-  return{level:"Low",signals:[],desc:"This QR code contains plain text and no link. Nothing suspicious was found.",rec:"Plain text is not harmful on its own. Be careful if it tells you to call a number or send money."}}
-function qrRun(val){
-  if(!gate())return;const t=val.trim();
-  if(!t){err("qrE","Scan a QR code, upload an image, or paste its contents first.");$("qrR").hidden=true;return}
-  $("qrE").hidden=true;const r=qrAnalyze(t);show("qrR",r);logScan("QR code",t,r.level)}
-let decoder=null,bdBad=false;
-const cv=document.createElement("canvas"),cx=cv.getContext("2d",{willReadFrequently:true});
-function loadJsQR(){
-  return new Promise(res=>{
-    if(window.jsQR)return res(true);
-    const s=document.createElement("script");
-    s.src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js";
-    s.onload=()=>res(!!window.jsQR);s.onerror=()=>res(false);
-    document.head.append(s);setTimeout(()=>res(!!window.jsQR),8000)})}
-async function decodeSource(src,w,h){
-  const k=Math.min(1,1600/Math.max(w,h));cv.width=Math.max(1,Math.round(w*k));cv.height=Math.max(1,Math.round(h*k));
-  cx.drawImage(src,0,0,cv.width,cv.height);
-  if("BarcodeDetector" in window&&!bdBad){
-    try{if(!decoder)decoder=new BarcodeDetector({formats:["qr_code"]});const r=await decoder.detect(cv);if(r.length)return r[0].rawValue}
-    catch(e){bdBad=true}}
-  if(window.jsQR){const d=cx.getImageData(0,0,cv.width,cv.height),q=window.jsQR(d.data,d.width,d.height,{inversionAttempts:"attemptBoth"});if(q&&q.data)return q.data}
-  return null}
-function loadImg(f){return new Promise((ok,no)=>{const u=URL.createObjectURL(f),i=new Image();i.onload=()=>{ok(i);URL.revokeObjectURL(u)};i.onerror=()=>{URL.revokeObjectURL(u);no()};i.src=u})}
-async function onQrFile(e){
-  const f=e.target.files&&e.target.files[0];e.target.value="";if(!f)return;
-  if(!user){openModal();return}
-  $("qrE").hidden=true;
-  try{
-    await loadJsQR();
-    const i=await loadImg(f),val=await decodeSource(i,i.naturalWidth,i.naturalHeight);
-    if(!val){err("qrE","No QR code was found in that picture. Try again with the whole code in view, steady and well lit, or paste the QR contents below.");return}
-    $("qrTxt").value=val;qrRun(val)}
-  catch(x){err("qrE","That picture could not be opened. Try another photo or a JPG or PNG screenshot, or paste the QR contents below.")}}
-["qrCam","qrFile"].forEach(id=>$(id).addEventListener("change",onQrFile));
-["camLbl","upLbl"].forEach(id=>$(id).addEventListener("click",e=>{if(!user){e.preventDefault();openModal()}}));
-$("qrGo").addEventListener("click",()=>{if(!gate())return;const t=$("qrTxt").value.trim();if(!validQr(t)){err("qrE","Invalid QR content. Please paste a valid QR URL, UPI string, or readable text.");$("qrR").hidden=true;return}qrRun(t)});
-
-/* ===== profile ===== */
-function drawHistView(){
-  const L=$("hist");L.textContent="";const h=hist();$("clr").hidden=!h.length;
-  if(!h.length){L.append(mk("li","txt","No checks yet. Results from all four tools appear here."));return}
-  h.forEach(x=>{const li=mk("li","hi"),top=mk("div","hrow");
-    top.append(mk("span","badge sm "+x.level.toLowerCase(),LBL[x.level]||x.level),mk("span","ht",x.type),
-      mk("span","hd",new Date(x.t).toLocaleString([],{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})));
-    li.append(top,mk("div","hin",x.input));L.append(li)})}
-let armed=false;
-$("clr").addEventListener("click",()=>{
-  if(!armed){armed=true;$("clr").textContent="Tap again to clear history";setTimeout(()=>{armed=false;$("clr").textContent="Clear history"},4000);return}
-  armed=false;$("clr").textContent="Clear history";try{if(hkey())store.removeItem(hkey())}catch(e){}drawHistView()});
-function drawProfile(){
-  const a=$("acct");a.textContent="";const h=hist();
-  $("histCnt").textContent=user?h.length+(h.length===1?" check":" checks"):"";
-  if(!user){a.append(mk("p","txt","You are signed out. Sign in to run checks and see your account details."));
-    const b=mk("button","btn","Login");b.type="button";b.style.marginTop="12px";b.addEventListener("click",openModal);a.append(b)}
-  else{
-    const top=mk("div","who"),d=mk("div");
-    d.append(mk("div","nm",user.name),mk("span","badge sm low","Signed in"));
-    top.append(mk("div","avatar",user.name.charAt(0).toUpperCase()),d);a.append(top);
-    const kv=mk("div","kv");
-    [["Status","Logged in"],["Sign-in method",user.via],[user.contact[0],user.contact[1]],["Checks saved here",String(h.length)]].forEach(p=>kv.append(mk("span","k",p[0]),mk("span","v",p[1])));
-    a.append(kv);const b=mk("button","btn ghost","Logout");b.type="button";b.addEventListener("click",logout);a.append(b)}}
-$("mHist").addEventListener("click",()=>{if(!user){openModal();return}view("history")});
-$("mPriv").addEventListener("click",()=>view("privacy"));
-$("hBack").addEventListener("click",()=>view("profile"));
-$("pBack").addEventListener("click",()=>view("profile"));
-
-/* ===== language engine ===== */
-const LANGS=[["en","English"],["hi","Hindi (हिंदी)"],["hn","Hinglish"],["bn","Bengali (বাংলা)"]];
-const LTAG={en:"en",hi:"hi",hn:"hi-Latn",bn:"bn"};
-/* Translation table: [English, Hindi, Hinglish, Bengali]. {} = any text, {#} = digits. Add rows here to translate more text. */
-const ROWS=window.TCS_ROWS||[];
-const TR={},PAT=[];
-ROWS.forEach(r=>{const v={hi:r[1],hn:r[2],bn:r[3]};
-  if(/\{#?\}/.test(r[0]))PAT.push({re:new RegExp("^"+r[0].replace(/[.*+?^$()|[\]\\]/g,"\\$&").replace(/\{#\}/g,"(\\d+)").replace(/\{\}/g,"([\\s\\S]+?)")+"$"),v:v});
-  else TR[r[0]]=v});
-function sents(k){const o=[];let c="";for(let i=0;i<k.length;i++){c+=k[i];if(/[.!?]/.test(k[i])&&/\s/.test(k[i+1]||"")){o.push(c);c="";while(/\s/.test(k[i+1]||""))i++}}if(c)o.push(c);return o}
-function tk(k,l,deep){
-  const e=TR[k];if(e&&e[l])return e[l];
-  for(const p of PAT){const m=k.match(p.re);if(m&&p.v[l]){let i=0;return p.v[l].replace(/\{\}/g,()=>tk(m[++i]||"",l,1))}}
-  const q=k.match(/^([^:"]{3,60}): "([\s\S]*)"$/);if(q&&TR[q[1]]&&TR[q[1]][l])return TR[q[1]][l]+': "'+q[2]+'"';
-  if(!deep){const s=sents(k);if(s.length>1){let hit=false;const o=s.map(x=>{const t=tk(x.trim(),l,1);if(t!==x.trim())hit=true;return t});if(hit)return o.join(" ")}}
-  return k}
-function tl(s,l){if(l==="en")return s;const k=s.trim();if(!k)return s;const r=tk(k,l);if(r===k)return s;const i=s.indexOf(k);return s.slice(0,i)+r+s.slice(i+k.length)}
-/* -- dom -- */
-let lang="en";
-const ORIG=new WeakMap(),AT=new WeakMap(),SKIP=/^(SCRIPT|STYLE|TEXTAREA|NOSCRIPT)$/;
-function trNode(n){
-  if(n.nodeType===3){const p=n.parentNode;if(!p||SKIP.test(p.nodeName))return;
-    let o=ORIG.get(n);if(!o){o={en:n.data,cur:n.data};ORIG.set(n,o)}else if(n.data!==o.cur)o.en=n.data;
-    const t=tl(o.en,lang);if(t!==n.data)n.data=t;o.cur=t}
-  else if(n.nodeType===1&&!SKIP.test(n.nodeName)){
-    ["placeholder","aria-label","title"].forEach(a=>{if(!n.hasAttribute(a))return;const v=n.getAttribute(a);let m=AT.get(n);if(!m){m={};AT.set(n,m)}
-      let o=m[a];if(!o){o={en:v,cur:v};m[a]=o}else if(v!==o.cur)o.en=v;const t=tl(o.en,lang);if(t!==v)n.setAttribute(a,t);o.cur=t});
-    n.childNodes.forEach(trNode)}}
-const OBS_CFG={childList:true,subtree:true};
-const obs=new MutationObserver(ms=>{if(lang==="en")return;obs.disconnect();try{ms.forEach(m=>m.addedNodes.forEach(trNode))}finally{obs.observe(document.body,OBS_CFG)}});
-function setLang(l){
-  if(!LANGS.some(x=>x[0]===l))l="en";lang=l;try{store.setItem("tcs_lang",l)}catch(e){}
-  document.documentElement.lang=LTAG[l];
-  obs.disconnect();trNode(document.documentElement);obs.observe(document.body,OBS_CFG);
-  $("langCur").textContent=": "+(LANGS.find(x=>x[0]===l)||LANGS[0])[1];
-  document.querySelectorAll("#langOpts .lopt").forEach(b=>b.setAttribute("aria-checked",String(b.dataset.lang===l)))}
-function initLang(){
-  LANGS.forEach(x=>{const b=mk("button","lopt"),ck=mk("span","ck","✓");ck.setAttribute("aria-hidden","true");
-    b.type="button";b.dataset.lang=x[0];b.setAttribute("role","radio");b.setAttribute("aria-checked","false");
-    b.append(mk("span","",x[1]),ck);b.addEventListener("click",()=>setLang(x[0]));$("langOpts").append(b)});
-  $("mLang").addEventListener("click",()=>view("language"));
-  $("lBack").addEventListener("click",()=>view("profile"));
-  let saved="en";try{saved=store.getItem("tcs_lang")||"en"}catch(e){}
-  setLang(saved)}
-/* ===== end language engine ===== */
-
-/* ===== wire up ===== */
-function hideRes(id){const b=$(id);if(b.hidden)return;b.classList.add("fade");setTimeout(()=>{b.hidden=true;b.classList.remove("fade")},200)}
-const RESET={
-  urlR(){$("url").value="";$("urlE").hidden=true;hideRes("urlR");steps(null);$("stepsSub").textContent="Check a link and these steps update to match it.";$("url").focus()},
-  msgR(){$("msg").value="";$("msgE").hidden=true;hideRes("msgR");$("msg").focus()},
-  upiR(){$("upi").value="";$("upiE").hidden=true;hideRes("upiR");$("upi").focus()},
-  qrR(){$("qrTxt").value="";$("qrCam").value="";$("qrFile").value="";$("qrE").hidden=true;hideRes("qrR")}};
-$("copy1930").addEventListener("click",()=>{
-  const b=$("copy1930"),done=()=>{b.textContent="Copied: 1930";setTimeout(()=>{b.textContent="Copy number"},2500)};
-  const fb=()=>{try{const t=document.createElement("textarea");t.value="1930";t.style.position="fixed";t.style.opacity="0";document.body.append(t);t.select();document.execCommand("copy");t.remove();done()}catch(e){b.textContent="Dial 1930"}};
-  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText("1930").then(done,fb);else fb()});
-$("urlGo").addEventListener("click",scanUrl);$("url").addEventListener("keydown",e=>{if(e.key==="Enter")scanUrl()});
-$("msgGo").addEventListener("click",scanMsg);
-$("upiGo").addEventListener("click",scanUpi);$("upi").addEventListener("keydown",e=>{if(e.key==="Enter")scanUpi()});
-window.addEventListener("storage",e=>{if(e.key==="tcs_lang"){if(e.newValue&&e.newValue!==lang)setLang(e.newValue);return}if(e.key!==SK)return;const was=user;user=loadSession();paint();
-  if(!user&&was){clearScreen();if(!$("v-history").hidden)view("profile");openModal()}else if(user&&!was)$("modal").hidden=true;
-  if(!$("v-profile").hidden)drawProfile()});
-paint();steps(null);if(!user)openModal();try{initLang()}catch(e){}reportMismatch();
-})();
+/* Translations: [English, Hindi, Hinglish, Bengali]. {} = any text, {#} = digits. Add or edit rows here. */
+window.TCS_ROWS=[
+["Choose language", "भाषा चुनें", "Bhasha chuniye", "ভাষা বেছে নিন"],
+["Select the language for the whole app.", "पूरे ऐप के लिए भाषा चुनें।", "Poore app ke liye language chuniye.", "পুরো অ্যাপের জন্য ভাষা বেছে নিন।"],
+["Login", "लॉगिन", "Login", "লগইন"],
+["Logout", "लॉगआउट", "Logout", "লগআউট"],
+["Hi, {}", "नमस्ते, {}", "Namaste, {}", "নমস্কার, {}"],
+["Home", "होम", "Home", "হোম"],
+["Profile", "प्रोफ़ाइल", "Profile", "প্রোফাইল"],
+["High Risk", "उच्च जोखिम", "High Risk", "উচ্চ ঝুঁকি"],
+["Caution", "सावधानी", "Savdhaani", "সতর্কতা"],
+["Low Risk", "कम जोखिम", "Low Risk", "কম ঝুঁকি"],
+["What would you like to check?", "आप क्या जाँचना चाहते हैं?", "Aap kya check karna chahte hain?", "আপনি কী যাচাই করতে চান?"],
+["Choose a tool.", "एक टूल चुनें।", "Ek tool chuniye.", "একটি টুল বেছে নিন।"],
+["Every check runs on the text in your browser, and nothing is sent anywhere.", "हर जाँच आपके ब्राउज़र में मौजूद टेक्स्ट पर चलती है और कुछ भी कहीं नहीं भेजा जाता।", "Har check aapke browser me maujood text par chalta hai aur kuch bhi kahin nahi bheja jaata.", "প্রতিটি যাচাই আপনার ব্রাউজারে থাকা লেখার ওপর চলে এবং কিছুই কোথাও পাঠানো হয় না।"],
+["Link / URL Inspector", "लिंक / URL जाँच", "Link / URL Inspector", "লিংক / URL পরীক্ষক"],
+["Links, short links, APK, EXE and ZIP downloads", "लिंक, छोटे लिंक, APK, EXE और ZIP डाउनलोड", "Links, short links, APK, EXE aur ZIP downloads", "লিংক, শর্ট লিংক, APK, EXE ও ZIP ডাউনলোড"],
+["Universal Message Scam Checker", "यूनिवर्सल मैसेज स्कैम चेकर", "Universal Message Scam Checker", "ইউনিভার্সাল মেসেজ স্ক্যাম চেকার"],
+["KYC, job, UPI and gaming reward scams", "KYC, नौकरी, UPI और गेमिंग इनाम स्कैम", "KYC, job, UPI aur gaming reward scams", "KYC, চাকরি, UPI ও গেমিং পুরস্কারের প্রতারণা"],
+["Number & UPI Checker", "नंबर और UPI चेकर", "Number & UPI Checker", "নম্বর ও UPI চেকার"],
+["Suspicious phone numbers and UPI handles", "संदिग्ध फ़ोन नंबर और UPI आईडी", "Sandigdh phone numbers aur UPI IDs", "সন্দেহজনক ফোন নম্বর ও UPI আইডি"],
+["QR Code Scanner", "QR कोड स्कैनर", "QR Code Scanner", "QR কোড স্ক্যানার"],
+["Fake QR code and quishing detection", "नकली QR कोड और क्विशिंग की पहचान", "Fake QR code aur quishing ki pehchaan", "ভুয়া QR কোড ও কুইশিং শনাক্তকরণ"],
+["Paste a website link or an APK download link.", "कोई वेबसाइट लिंक या APK डाउनलोड लिंक पेस्ट करें।", "Koi website link ya APK download link paste kijiye.", "একটি ওয়েবসাইট লিংক বা APK ডাউনলোড লিংক পেস্ট করুন।"],
+["Check risk", "जोखिम जाँचें", "Risk check karein", "ঝুঁকি যাচাই করুন"],
+["Brackets, quotes and extra characters around a link are cleaned up automatically.", "लिंक के आसपास के ब्रैकेट, कोट्स और अतिरिक्त अक्षर अपने आप साफ़ हो जाते हैं।", "Link ke aaspaas ke brackets, quotes aur extra characters apne aap saaf ho jaate hain.", "লিংকের চারপাশের ব্র্যাকেট, উদ্ধৃতি চিহ্ন ও বাড়তি অক্ষর নিজে থেকেই পরিষ্কার হয়ে যায়।"],
+["A thoughtful pause, in three steps", "तीन चरणों में एक समझदार ठहराव", "Teen steps me ek samajhdaar pause", "তিনটি ধাপে একটু ভেবে দেখা"],
+["Check a link and these steps update to match it.", "कोई लिंक जाँचें और ये चरण उसी के अनुसार बदल जाएँगे।", "Koi link check karein aur ye steps usi ke hisaab se badal jaayenge.", "একটি লিংক যাচাই করুন, এই ধাপগুলো সেই অনুযায়ী বদলে যাবে।"],
+["These steps now match the link you checked.", "ये चरण अब आपके जाँचे गए लिंक से मेल खाते हैं।", "Ye steps ab aapke check kiye gaye link se match karte hain.", "এই ধাপগুলো এখন আপনার যাচাই করা লিংকের সঙ্গে মিলছে।"],
+["Choose where the message came from, then paste it.", "चुनें कि संदेश कहाँ से आया, फिर उसे पेस्ट करें।", "Chuniye ki message kahan se aaya, phir use paste kijiye.", "বার্তাটি কোথা থেকে এসেছে তা বেছে নিন, তারপর পেস্ট করুন।"],
+["Email", "ईमेल", "Email", "ইমেইল"],
+["Check message", "संदेश जाँचें", "Message check karein", "বার্তা যাচাই করুন"],
+["Enter a phone number or a UPI ID such as name@bank.", "फ़ोन नंबर या name@bank जैसी UPI आईडी दर्ज करें।", "Phone number ya name@bank jaisi UPI ID daaliye.", "একটি ফোন নম্বর বা name@bank-এর মতো UPI আইডি লিখুন।"],
+["Check number or ID", "नंबर या आईडी जाँचें", "Number ya ID check karein", "নম্বর বা আইডি যাচাই করুন"],
+["This checks the format and wording only.", "यह केवल फ़ॉर्मेट और शब्दों की जाँच करता है।", "Ye sirf format aur wording check karta hai.", "এটি শুধু ফরম্যাট ও শব্দ যাচাই করে।"],
+["It cannot tell whether a number or ID has been reported.", "यह नहीं बता सकता कि किसी नंबर या आईडी की शिकायत हुई है या नहीं।", "Ye nahi bata sakta ki kisi number ya ID ki report hui hai ya nahi.", "কোনো নম্বর বা আইডির বিরুদ্ধে অভিযোগ হয়েছে কি না তা এটি বলতে পারে না।"],
+["Check a QR code before you open the link or pay.", "लिंक खोलने या भुगतान करने से पहले QR कोड जाँचें।", "Link kholne ya payment karne se pehle QR code check karein.", "লিংক খোলা বা টাকা দেওয়ার আগে QR কোড যাচাই করুন।"],
+["Scan with camera", "कैमरे से स्कैन करें", "Camera se scan karein", "ক্যামেরা দিয়ে স্ক্যান করুন"],
+["Upload QR image", "QR इमेज अपलोड करें", "QR image upload karein", "QR ছবি আপলোড করুন"],
+["Or paste what the QR code contains", "या QR कोड में जो लिखा है वह पेस्ट करें", "Ya QR code me jo likha hai wo paste karein", "অথবা QR কোডে যা আছে তা পেস্ট করুন"],
+["Check QR content", "QR सामग्री जाँचें", "QR content check karein", "QR বিষয়বস্তু যাচাই করুন"],
+["Scan with camera opens your phone's camera app so you can take a picture of the QR code.", "\"कैमरे से स्कैन करें\" आपके फ़ोन का कैमरा ऐप खोलता है ताकि आप QR कोड की तस्वीर ले सकें।", "\"Camera se scan karein\" aapke phone ka camera app kholta hai taaki aap QR code ki photo le sakein.", "\"ক্যামেরা দিয়ে স্ক্যান করুন\" আপনার ফোনের ক্যামেরা অ্যাপ খোলে, যাতে আপনি QR কোডের ছবি তুলতে পারেন।"],
+["Upload QR image lets you pick a screenshot from your gallery.", "\"QR इमेज अपलोड करें\" से आप गैलरी से स्क्रीनशॉट चुन सकते हैं।", "\"QR image upload karein\" se aap gallery se screenshot chun sakte hain.", "\"QR ছবি আপলোড করুন\" দিয়ে আপনি গ্যালারি থেকে স্ক্রিনশট বেছে নিতে পারেন।"],
+["Pictures are read on your device and are not uploaded.", "तस्वीरें आपके डिवाइस पर ही पढ़ी जाती हैं और अपलोड नहीं होतीं।", "Pictures aapke device par hi padhi jaati hain aur upload nahi hoti.", "ছবিগুলো আপনার ডিভাইসেই পড়া হয় এবং আপলোড হয় না।"],
+["Local check", "स्थानीय जाँच", "Local check", "স্থানীয় যাচাই"],
+["Text pattern analysis only.", "केवल टेक्स्ट पैटर्न का विश्लेषण।", "Sirf text pattern ka analysis.", "শুধু লেখার প্যাটার্ন বিশ্লেষণ।"],
+["These tools read text as typed or pasted.", "ये टूल टेक्स्ट को वैसा ही पढ़ते हैं जैसा टाइप या पेस्ट किया गया हो।", "Ye tools text ko waisa hi padhte hain jaisa type ya paste kiya gaya ho.", "এই টুলগুলো লেখা যেমন টাইপ বা পেস্ট করা হয়েছে তেমনই পড়ে।"],
+["They do not open websites or check DNS, ownership, reputation, certificates, live redirects or whether a number has been reported.", "ये वेबसाइट नहीं खोलते और DNS, स्वामित्व, प्रतिष्ठा, प्रमाणपत्र, लाइव रीडायरेक्ट या नंबर की शिकायत की जाँच नहीं करते।", "Ye websites nahi kholte aur DNS, ownership, reputation, certificates, live redirects ya number ki report check nahi karte.", "এগুলো ওয়েবসাইট খোলে না এবং DNS, মালিকানা, সুনাম, সার্টিফিকেট, লাইভ রিডাইরেক্ট বা নম্বরের অভিযোগ যাচাই করে না।"],
+["A Low Risk result is not proof of safety.", "कम जोखिम का नतीजा सुरक्षित होने का प्रमाण नहीं है।", "Low Risk ka result safe hone ka saboot nahi hai.", "কম ঝুঁকির ফলাফল নিরাপদ হওয়ার প্রমাণ নয়।"],
+["Your account, your past checks and help in one place.", "आपका खाता, पिछली जाँचें और मदद, सब एक जगह।", "Aapka account, pichhli checks aur madad, sab ek jagah.", "আপনার অ্যাকাউন্ট, আগের যাচাই ও সাহায্য, সবই এক জায়গায়।"],
+["Account", "खाता", "Account", "অ্যাকাউন্ট"],
+["History, Privacy & Language", "इतिहास, गोपनीयता और भाषा", "History, Privacy aur Language", "ইতিহাস, গোপনীয়তা ও ভাষা"],
+["🕘 Scan History", "🕘 स्कैन इतिहास", "🕘 Scan History", "🕘 স্ক্যান ইতিহাস"],
+["Scan History", "स्कैन इतिहास", "Scan History", "স্ক্যান ইতিহাস"],
+["🔒 Privacy Policy", "🔒 गोपनीयता नीति", "🔒 Privacy Policy", "🔒 গোপনীয়তা নীতি"],
+["Privacy Policy", "गोपनीयता नीति", "Privacy Policy", "গোপনীয়তা নীতি"],
+["🌐 Language", "🌐 भाषा", "🌐 Bhasha (Language)", "🌐 ভাষা"],
+["Signed in", "साइन इन है", "Signed in", "সাইন ইন করা আছে"],
+["Status", "स्थिति", "Status", "অবস্থা"],
+["Logged in", "लॉग इन है", "Logged in", "লগ ইন করা আছে"],
+["Sign-in method", "साइन-इन का तरीका", "Sign-in ka tareeka", "সাইন-ইনের পদ্ধতি"],
+["Email ID", "ईमेल आईडी", "Email ID", "ইমেইল আইডি"],
+["Mobile number", "मोबाइल नंबर", "Mobile number", "মোবাইল নম্বর"],
+["Ending in {}", "अंतिम अंक {}", "Aakhri digits {}", "শেষ সংখ্যা {}"],
+["Checks saved here", "यहाँ सहेजी गई जाँचें", "Yahan save ki gayi checks", "এখানে সংরক্ষিত যাচাই"],
+["{#} checks", "{} जाँचें", "{} checks", "{}টি যাচাই"],
+["{#} check", "{} जाँच", "{} check", "{}টি যাচাই"],
+["You are signed out.", "आप साइन आउट हैं।", "Aap signed out hain.", "আপনি সাইন আউট অবস্থায় আছেন।"],
+["Sign in to run checks and see your account details.", "जाँच चलाने और अपने खाते की जानकारी देखने के लिए साइन इन करें।", "Check chalane aur apne account ki details dekhne ke liye sign in karein.", "যাচাই চালাতে ও অ্যাকাউন্টের তথ্য দেখতে সাইন ইন করুন।"],
+["Support / Help & Report Fraud", "सहायता और धोखाधड़ी की रिपोर्ट", "Support / Help aur Fraud Report", "সহায়তা ও প্রতারণার রিপোর্ট"],
+["Report a scam first, then read answers to common questions.", "पहले स्कैम की रिपोर्ट करें, फिर आम सवालों के जवाब पढ़ें।", "Pehle scam report karein, phir aam sawaalon ke jawab padhein.", "আগে প্রতারণার রিপোর্ট করুন, তারপর সাধারণ প্রশ্নের উত্তর পড়ুন।"],
+["Report Fraud", "धोखाधड़ी की रिपोर्ट करें", "Fraud report karein", "প্রতারণার রিপোর্ট করুন"],
+["If you lost money or shared a code, act fast.", "अगर आपने पैसे खोए हैं या कोई कोड साझा किया है, तो तुरंत कदम उठाएँ।", "Agar aapne paise khoye hain ya koi code share kiya hai, to turant kadam uthaiye.", "টাকা হারালে বা কোনো কোড শেয়ার করে ফেললে দ্রুত ব্যবস্থা নিন।"],
+["Quick reports give the best chance of stopping a transfer.", "जल्दी की गई रिपोर्ट से ट्रांसफ़र रुकने की सबसे अच्छी संभावना रहती है।", "Jaldi ki gayi report se transfer rukne ki sabse achhi sambhavna rehti hai.", "দ্রুত রিপোর্ট করলে লেনদেন আটকানোর সবচেয়ে ভালো সুযোগ থাকে।"],
+["Call your bank on the number printed on your card and ask them to block the card, UPI or account.", "अपने कार्ड पर छपे नंबर पर बैंक को कॉल करें और कार्ड, UPI या खाता ब्लॉक करने को कहें।", "Apne card par chhape number par bank ko call karein aur card, UPI ya account block karne ko kahein.", "কার্ডে ছাপা নম্বরে ব্যাংককে কল করে কার্ড, UPI বা অ্যাকাউন্ট ব্লক করতে বলুন।"],
+["Call 1930, the national cyber crime helpline, or file a report at cybercrime.gov.in.", "राष्ट्रीय साइबर क्राइम हेल्पलाइन 1930 पर कॉल करें या cybercrime.gov.in पर रिपोर्ट दर्ज करें।", "Rashtriya cyber crime helpline 1930 par call karein ya cybercrime.gov.in par report darj karein.", "জাতীয় সাইবার ক্রাইম হেল্পলাইন 1930-এ কল করুন বা cybercrime.gov.in-এ রিপোর্ট করুন।"],
+["Report suspicious calls, SMS and WhatsApp numbers on the Sanchar Saathi portal.", "संदिग्ध कॉल, SMS और WhatsApp नंबरों की रिपोर्ट संचार साथी पोर्टल पर करें।", "Sandigdh calls, SMS aur WhatsApp numbers ki report Sanchar Saathi portal par karein.", "সন্দেহজনক কল, SMS ও WhatsApp নম্বরের রিপোর্ট সঞ্চার সাথী পোর্টালে করুন।"],
+["Keep evidence: screenshots, phone numbers, UPI IDs, links and transaction IDs.", "सबूत रखें: स्क्रीनशॉट, फ़ोन नंबर, UPI आईडी, लिंक और ट्रांज़ैक्शन आईडी।", "Saboot rakhein: screenshots, phone numbers, UPI IDs, links aur transaction IDs.", "প্রমাণ রাখুন: স্ক্রিনশট, ফোন নম্বর, UPI আইডি, লিংক ও লেনদেনের আইডি।"],
+["Do not delete the chat.", "चैट डिलीट न करें।", "Chat delete na karein.", "চ্যাট মুছবেন না।"],
+["Block and report the sender inside the app you received it on.", "जिस ऐप पर संदेश मिला उसी के अंदर भेजने वाले को ब्लॉक और रिपोर्ट करें।", "Jis app par message mila usi ke andar bhejne wale ko block aur report karein.", "যে অ্যাপে বার্তা পেয়েছেন সেটির ভেতরেই প্রেরককে ব্লক ও রিপোর্ট করুন।"],
+["Call 1930", "1930 पर कॉल करें", "1930 par call karein", "1930-এ কল করুন"],
+["Report at cybercrime.gov.in", "cybercrime.gov.in पर रिपोर्ट करें", "cybercrime.gov.in par report karein", "cybercrime.gov.in-এ রিপোর্ট করুন"],
+["Sanchar Saathi", "संचार साथी", "Sanchar Saathi", "সঞ্চার সাথী"],
+["If the dialer does not open, dial", "अगर डायलर न खुले, तो", "Agar dialer na khule, to", "ডায়ালার না খুললে"],
+["yourself or", "खुद डायल करें या", "khud dial karein ya", "নিজে ডায়াল করুন অথবা"],
+["Copy number", "नंबर कॉपी करें", "Number copy karein", "নম্বর কপি করুন"],
+["Copied: 1930", "कॉपी हुआ: 1930", "Copy ho gaya: 1930", "কপি হয়েছে: 1930"],
+["Dial 1930", "1930 डायल करें", "1930 dial karein", "1930 ডায়াল করুন"],
+["How does TrustCheck Shield work?", "TrustCheck Shield कैसे काम करता है?", "TrustCheck Shield kaise kaam karta hai?", "TrustCheck Shield কীভাবে কাজ করে?"],
+["It looks for known scam patterns in the text you give it, using rules that run in your browser.", "यह आपके दिए गए टेक्स्ट में जाने-पहचाने स्कैम पैटर्न खोजता है, और इसके नियम आपके ब्राउज़र में चलते हैं।", "Ye aapke diye gaye text me jaane-pehchaane scam patterns dhoondhta hai, aur iske rules aapke browser me chalte hain.", "এটি আপনার দেওয়া লেখায় পরিচিত প্রতারণার প্যাটার্ন খোঁজে, আর এর নিয়মগুলো আপনার ব্রাউজারেই চলে।"],
+["Nothing you paste is uploaded.", "आप जो भी पेस्ट करते हैं वह अपलोड नहीं होता।", "Aap jo bhi paste karte hain wo upload nahi hota.", "আপনি যা পেস্ট করেন তা আপলোড হয় না।"],
+["Does Low Risk mean something is safe?", "क्या कम जोखिम का मतलब सुरक्षित है?", "Kya Low Risk ka matlab safe hai?", "কম ঝুঁকি মানে কি নিরাপদ?"],
+["No.", "नहीं।", "Nahi.", "না।"],
+["Low Risk only means no common warning signs were found in the text.", "कम जोखिम का मतलब सिर्फ़ इतना है कि टेक्स्ट में कोई आम चेतावनी संकेत नहीं मिला।", "Low Risk ka matlab sirf itna hai ki text me koi aam warning sign nahi mila.", "কম ঝুঁকির মানে শুধু এই যে লেখায় কোনো সাধারণ সতর্কতার চিহ্ন পাওয়া যায়নি।"],
+["New scams can look clean, so stay careful.", "नए स्कैम साफ़-सुथरे दिख सकते हैं, इसलिए सावधान रहें।", "Naye scams saaf-suthre dikh sakte hain, isliye savdhaan rahein.", "নতুন প্রতারণা নিরীহ দেখাতে পারে, তাই সতর্ক থাকুন।"],
+["Why was a real site or message flagged?", "किसी असली साइट या संदेश को क्यों चिह्नित किया गया?", "Kisi asli site ya message ko flag kyon kiya gaya?", "কোনো আসল সাইট বা বার্তাকে কেন চিহ্নিত করা হলো?"],
+["The rules are strict on purpose.", "नियम जानबूझकर सख़्त रखे गए हैं।", "Rules jaanbujhkar sakht rakhe gaye hain.", "নিয়মগুলো ইচ্ছাকৃতভাবেই কড়া রাখা হয়েছে।"],
+["Words such as login, verify and free are often used in scams, so they raise the risk even on honest pages.", "login, verify और free जैसे शब्द स्कैम में अक्सर इस्तेमाल होते हैं, इसलिए सही पेजों पर भी जोखिम बढ़ा देते हैं।", "login, verify aur free jaise words scams me aksar use hote hain, isliye sahi pages par bhi risk badha dete hain.", "login, verify ও free-এর মতো শব্দ প্রতারণায় প্রায়ই ব্যবহৃত হয়, তাই আসল পেজেও ঝুঁকি বাড়িয়ে দেয়।"],
+["Check the sender or site another way.", "भेजने वाले या साइट को किसी और तरीके से जाँचें।", "Bhejne wale ya site ko kisi aur tareeke se check karein.", "প্রেরক বা সাইটটি অন্য উপায়ে যাচাই করুন।"],
+["What if I already clicked or shared an OTP?", "अगर मैं पहले ही क्लिक कर चुका या OTP साझा कर दिया हो तो?", "Agar maine pehle hi click kar diya ya OTP share kar diya ho to?", "যদি আমি আগেই ক্লিক করে ফেলি বা OTP শেয়ার করে ফেলি?"],
+["Call your bank right away using the number on your card, and block the card or UPI.", "कार्ड पर दिए नंबर से तुरंत बैंक को कॉल करें और कार्ड या UPI ब्लॉक करें।", "Card par diye number se turant bank ko call karein aur card ya UPI block karein.", "কার্ডে দেওয়া নম্বরে এখনই ব্যাংককে কল করুন এবং কার্ড বা UPI ব্লক করুন।"],
+["Change your passwords.", "अपने पासवर्ड बदलें।", "Apne passwords badlein.", "আপনার পাসওয়ার্ড বদলান।"],
+["Then report the fraud to the national helpline 1930 or at cybercrime.gov.in.", "फिर राष्ट्रीय हेल्पलाइन 1930 या cybercrime.gov.in पर धोखाधड़ी की रिपोर्ट करें।", "Phir rashtriya helpline 1930 ya cybercrime.gov.in par fraud ki report karein.", "তারপর জাতীয় হেল্পলাইন 1930 বা cybercrime.gov.in-এ প্রতারণার রিপোর্ট করুন।"],
+["How do I report a scam message or number?", "मैं स्कैम संदेश या नंबर की रिपोर्ट कैसे करूँ?", "Main scam message ya number ki report kaise karun?", "আমি কীভাবে প্রতারণার বার্তা বা নম্বরের রিপোর্ট করব?"],
+["Block and report the sender inside the app (WhatsApp, Instagram, Telegram, your SMS app or your email service).", "ऐप (WhatsApp, Instagram, Telegram, आपका SMS ऐप या ईमेल सेवा) के अंदर भेजने वाले को ब्लॉक और रिपोर्ट करें।", "App (WhatsApp, Instagram, Telegram, aapka SMS app ya email service) ke andar bhejne wale ko block aur report karein.", "অ্যাপের (WhatsApp, Instagram, Telegram, আপনার SMS অ্যাপ বা ইমেইল সেবা) ভেতরেই প্রেরককে ব্লক ও রিপোর্ট করুন।"],
+["For fraud involving money, call 1930 or use cybercrime.gov.in.", "पैसों से जुड़ी धोखाधड़ी के लिए 1930 पर कॉल करें या cybercrime.gov.in का उपयोग करें।", "Paison se judi fraud ke liye 1930 par call karein ya cybercrime.gov.in use karein.", "টাকা-সংক্রান্ত প্রতারণার ক্ষেত্রে 1930-এ কল করুন বা cybercrime.gov.in ব্যবহার করুন।"],
+["Why is a short link or a download flagged?", "छोटे लिंक या डाउनलोड को क्यों चिह्नित किया जाता है?", "Short link ya download ko flag kyon kiya jaata hai?", "শর্ট লিংক বা ডাউনলোডকে কেন চিহ্নিত করা হয়?"],
+["Short links such as bit.ly hide the real address, and APK, EXE, SCR and ZIP files can carry malware.", "bit.ly जैसे छोटे लिंक असली पता छिपाते हैं, और APK, EXE, SCR व ZIP फ़ाइलों में मैलवेयर हो सकता है।", "bit.ly jaise short links asli address chhupate hain, aur APK, EXE, SCR va ZIP files me malware ho sakta hai.", "bit.ly-এর মতো শর্ট লিংক আসল ঠিকানা লুকায়, আর APK, EXE, SCR ও ZIP ফাইলে ম্যালওয়্যার থাকতে পারে।"],
+["A file named EICAR is an antivirus test file, harmless by design, but it is flagged on purpose.", "EICAR नाम की फ़ाइल एंटीवायरस टेस्ट फ़ाइल है, जो बनावट से हानिरहित है, पर उसे जानबूझकर चिह्नित किया जाता है।", "EICAR naam ki file antivirus test file hai, jo banawat se harmless hai, par use jaanbujhkar flag kiya jaata hai.", "EICAR নামের ফাইলটি একটি অ্যান্টিভাইরাস টেস্ট ফাইল, যা স্বভাবতই ক্ষতিকর নয়, তবে ইচ্ছাকৃতভাবেই এটি চিহ্নিত করা হয়।"],
+["What are color prediction and gaming reward scams?", "कलर प्रेडिक्शन और गेमिंग इनाम स्कैम क्या हैं?", "Color prediction aur gaming reward scams kya hain?", "কালার প্রেডিকশন ও গেমিং পুরস্কারের প্রতারণা কী?"],
+["Messages promising welcome gifts or bonuses from apps such as 91Club, then asking you to log in, recharge or pay a fee to withdraw.", "91Club जैसे ऐप के वेलकम गिफ़्ट या बोनस का वादा करने वाले संदेश, जो फिर लॉगिन, रिचार्ज या निकासी के लिए फ़ीस माँगते हैं।", "91Club jaise apps ke welcome gift ya bonus ka waada karne wale messages, jo phir login, recharge ya withdraw ke liye fee maangte hain.", "91Club-এর মতো অ্যাপের ওয়েলকাম গিফট বা বোনাসের প্রতিশ্রুতি দেওয়া বার্তা, যা পরে লগইন, রিচার্জ বা তোলার জন্য ফি চায়।"],
+["The winnings never arrive.", "जीत की रकम कभी नहीं आती।", "Jeet ki raqam kabhi nahi aati.", "জেতা টাকা কখনোই আসে না।"],
+["Do not deposit money or share bank details.", "पैसे जमा न करें और बैंक की जानकारी साझा न करें।", "Paise jama na karein aur bank details share na karein.", "টাকা জমা দেবেন না এবং ব্যাংকের তথ্য শেয়ার করবেন না।"],
+["Where is my history stored?", "मेरा इतिहास कहाँ सहेजा जाता है?", "Meri history kahan save hoti hai?", "আমার ইতিহাস কোথায় সংরক্ষিত থাকে?"],
+["Only in this browser on this device.", "सिर्फ़ इसी डिवाइस के इसी ब्राउज़र में।", "Sirf isi device ke isi browser me.", "শুধু এই ডিভাইসের এই ব্রাউজারে।"],
+["Clearing history here, or your browser data, removes it.", "यहाँ इतिहास साफ़ करने या ब्राउज़र डेटा हटाने से यह मिट जाता है।", "Yahan history saaf karne ya browser data hatane se ye mit jaata hai.", "এখানে ইতিহাস মুছলে বা ব্রাউজার ডেটা মুছলে এটি মুছে যায়।"],
+["← Back", "← वापस", "← Wapas", "← ফিরে যান"],
+["Saved in this browser for your account only.", "यह केवल आपके खाते के लिए इसी ब्राउज़र में सहेजा गया है।", "Ye sirf aapke account ke liye isi browser me save hai.", "এটি শুধু আপনার অ্যাকাউন্টের জন্য এই ব্রাউজারে সংরক্ষিত।"],
+["Newest checks appear first.", "नई जाँचें सबसे ऊपर दिखती हैं।", "Nayi checks sabse upar dikhti hain.", "নতুন যাচাই সবার আগে দেখা যায়।"],
+["Clear history", "इतिहास साफ़ करें", "History saaf karein", "ইতিহাস মুছুন"],
+["Tap again to clear history", "इतिहास साफ़ करने के लिए फिर टैप करें", "History saaf karne ke liye phir tap karein", "ইতিহাস মুছতে আবার ট্যাপ করুন"],
+["No checks yet.", "अभी तक कोई जाँच नहीं।", "Abhi tak koi check nahi.", "এখনও কোনো যাচাই নেই।"],
+["Results from all four tools appear here.", "चारों टूल के नतीजे यहाँ दिखेंगे।", "Chaaron tools ke results yahan dikhenge.", "চারটি টুলের ফলাফল এখানে দেখা যাবে।"],
+["Link", "लिंक", "Link", "লিংক"],
+["Message ({})", "संदेश ({})", "Message ({})", "বার্তা ({})"],
+["Number / UPI", "नंबर / UPI", "Number / UPI", "নম্বর / UPI"],
+["QR code", "QR कोड", "QR code", "QR কোড"],
+["Privacy Policy & Disclaimer:", "गोपनीयता नीति और अस्वीकरण:", "Privacy Policy & Disclaimer:", "গোপনীয়তা নীতি ও দাবিত্যাগ:"],
+["TrustCheck Shield is an educational and threat analysis tool designed for awareness.", "TrustCheck Shield जागरूकता के लिए बनाया गया एक शैक्षिक और ख़तरा-विश्लेषण टूल है।", "TrustCheck Shield awareness ke liye banaya gaya ek educational aur threat analysis tool hai.", "TrustCheck Shield সচেতনতার জন্য তৈরি একটি শিক্ষামূলক ও হুমকি বিশ্লেষণের টুল।"],
+["Results are generated based on pattern analysis and public security databases.", "नतीजे पैटर्न विश्लेषण और सार्वजनिक सुरक्षा डेटाबेस के आधार पर तैयार किए जाते हैं।", "Results pattern analysis aur public security databases ke aadhar par taiyaar kiye jaate hain.", "ফলাফল প্যাটার্ন বিশ্লেষণ ও জনসাধারণের জন্য উন্মুক্ত নিরাপত্তা ডেটাবেসের ভিত্তিতে তৈরি হয়।"],
+["Users should verify through official sources before making financial decisions.", "आर्थिक फ़ैसले लेने से पहले उपयोगकर्ताओं को आधिकारिक स्रोतों से पुष्टि करनी चाहिए।", "Users ko financial faisle lene se pehle official sources se verify karna chahiye.", "আর্থিক সিদ্ধান্ত নেওয়ার আগে ব্যবহারকারীদের সরকারি বা অফিসিয়াল উৎস থেকে যাচাই করা উচিত।"],
+["Sign in to TrustCheck Shield", "TrustCheck Shield में साइन इन करें", "TrustCheck Shield me sign in karein", "TrustCheck Shield-এ সাইন ইন করুন"],
+["Sign in to run checks and see your results.", "जाँच चलाने और नतीजे देखने के लिए साइन इन करें।", "Check chalane aur results dekhne ke liye sign in karein.", "যাচাই চালাতে ও ফলাফল দেখতে সাইন ইন করুন।"],
+["Continue with Google", "Google के साथ जारी रखें", "Google ke saath continue karein", "Google দিয়ে চালিয়ে যান"],
+["Continue with Microsoft", "Microsoft के साथ जारी रखें", "Microsoft ke saath continue karein", "Microsoft দিয়ে চালিয়ে যান"],
+["Mobile", "मोबाइल", "Mobile", "মোবাইল"],
+["Continue", "जारी रखें", "Continue karein", "চালিয়ে যান"],
+["Back to options", "विकल्पों पर वापस", "Options par wapas", "বিকল্পে ফিরে যান"],
+["10-digit mobile number", "10 अंकों का मोबाइल नंबर", "10 digit ka mobile number", "10 সংখ্যার মোবাইল নম্বর"],
+["Send verification code", "वेरिफ़िकेशन कोड भेजें", "Verification code bhejein", "ভেরিফিকেশন কোড পাঠান"],
+["4-digit verification code", "4 अंकों का वेरिफ़िकेशन कोड", "4 digit ka verification code", "4 সংখ্যার ভেরিফিকেশন কোড"],
+["Verify and log in", "सत्यापित करें और लॉग इन करें", "Verify karke log in karein", "যাচাই করে লগ ইন করুন"],
+["Security Access Required", "सुरक्षा प्रवेश आवश्यक", "Security Access Required", "নিরাপত্তা প্রবেশাধিকার প্রয়োজন"],
+["Demo sign-in: nothing is sent or verified.", "डेमो साइन-इन: कुछ भी भेजा या सत्यापित नहीं किया जाता।", "Demo sign-in: kuch bhi bheja ya verify nahi kiya jaata.", "ডেমো সাইন-ইন: কিছুই পাঠানো বা যাচাই করা হয় না।"],
+["Your details stay in this browser.", "आपकी जानकारी इसी ब्राउज़र में रहती है।", "Aapki details isi browser me rehti hain.", "আপনার তথ্য এই ব্রাউজারেই থাকে।"],
+["Sign in with {}", "{} से साइन इन करें", "{} se sign in karein", "{} দিয়ে সাইন ইন করুন"],
+["Your {} email ID", "आपकी {} ईमेल आईडी", "Aapki {} email ID", "আপনার {} ইমেইল আইডি"],
+["Mobile number sign-in", "मोबाइल नंबर से साइन-इन", "Mobile number se sign-in", "মোবাইল নম্বর দিয়ে সাইন-ইন"],
+["Code requested for the number ending in {}", "अंतिम अंक {} वाले नंबर के लिए कोड माँगा गया", "Aakhri digits {} wale number ke liye code manga gaya", "শেষ সংখ্যা {} যুক্ত নম্বরের জন্য কোড চাওয়া হয়েছে"],
+["Demo mode: no text message is sent.", "डेमो मोड: कोई टेक्स्ट संदेश नहीं भेजा जाता।", "Demo mode: koi text message nahi bheja jaata.", "ডেমো মোড: কোনো টেক্সট মেসেজ পাঠানো হয় না।"],
+["Your verification code is {}.", "आपका वेरिफ़िकेशन कोड {} है।", "Aapka verification code {} hai.", "আপনার ভেরিফিকেশন কোড {}।"],
+["Enter a valid email ID, such as name@example.com.", "एक सही ईमेल आईडी दर्ज करें, जैसे name@example.com।", "Ek sahi email ID daaliye, jaise name@example.com.", "একটি সঠিক ইমেইল আইডি লিখুন, যেমন name@example.com।"],
+["Enter exactly 10 digits, with no spaces or country code.", "ठीक 10 अंक दर्ज करें, बिना स्पेस या देश कोड के।", "Bilkul 10 digits daaliye, bina space ya country code ke.", "ঠিক 10টি সংখ্যা লিখুন, স্পেস বা দেশের কোড ছাড়া।"],
+["Enter the 4-digit code.", "4 अंकों का कोड दर्ज करें।", "4 digit ka code daaliye.", "4 সংখ্যার কোড লিখুন।"],
+["That code does not match. Check it and try again.", "यह कोड मेल नहीं खाता। जाँचकर फिर कोशिश करें।", "Ye code match nahi karta. Check karke phir koshish karein.", "এই কোড মিলছে না। দেখে আবার চেষ্টা করুন।"],
+["Paste a web, Chrome or APK link", "वेब, Chrome या APK लिंक पेस्ट करें", "Web, Chrome ya APK link paste karein", "ওয়েব, Chrome বা APK লিংক পেস্ট করুন"],
+["Paste the suspicious message here", "संदिग्ध संदेश यहाँ पेस्ट करें", "Sandigdh message yahan paste karein", "সন্দেহজনক বার্তাটি এখানে পেস্ট করুন"],
+["Security tools", "सुरक्षा टूल", "Security tools", "নিরাপত্তা টুল"],
+["Link to check", "जाँचने के लिए लिंक", "Check karne ke liye link", "যাচাইয়ের জন্য লিংক"],
+["Message source", "संदेश का स्रोत", "Message ka source", "বার্তার উৎস"],
+["Message text", "संदेश का टेक्स्ट", "Message ka text", "বার্তার লেখা"],
+["Phone number or UPI ID", "फ़ोन नंबर या UPI आईडी", "Phone number ya UPI ID", "ফোন নম্বর বা UPI আইডি"],
+["Main", "मुख्य", "Main", "মূল"],
+["Close", "बंद करें", "Close", "বন্ধ করুন"],
+["What stood out", "क्या ध्यान खींचता है", "Kya khaas laga", "যা চোখে পড়ল"],
+["What to do", "क्या करें", "Kya karein", "কী করবেন"],
+["Check Another", "दूसरा जाँचें", "Doosra check karein", "আরেকটি যাচাই করুন"],
+["Scan Another", "दूसरा स्कैन करें", "Doosra scan karein", "আরেকটি স্ক্যান করুন"],
+["Your message, with warning signs marked", "आपका संदेश, चेतावनी संकेतों के निशान के साथ", "Aapka message, warning signs ke nishaan ke saath", "আপনার বার্তা, সতর্কতার চিহ্নসহ"],
+["Cleaned up and checked as: {}", "साफ़ करके इस रूप में जाँचा गया: {}", "Saaf karke is roop me check kiya gaya: {}", "পরিষ্কার করে এভাবে যাচাই করা হয়েছে: {}"],
+["No web address was found in that text.", "उस टेक्स्ट में कोई वेब पता नहीं मिला।", "Us text me koi web address nahi mila.", "ওই লেখায় কোনো ওয়েব ঠিকানা পাওয়া যায়নি।"],
+["Paste a link such as https://example.com/page or example.com/page.", "https://example.com/page या example.com/page जैसा कोई लिंक पेस्ट करें।", "https://example.com/page ya example.com/page jaisa koi link paste karein.", "https://example.com/page বা example.com/page-এর মতো একটি লিংক পেস্ট করুন।"],
+["Please enter a valid message or link to analyze.", "कृपया जाँचने के लिए एक सही संदेश या लिंक दर्ज करें।", "Kripya check karne ke liye ek sahi message ya link daaliye.", "অনুগ্রহ করে বিশ্লেষণের জন্য একটি সঠিক বার্তা বা লিংক লিখুন।"],
+["Invalid QR content. Please paste a valid QR URL, UPI string, or readable text.", "QR सामग्री अमान्य है। कृपया सही QR URL, UPI स्ट्रिंग या पढ़ने योग्य टेक्स्ट पेस्ट करें।", "QR content invalid hai. Kripya sahi QR URL, UPI string ya padhne layak text paste karein.", "QR বিষয়বস্তু অকার্যকর। অনুগ্রহ করে সঠিক QR URL, UPI স্ট্রিং বা পড়ার মতো লেখা পেস্ট করুন।"],
+["Scan a QR code, upload an image, or paste its contents first.", "पहले QR कोड स्कैन करें, इमेज अपलोड करें या उसकी सामग्री पेस्ट करें।", "Pehle QR code scan karein, image upload karein ya uska content paste karein.", "আগে QR কোড স্ক্যান করুন, ছবি আপলোড করুন বা এর বিষয়বস্তু পেস্ট করুন।"],
+["No QR code was found in that picture. Try again with the whole code in view, steady and well lit, or paste the QR contents below.", "उस तस्वीर में कोई QR कोड नहीं मिला। पूरा कोड दिखाते हुए, स्थिर और अच्छी रोशनी में फिर कोशिश करें, या नीचे QR सामग्री पेस्ट करें।", "Us photo me koi QR code nahi mila. Poora code dikhate hue, steady aur achhi roshni me phir koshish karein, ya neeche QR content paste karein.", "ওই ছবিতে কোনো QR কোড পাওয়া যায়নি। পুরো কোড দেখা যায় এমনভাবে, স্থির ও ভালো আলোয় আবার চেষ্টা করুন, অথবা নিচে QR বিষয়বস্তু পেস্ট করুন।"],
+["That picture could not be opened. Try another photo or a JPG or PNG screenshot, or paste the QR contents below.", "वह तस्वीर खोली नहीं जा सकी। कोई दूसरी फ़ोटो या JPG/PNG स्क्रीनशॉट आज़माएँ, या नीचे QR सामग्री पेस्ट करें।", "Wo photo khuli nahi. Koi doosri photo ya JPG/PNG screenshot try karein, ya neeche QR content paste karein.", "ছবিটি খোলা যায়নি। অন্য একটি ছবি বা JPG/PNG স্ক্রিনশট চেষ্টা করুন, অথবা নিচে QR বিষয়বস্তু পেস্ট করুন।"],
+["Enter a 10-digit mobile number, a number with a + country code, or a UPI ID such as name@bank.", "10 अंकों का मोबाइल नंबर, + देश कोड वाला नंबर, या name@bank जैसी UPI आईडी दर्ज करें।", "10 digit ka mobile number, + country code wala number, ya name@bank jaisi UPI ID daaliye.", "10 সংখ্যার মোবাইল নম্বর, + দেশের কোডসহ নম্বর, বা name@bank-এর মতো UPI আইডি লিখুন।"],
+["This link is very likely dangerous.", "यह लिंक बहुत संभव है कि ख़तरनाक है।", "Ye link bahut sambhav hai ki khatarnak hai.", "এই লিংকটি খুব সম্ভবত বিপজ্জনক।"],
+["Parts of this link look unusual.", "इस लिंक के कुछ हिस्से असामान्य दिखते हैं।", "Is link ke kuch hisse asaamanya dikhte hain.", "এই লিংকের কিছু অংশ অস্বাভাবিক লাগছে।"],
+["Main reason: {}", "मुख्य कारण: {}", "Mukhya karan: {}", "প্রধান কারণ: {}"],
+["Only a minor pattern was found in {}.", "{} में केवल एक छोटा पैटर्न मिला।", "{} me sirf ek chhota pattern mila.", "{}-এ শুধু একটি ছোট প্যাটার্ন পাওয়া গেছে।"],
+["No suspicious patterns found in the address text for {}.", "{} के पते के टेक्स्ट में कोई संदिग्ध पैटर्न नहीं मिला।", "{} ke address text me koi sandigdh pattern nahi mila.", "{}-এর ঠিকানার লেখায় কোনো সন্দেহজনক প্যাটার্ন পাওয়া যায়নি।"],
+["The domain {} belongs to Google by name ({}).", "डोमेन {} नाम से Google का है ({})।", "Domain {} naam se Google ka hai ({}).", "ডোমেন {} নাম অনুযায়ী Google-এর ({})।"],
+["Nothing in the address text looks unusual.", "पते के टेक्स्ट में कुछ भी असामान्य नहीं दिखता।", "Address text me kuch bhi asaamanya nahi dikhta.", "ঠিকানার লেখায় অস্বাভাবিক কিছু চোখে পড়ে না।"],
+["This matches an official Google address.", "यह Google के आधिकारिक पते से मेल खाता है।", "Ye Google ke official address se match karta hai.", "এটি Google-এর অফিসিয়াল ঠিকানার সঙ্গে মেলে।"],
+["Check that the page asks for what you expect, and sign in only on addresses that end in google.com.", "देखें कि पेज वही माँग रहा है जो आप उम्मीद करते हैं, और साइन इन सिर्फ़ google.com पर ख़त्म होने वाले पते पर करें।", "Dekhein ki page wahi maang raha hai jo aap ummeed karte hain, aur sign in sirf google.com par khatam hone wale address par karein.", "দেখে নিন পেজটি আপনার প্রত্যাশামতো জিনিসই চাইছে কি না, এবং শুধু google.com-এ শেষ হওয়া ঠিকানাতেই সাইন ইন করুন।"],
+["Do not open this link.", "यह लिंक न खोलें।", "Ye link na kholein.", "এই লিংক খুলবেন না।"],
+["Be careful before you open this link.", "यह लिंक खोलने से पहले सावधान रहें।", "Ye link kholne se pehle savdhaan rahein.", "এই লিংক খোলার আগে সতর্ক থাকুন।"],
+["Normal care applies.", "सामान्य सावधानी रखें।", "Aam savdhaani rakhein.", "সাধারণ সতর্কতা মেনে চলুন।"],
+["This result does not confirm that the site is safe.", "यह नतीजा साइट के सुरक्षित होने की पुष्टि नहीं करता।", "Ye result site ke safe hone ki pushti nahi karta.", "এই ফলাফল সাইটটি নিরাপদ বলে নিশ্চিত করে না।"],
+["Never share passwords or one-time codes on a page you did not open yourself.", "जिस पेज को आपने खुद नहीं खोला, उस पर पासवर्ड या वन-टाइम कोड कभी साझा न करें।", "Jis page ko aapne khud nahi khola, us par password ya one-time code kabhi share na karein.", "যে পেজ আপনি নিজে খোলেননি, সেখানে পাসওয়ার্ড বা ওয়ান-টাইম কোড কখনো শেয়ার করবেন না।"],
+["Do not download or open the file.", "फ़ाइल डाउनलोड या ओपन न करें।", "File download ya open na karein.", "ফাইলটি ডাউনলোড বা খুলবেন না।"],
+["Get apps and programs only from the official store or the company's own website.", "ऐप और प्रोग्राम सिर्फ़ आधिकारिक स्टोर या कंपनी की अपनी वेबसाइट से लें।", "Apps aur programs sirf official store ya company ki apni website se lein.", "অ্যাপ ও প্রোগ্রাম শুধু অফিসিয়াল স্টোর বা কোম্পানির নিজস্ব ওয়েবসাইট থেকে নিন।"],
+["This is an antivirus test name.", "यह एंटीवायरस टेस्ट का नाम है।", "Ye antivirus test ka naam hai.", "এটি অ্যান্টিভাইরাস টেস্টের নাম।"],
+["Download it only on purpose, and expect your antivirus to react.", "इसे सिर्फ़ जानबूझकर डाउनलोड करें, और अपने एंटीवायरस से प्रतिक्रिया की उम्मीद रखें।", "Ise sirf jaanbujhkar download karein, aur apne antivirus se reaction ki ummeed rakhein.", "এটি শুধু ইচ্ছা করেই ডাউনলোড করুন, এবং আপনার অ্যান্টিভাইরাস প্রতিক্রিয়া দেখাবে ধরে নিন।"],
+["Do not open short links from people you do not know.", "अनजान लोगों के छोटे लिंक न खोलें।", "Anjaan logon ke short links na kholein.", "অচেনা মানুষের শর্ট লিংক খুলবেন না।"],
+["Ask for the full address, or use the shortener's preview option.", "पूरा पता माँगें, या शॉर्टनर का प्रीव्यू विकल्प इस्तेमाल करें।", "Poora address maangein, ya shortener ka preview option use karein.", "পুরো ঠিকানা চান, অথবা শর্টনারের প্রিভিউ অপশন ব্যবহার করুন।"],
+["Do not enter any details on a page reached through a number address.", "नंबर वाले पते से खुले पेज पर कोई जानकारी दर्ज न करें।", "Number wale address se khule page par koi details na daalein.", "সংখ্যার ঠিকানা দিয়ে খোলা পেজে কোনো তথ্য দেবেন না।"],
+["Do not enter passwords, codes or payment details.", "पासवर्ड, कोड या भुगतान की जानकारी दर्ज न करें।", "Password, code ya payment details na daalein.", "পাসওয়ার্ড, কোড বা পেমেন্টের তথ্য দেবেন না।"],
+["Type the company's real address yourself.", "कंपनी का असली पता खुद टाइप करें।", "Company ka asli address khud type karein.", "কোম্পানির আসল ঠিকানা নিজে টাইপ করুন।"],
+["01 / PASTE", "01 / पेस्ट", "01 / PASTE", "01 / পেস্ট"],
+["02 / NOTICE", "02 / ध्यान दें", "02 / NOTICE", "02 / লক্ষ্য করুন"],
+["03 / DECIDE", "03 / तय करें", "03 / DECIDE", "03 / সিদ্ধান্ত নিন"],
+["Bring the link here", "लिंक यहाँ लाएँ", "Link yahan laiye", "লিংকটি এখানে আনুন"],
+["Paste a complete website, download or APK link.", "पूरा वेबसाइट, डाउनलोड या APK लिंक पेस्ट करें।", "Poora website, download ya APK link paste karein.", "একটি পূর্ণ ওয়েবসাইট, ডাউনলোড বা APK লিংক পেস্ট করুন।"],
+["The text stays in your browser.", "टेक्स्ट आपके ब्राउज़र में ही रहता है।", "Text aapke browser me hi rehta hai.", "লেখাটি আপনার ব্রাউজারেই থাকে।"],
+["The check reads the protocol, host name, path and query string.", "जाँच प्रोटोकॉल, होस्ट नाम, पाथ और क्वेरी स्ट्रिंग पढ़ती है।", "Check protocol, host name, path aur query string padhta hai.", "যাচাই প্রোটোকল, হোস্ট নাম, পাথ ও কোয়েরি স্ট্রিং পড়ে।"],
+["Review the address patterns", "पते के पैटर्न देखें", "Address ke patterns dekhein", "ঠিকানার প্যাটার্ন দেখুন"],
+["Looks for APK, EXE, SCR and ZIP downloads and antivirus test files.", "APK, EXE, SCR और ZIP डाउनलोड तथा एंटीवायरस टेस्ट फ़ाइलें खोजता है।", "APK, EXE, SCR aur ZIP downloads tatha antivirus test files dhoondhta hai.", "APK, EXE, SCR ও ZIP ডাউনলোড এবং অ্যান্টিভাইরাস টেস্ট ফাইল খোঁজে।"],
+["Looks for number addresses, short links and fake subdomains.", "नंबर वाले पते, छोटे लिंक और नकली सबडोमेन खोजता है।", "Number wale address, short links aur fake subdomains dhoondhta hai.", "সংখ্যার ঠিকানা, শর্ট লিংক ও ভুয়া সাবডোমেইন খোঁজে।"],
+["Looks for words such as login, verify, free and mod, and for forwarding tricks.", "login, verify, free और mod जैसे शब्द तथा फ़ॉरवर्डिंग की चालें खोजता है।", "login, verify, free aur mod jaise words tatha forwarding ki chaalein dhoondhta hai.", "login, verify, free ও mod-এর মতো শব্দ এবং ফরোয়ার্ডিংয়ের কৌশল খোঁজে।"],
+["Choose your next step", "अगला कदम चुनें", "Agla kadam chuniye", "পরের পদক্ষেপ বেছে নিন"],
+["Use the result as one input, not the final word.", "नतीजे को एक संकेत मानें, अंतिम फ़ैसला नहीं।", "Result ko ek sanket maanein, antim faisla nahi.", "ফলাফলকে একটি ইঙ্গিত হিসেবে নিন, চূড়ান্ত রায় নয়।"],
+["Never share passwords or one-time codes on a link you did not open yourself.", "जिस लिंक को आपने खुद नहीं खोला उस पर पासवर्ड या वन-टाइम कोड कभी साझा न करें।", "Jis link ko aapne khud nahi khola us par password ya one-time code kabhi share na karein.", "যে লিংক আপনি নিজে খোলেননি সেখানে পাসওয়ার্ড বা ওয়ান-টাইম কোড কখনো শেয়ার করবেন না।"],
+["Check who runs a site before you download anything from it.", "किसी साइट से कुछ भी डाउनलोड करने से पहले देखें कि उसे कौन चलाता है।", "Kisi site se kuch bhi download karne se pehle dekhein ki use kaun chalata hai.", "কোনো সাইট থেকে কিছু ডাউনলোডের আগে দেখুন সেটি কে চালায়।"],
+["Analysis for {}", "{} का विश्लेषण", "{} ka analysis", "{}-এর বিশ্লেষণ"],
+["Your next step", "आपका अगला कदम", "Aapka agla kadam", "আপনার পরের পদক্ষেপ"],
+["Protocol: HTTPS (encrypted).", "प्रोटोकॉल: HTTPS (एन्क्रिप्टेड)।", "Protocol: HTTPS (encrypted).", "প্রোটোকল: HTTPS (এনক্রিপ্টেড)।"],
+["Protocol: HTTP (not encrypted).", "प्रोटोकॉल: HTTP (एन्क्रिप्टेड नहीं)।", "Protocol: HTTP (encrypted nahi).", "প্রোটোকল: HTTP (এনক্রিপ্টেড নয়)।"],
+["Host name: {}.", "होस्ट नाम: {}।", "Host name: {}.", "হোস্ট নাম: {}।"],
+["Main domain: {}.", "मुख्य डोमेन: {}।", "Main domain: {}.", "মূল ডোমেইন: {}।"],
+["Path: {}.", "पाथ: {}।", "Path: {}.", "পাথ: {}।"],
+["Query string: {}.", "क्वेरी स्ट्रिंग: {}।", "Query string: {}.", "কোয়েরি স্ট্রিং: {}।"],
+["none", "कोई नहीं", "koi nahi", "কিছু নেই"],
+["No unusual patterns were found in the host name, path or query string.", "होस्ट नाम, पाथ या क्वेरी स्ट्रिंग में कोई असामान्य पैटर्न नहीं मिला।", "Host name, path ya query string me koi asaamanya pattern nahi mila.", "হোস্ট নাম, পাথ বা কোয়েরি স্ট্রিংয়ে কোনো অস্বাভাবিক প্যাটার্ন পাওয়া যায়নি।"],
+["No downloads, test files, number addresses or lookalike names were found.", "कोई डाउनलोड, टेस्ट फ़ाइल, नंबर वाला पता या मिलते-जुलते नाम नहीं मिले।", "Koi download, test file, number wala address ya milte-julte naam nahi mile.", "কোনো ডাউনলোড, টেস্ট ফাইল, সংখ্যার ঠিকানা বা সদৃশ নাম পাওয়া যায়নি।"],
+["This only covers the address text.", "यह केवल पते के टेक्स्ट को कवर करता है।", "Ye sirf address text ko cover karta hai.", "এটি শুধু ঠিকানার লেখাকে কভার করে।"],
+["Verdict: Low Risk. The address matches an official Google domain.", "निर्णय: कम जोखिम। पता Google के आधिकारिक डोमेन से मेल खाता है।", "Nirnay: Low Risk. Address Google ke official domain se match karta hai.", "সিদ্ধান্ত: কম ঝুঁকি। ঠিকানাটি Google-এর অফিসিয়াল ডোমেইনের সঙ্গে মেলে।"],
+["Check that the page asks only for what you expect.", "देखें कि पेज सिर्फ़ वही माँग रहा है जिसकी आप उम्मीद करते हैं।", "Dekhein ki page sirf wahi maang raha hai jiski aap ummeed karte hain.", "দেখে নিন পেজটি শুধু আপনার প্রত্যাশামতো জিনিসই চাইছে।"],
+["Sign in only on addresses that end in google.com.", "साइन इन सिर्फ़ google.com पर ख़त्म होने वाले पतों पर करें।", "Sign in sirf google.com par khatam hone wale addresses par karein.", "শুধু google.com-এ শেষ হওয়া ঠিকানাতেই সাইন ইন করুন।"],
+["Verdict: {}, based on the address text only.", "निर्णय: {}, केवल पते के टेक्स्ट के आधार पर।", "Nirnay: {}, sirf address text ke aadhar par.", "সিদ্ধান্ত: {}, শুধু ঠিকানার লেখার ভিত্তিতে।"],
+["Verdict: {}.", "निर्णय: {}।", "Nirnay: {}.", "সিদ্ধান্ত: {}।"],
+["Check who runs the site before you download or pay.", "डाउनलोड या भुगतान से पहले देखें कि साइट कौन चलाता है।", "Download ya payment se pehle dekhein ki site kaun chalata hai.", "ডাউনলোড বা টাকা দেওয়ার আগে দেখুন সাইটটি কে চালায়।"],
+["If it came in a message, do not reply to it.", "अगर यह किसी संदेश में आया है, तो उसका जवाब न दें।", "Agar ye kisi message me aaya hai, to uska jawab na dein.", "এটি কোনো বার্তায় এলে তার উত্তর দেবেন না।"],
+["Color prediction or betting platform", "कलर प्रेडिक्शन या सट्टेबाज़ी प्लेटफ़ॉर्म", "Color prediction ya betting platform", "কালার প্রেডিকশন বা বেটিং প্ল্যাটফর্ম"],
+["Gaming, casino or betting offer", "गेमिंग, कैसीनो या सट्टेबाज़ी का ऑफ़र", "Gaming, casino ya betting offer", "গেমিং, ক্যাসিনো বা বেটিংয়ের অফার"],
+["Welcome gift, bonus or reward bait", "वेलकम गिफ़्ट, बोनस या इनाम का लालच", "Welcome gift, bonus ya reward ka laalach", "ওয়েলকাম গিফট, বোনাস বা পুরস্কারের টোপ"],
+["Login or recharge to claim or withdraw", "इनाम पाने या निकालने के लिए लॉगिन या रिचार्ज", "Claim ya withdraw ke liye login ya recharge", "দাবি বা তোলার জন্য লগইন বা রিচার্জ"],
+["Prize or lottery claim", "इनाम या लॉटरी का दावा", "Prize ya lottery ka claim", "পুরস্কার বা লটারির দাবি"],
+["Urgent KYC or details update", "तुरंत KYC या जानकारी अपडेट", "Turant KYC ya details update", "জরুরি KYC বা তথ্য আপডেট"],
+["Account, card or SIM block threat", "खाता, कार्ड या SIM बंद होने की धमकी", "Account, card ya SIM block hone ki dhamki", "অ্যাকাউন্ট, কার্ড বা SIM বন্ধের হুমকি"],
+["Utility or net banking cut-off threat", "बिजली/गैस या नेट बैंकिंग कटने की धमकी", "Bijli/gas ya net banking kaatne ki dhamki", "বিদ্যুৎ/গ্যাস বা নেট ব্যাংকিং কেটে দেওয়ার হুমকি"],
+["Unauthorized UPI or refund request", "अनधिकृत UPI या रिफ़ंड अनुरोध", "Unauthorized UPI ya refund request", "অননুমোদিত UPI বা রিফান্ডের অনুরোধ"],
+["Fake parcel or delivery notice", "नकली पार्सल या डिलीवरी नोटिस", "Fake parcel ya delivery notice", "ভুয়া পার্সেল বা ডেলিভারি নোটিশ"],
+["Crypto or investment bait", "क्रिप्टो या निवेश का लालच", "Crypto ya investment ka laalach", "ক্রিপ্টো বা বিনিয়োগের টোপ"],
+["Request for OTP, PIN or password", "OTP, PIN या पासवर्ड की माँग", "OTP, PIN ya password ki maang", "OTP, PIN বা পাসওয়ার্ড চাওয়া"],
+["Fee or advance payment request", "फ़ीस या एडवांस भुगतान की माँग", "Fee ya advance payment ki maang", "ফি বা অগ্রিম টাকার দাবি"],
+["Fake job offer", "नकली नौकरी का ऑफ़र", "Fake job offer", "ভুয়া চাকরির অফার"],
+["Remote access app request", "रिमोट एक्सेस ऐप की माँग", "Remote access app ki maang", "রিমোট অ্যাক্সেস অ্যাপের অনুরোধ"],
+["Fake arrest or legal threat", "नकली गिरफ़्तारी या कानूनी धमकी", "Fake arrest ya legal dhamki", "ভুয়া গ্রেপ্তার বা আইনি হুমকি"],
+["Emergency money request", "आपातकाल में पैसे की माँग", "Emergency me paise ki maang", "জরুরি অবস্থায় টাকা চাওয়া"],
+["Asks you to contact an unknown number", "अनजान नंबर पर संपर्क करने को कहता है", "Anjaan number par contact karne ko kehta hai", "অচেনা নম্বরে যোগাযোগ করতে বলে"],
+["Paid signals or VIP group pitch", "पेड सिग्नल या VIP ग्रुप का प्रचार", "Paid signals ya VIP group ka pitch", "পেইড সিগন্যাল বা VIP গ্রুপের প্রচার"],
+["Fake brand deal or account warning", "नकली ब्रांड डील या अकाउंट चेतावनी", "Fake brand deal ya account warning", "ভুয়া ব্র্যান্ড ডিল বা অ্যাকাউন্ট সতর্কতা"],
+["Unexpected attachment or invoice", "अनपेक्षित अटैचमेंट या इनवॉइस", "Unexpected attachment ya invoice", "অপ্রত্যাশিত অ্যাটাচমেন্ট বা ইনভয়েস"],
+["Authority name used to scare you", "डराने के लिए अधिकारियों के नाम का इस्तेमाल", "Darane ke liye authority ke naam ka istemaal", "ভয় দেখাতে কর্তৃপক্ষের নাম ব্যবহার"],
+["Pressure to act fast", "जल्दबाज़ी का दबाव", "Jaldi karne ka pressure", "তাড়াহুড়োর চাপ"],
+["Pushes you to click or install", "क्लिक या इंस्टॉल करने के लिए दबाव", "Click ya install karne ka pressure", "ক্লিক বা ইনস্টল করার চাপ"],
+["Generic greeting or account warning", "सामान्य अभिवादन या खाता चेतावनी", "Generic greeting ya account warning", "সাধারণ সম্ভাষণ বা অ্যাকাউন্ট সতর্কতা"],
+["Most of the message is in capital letters.", "संदेश का ज़्यादातर हिस्सा कैपिटल अक्षरों में है।", "Message ka zyaadatar hissa capital letters me hai.", "বার্তার বেশিরভাগ অংশ বড় হাতের অক্ষরে।"],
+["Repeated exclamation or question marks.", "बार-बार विस्मयादिबोधक या प्रश्न चिह्न।", "Baar-baar exclamation ya question marks.", "বারবার বিস্ময় বা প্রশ্নচিহ্ন।"],
+["Short link combined with reward, bank, job or scam wording.", "छोटा लिंक, इनाम, बैंक, नौकरी या स्कैम जैसे शब्दों के साथ।", "Short link, reward, bank, job ya scam jaise words ke saath.", "শর্ট লিংকের সঙ্গে পুরস্কার, ব্যাংক, চাকরি বা প্রতারণার মতো শব্দ।"],
+["Scammers use short links to hide the real address.", "स्कैमर असली पता छिपाने के लिए छोटे लिंक इस्तेमाल करते हैं।", "Scammers asli address chhupane ke liye short links use karte hain.", "প্রতারকরা আসল ঠিকানা লুকাতে শর্ট লিংক ব্যবহার করে।"],
+["This message matches several common fraud patterns.", "यह संदेश कई आम धोखाधड़ी पैटर्न से मेल खाता है।", "Ye message kai aam fraud patterns se match karta hai.", "এই বার্তা প্রতারণার বেশ কয়েকটি সাধারণ প্যাটার্নের সঙ্গে মেলে।"],
+["Treat it as a scam until proven otherwise.", "जब तक उलटा साबित न हो, इसे स्कैम मानें।", "Jab tak ulta saabit na ho, ise scam maanein.", "উল্টোটা প্রমাণ না হওয়া পর্যন্ত একে প্রতারণা বলেই ধরুন।"],
+["This message has patterns that scammers often use.", "इस संदेश में ऐसे पैटर्न हैं जो स्कैमर अक्सर इस्तेमाल करते हैं।", "Is message me aise patterns hain jo scammers aksar use karte hain.", "এই বার্তায় এমন প্যাটার্ন আছে যা প্রতারকরা প্রায়ই ব্যবহার করে।"],
+["Be careful.", "सावधान रहें।", "Savdhaan rahein.", "সতর্ক থাকুন।"],
+["No common scam patterns were found in this message text.", "इस संदेश के टेक्स्ट में कोई आम स्कैम पैटर्न नहीं मिला।", "Is message ke text me koi aam scam pattern nahi mila.", "এই বার্তার লেখায় কোনো সাধারণ প্রতারণার প্যাটার্ন পাওয়া যায়নি।"],
+["That does not prove it is genuine.", "इससे यह साबित नहीं होता कि यह असली है।", "Isse ye saabit nahi hota ki ye asli hai.", "এতে প্রমাণ হয় না যে এটি আসল।"],
+["Do not reply, click any link, install anything or share codes.", "जवाब न दें, कोई लिंक न खोलें, कुछ इंस्टॉल न करें और कोड साझा न करें।", "Jawab na dein, koi link na kholein, kuch install na karein aur code share na karein.", "উত্তর দেবেন না, কোনো লিংকে ক্লিক করবেন না, কিছু ইনস্টল করবেন না এবং কোড শেয়ার করবেন না।"],
+["Block and report the sender.", "भेजने वाले को ब्लॉक और रिपोर्ट करें।", "Bhejne wale ko block aur report karein.", "প্রেরককে ব্লক ও রিপোর্ট করুন।"],
+["If you already acted, call your bank and 1930 straight away.", "अगर आप पहले ही कदम उठा चुके हैं, तो तुरंत अपने बैंक और 1930 को कॉल करें।", "Agar aap pehle hi kadam utha chuke hain, to turant apne bank aur 1930 ko call karein.", "আপনি যদি আগেই কিছু করে ফেলে থাকেন, তাহলে এখনই ব্যাংক ও 1930-এ কল করুন।"],
+["Do not click links or share details.", "लिंक न खोलें और जानकारी साझा न करें।", "Links na kholein aur details share na karein.", "লিংকে ক্লিক করবেন না এবং তথ্য শেয়ার করবেন না।"],
+["Confirm with the company using a phone number or website you already trust.", "कंपनी से किसी ऐसे फ़ोन नंबर या वेबसाइट से पुष्टि करें जिस पर आप पहले से भरोसा करते हैं।", "Company se kisi aise phone number ya website se pushti karein jis par aap pehle se bharosa karte hain.", "যে ফোন নম্বর বা ওয়েবসাইটে আপনি আগে থেকেই ভরসা করেন, তা দিয়ে কোম্পানির সঙ্গে নিশ্চিত হন।"],
+["Stay careful with links and requests for money or codes.", "लिंक और पैसे या कोड की माँग के साथ सावधान रहें।", "Links aur paise ya code ki maang ke saath savdhaan rahein.", "লিংক এবং টাকা বা কোডের অনুরোধে সতর্ক থাকুন।"],
+["Color prediction and betting apps are often rigged and can be illegal.", "कलर प्रेडिक्शन और सट्टेबाज़ी ऐप अक्सर धांधली वाले होते हैं और अवैध भी हो सकते हैं।", "Color prediction aur betting apps aksar dhaandhli wale hote hain aur illegal bhi ho sakte hain.", "কালার প্রেডিকশন ও বেটিং অ্যাপ প্রায়ই কারচুপির হয় এবং বেআইনিও হতে পারে।"],
+["Do not deposit, recharge or share bank details.", "पैसे जमा या रिचार्ज न करें और बैंक की जानकारी साझा न करें।", "Paise jama ya recharge na karein aur bank details share na karein.", "টাকা জমা বা রিচার্জ করবেন না এবং ব্যাংকের তথ্য শেয়ার করবেন না।"],
+["Real rewards never need you to log in, recharge or pay a fee to withdraw them.", "असली इनाम पाने के लिए लॉगिन, रिचार्ज या निकासी की फ़ीस कभी नहीं देनी पड़ती।", "Asli rewards paane ke liye login, recharge ya withdraw ki fee kabhi nahi deni padti.", "আসল পুরস্কার পেতে লগইন, রিচার্জ বা তোলার ফি কখনো দিতে হয় না।"],
+["Banks do not ask you to update KYC through links or messages.", "बैंक लिंक या संदेश के ज़रिए KYC अपडेट करने को नहीं कहते।", "Bank links ya messages ke zariye KYC update karne ko nahi kehte.", "ব্যাংক লিংক বা বার্তার মাধ্যমে KYC আপডেট করতে বলে না।"],
+["Use the bank's official app or visit a branch.", "बैंक का आधिकारिक ऐप इस्तेमाल करें या शाखा जाएँ।", "Bank ka official app use karein ya branch jaayein.", "ব্যাংকের অফিসিয়াল অ্যাপ ব্যবহার করুন বা শাখায় যান।"],
+["You never need your UPI PIN to receive money.", "पैसे पाने के लिए आपको UPI PIN की कभी ज़रूरत नहीं होती।", "Paise paane ke liye aapko UPI PIN ki kabhi zaroorat nahi hoti.", "টাকা পেতে আপনার UPI PIN কখনোই লাগে না।"],
+["Decline any collect request you did not start.", "जो कलेक्ट रिक्वेस्ट आपने शुरू नहीं की उसे अस्वीकार करें।", "Jo collect request aapne shuru nahi ki use decline karein.", "যে কালেক্ট রিকোয়েস্ট আপনি শুরু করেননি তা প্রত্যাখ্যান করুন।"],
+["Never share an OTP, PIN or password with anyone, even if they say they work for your bank.", "OTP, PIN या पासवर्ड किसी के साथ साझा न करें, भले ही वे कहें कि वे आपके बैंक से हैं।", "OTP, PIN ya password kisi ke saath share na karein, bhale hi wo kahein ki wo aapke bank se hain.", "OTP, PIN বা পাসওয়ার্ড কারও সঙ্গে শেয়ার করবেন না, এমনকি তারা আপনার ব্যাংকের লোক বললেও।"],
+["Real employers do not charge fees or pay for likes, reviews or tasks.", "असली नियोक्ता फ़ीस नहीं लेते और लाइक, रिव्यू या टास्क के लिए पैसे नहीं देते।", "Asli employers fee nahi lete aur likes, reviews ya tasks ke liye paise nahi dete.", "আসল নিয়োগকর্তা ফি নেয় না এবং লাইক, রিভিউ বা টাস্কের জন্য টাকা দেয় না।"],
+["On WhatsApp, be wary of unknown numbers, job offers, gaming groups and \"wrong number\" chats.", "WhatsApp पर अनजान नंबर, नौकरी के ऑफ़र, गेमिंग ग्रुप और \"रॉन्ग नंबर\" वाली चैट से सावधान रहें।", "WhatsApp par anjaan numbers, job offers, gaming groups aur \"wrong number\" chats se savdhaan rahein.", "WhatsApp-এ অচেনা নম্বর, চাকরির অফার, গেমিং গ্রুপ ও \"রং নম্বর\" চ্যাট থেকে সতর্ক থাকুন।"],
+["Block and report the sender inside the app.", "ऐप के अंदर भेजने वाले को ब्लॉक और रिपोर्ट करें।", "App ke andar bhejne wale ko block aur report karein.", "অ্যাপের ভেতরেই প্রেরককে ব্লক ও রিপোর্ট করুন।"],
+["Instagram messages from accounts you do not follow that offer prizes, jobs, brand deals or investments are a common scam.", "जिन अकाउंट को आप फ़ॉलो नहीं करते उनके Instagram संदेश, जो इनाम, नौकरी, ब्रांड डील या निवेश का ऑफ़र देते हैं, आम स्कैम हैं।", "Jin accounts ko aap follow nahi karte unke Instagram messages, jo prize, job, brand deal ya investment ka offer dete hain, aam scam hain.", "যে অ্যাকাউন্ট আপনি ফলো করেন না তাদের Instagram বার্তা, যা পুরস্কার, চাকরি, ব্র্যান্ড ডিল বা বিনিয়োগের অফার দেয়, একটি সাধারণ প্রতারণা।"],
+["Report the account.", "अकाउंट की रिपोर्ट करें।", "Account ki report karein.", "অ্যাকাউন্টটি রিপোর্ট করুন।"],
+["Telegram groups that promise daily income, trading tips or gaming rewards are a common fraud route.", "रोज़ की कमाई, ट्रेडिंग टिप्स या गेमिंग इनाम का वादा करने वाले Telegram ग्रुप धोखाधड़ी का आम रास्ता हैं।", "Roz ki kamai, trading tips ya gaming rewards ka waada karne wale Telegram groups fraud ka aam raasta hain.", "দৈনিক আয়, ট্রেডিং টিপস বা গেমিং পুরস্কারের প্রতিশ্রুতি দেওয়া Telegram গ্রুপ প্রতারণার একটি সাধারণ পথ।"],
+["Leave the group and report it.", "ग्रुप छोड़ें और उसकी रिपोर्ट करें।", "Group chhodein aur uski report karein.", "গ্রুপটি ছেড়ে দিন এবং রিপোর্ট করুন।"],
+["Banks send SMS from sender names, not personal numbers, and never ask for your OTP or PIN.", "बैंक SMS निजी नंबर से नहीं, सेंडर नाम से भेजते हैं और आपका OTP या PIN कभी नहीं माँगते।", "Bank SMS personal numbers se nahi, sender names se bhejte hain aur aapka OTP ya PIN kabhi nahi maangte.", "ব্যাংক ব্যক্তিগত নম্বর থেকে নয়, সেন্ডার নাম থেকে SMS পাঠায় এবং আপনার OTP বা PIN কখনো চায় না।"],
+["Do not reply with codes.", "कोड के साथ जवाब न दें।", "Codes ke saath jawab na dein.", "কোড দিয়ে উত্তর দেবেন না।"],
+["Check the sender's real address, not only the display name.", "केवल दिखने वाले नाम को नहीं, भेजने वाले का असली पता जाँचें।", "Sirf dikhne wale naam ko nahi, bhejne wale ka asli address check karein.", "শুধু প্রদর্শিত নাম নয়, প্রেরকের আসল ঠিকানা যাচাই করুন।"],
+["Do not open attachments or links you did not expect.", "जिन अटैचमेंट या लिंक की आपको उम्मीद नहीं थी उन्हें न खोलें।", "Jin attachments ya links ki aapko ummeed nahi thi unhe na kholein.", "যে অ্যাটাচমেন্ট বা লিংকের আশা করেননি তা খুলবেন না।"],
+["This UPI ID has patterns often seen in fraud.", "इस UPI आईडी में ऐसे पैटर्न हैं जो अक्सर धोखाधड़ी में दिखते हैं।", "Is UPI ID me aise patterns hain jo aksar fraud me dikhte hain.", "এই UPI আইডিতে এমন প্যাটার্ন আছে যা প্রায়ই প্রতারণায় দেখা যায়।"],
+["Parts of this UPI ID deserve a closer look.", "इस UPI आईडी के कुछ हिस्से गौर से देखने लायक हैं।", "Is UPI ID ke kuch hisse gaur se dekhne layak hain.", "এই UPI আইডির কিছু অংশ ভালো করে দেখা দরকার।"],
+["Nothing unusual in the format of this UPI ID.", "इस UPI आईडी के फ़ॉर्मेट में कुछ भी असामान्य नहीं है।", "Is UPI ID ke format me kuch bhi asaamanya nahi hai.", "এই UPI আইডির ফরম্যাটে অস্বাভাবিক কিছু নেই।"],
+["This cannot show whether it has been reported.", "यह नहीं बता सकता कि इसकी शिकायत हुई है या नहीं।", "Ye nahi bata sakta ki iski report hui hai ya nahi.", "এটি বলতে পারে না যে এর বিরুদ্ধে অভিযোগ হয়েছে কি না।"],
+["Check the name your payment app shows before you pay.", "भुगतान से पहले अपने पेमेंट ऐप में दिखने वाला नाम जाँचें।", "Payment se pehle apne payment app me dikhne wala naam check karein.", "টাকা দেওয়ার আগে আপনার পেমেন্ট অ্যাপে দেখানো নামটি যাচাই করুন।"],
+["You never need a PIN to receive money, so refuse any request to enter your PIN for a refund or prize.", "पैसे पाने के लिए PIN की कभी ज़रूरत नहीं होती, इसलिए रिफ़ंड या इनाम के लिए PIN डालने की हर माँग ठुकराएँ।", "Paise paane ke liye PIN ki kabhi zaroorat nahi hoti, isliye refund ya prize ke liye PIN daalne ki har maang thukraiye.", "টাকা পেতে PIN কখনোই লাগে না, তাই রিফান্ড বা পুরস্কারের জন্য PIN দেওয়ার যেকোনো অনুরোধ প্রত্যাখ্যান করুন।"],
+["The format looks like a normal {} number.", "फ़ॉर्मेट एक सामान्य {} नंबर जैसा दिखता है।", "Format ek aam {} number jaisa dikhta hai.", "ফরম্যাটটি একটি সাধারণ {} নম্বরের মতো দেখাচ্ছে।"],
+["Indian mobile", "भारतीय मोबाइल", "Indian mobile", "ভারতীয় মোবাইল"],
+["international", "अंतरराष्ट्रीय", "international", "আন্তর্জাতিক"],
+["This number has a pattern worth a closer look.", "इस नंबर में एक पैटर्न है जिसे गौर से देखना चाहिए।", "Is number me ek pattern hai jise gaur se dekhna chahiye.", "এই নম্বরে একটি প্যাটার্ন আছে যা ভালো করে দেখা উচিত।"],
+["Do not share OTPs, PINs or card details with anyone who calls or messages you, even if they say they are from your bank.", "कॉल या संदेश करने वाले किसी के साथ OTP, PIN या कार्ड की जानकारी साझा न करें, भले ही वे बैंक से होने का दावा करें।", "Call ya message karne wale kisi ke saath OTP, PIN ya card details share na karein, bhale hi wo bank se hone ka daava karein.", "কল বা মেসেজ করা কারও সঙ্গে OTP, PIN বা কার্ডের তথ্য শেয়ার করবেন না, এমনকি তারা ব্যাংকের লোক দাবি করলেও।"],
+["Hang up and call the number printed on your card.", "कॉल काटें और अपने कार्ड पर छपे नंबर पर कॉल करें।", "Call kaatein aur apne card par chhape number par call karein.", "কল কেটে দিন এবং কার্ডে ছাপা নম্বরে কল করুন।"],
+["A normal-looking payment QR code.", "एक सामान्य दिखने वाला पेमेंट QR कोड।", "Ek aam dikhne wala payment QR code.", "একটি সাধারণ দেখতে পেমেন্ট QR কোড।"],
+["This cannot show whether the payee is genuine.", "यह नहीं बता सकता कि पाने वाला असली है या नहीं।", "Ye nahi bata sakta ki paane wala asli hai ya nahi.", "প্রাপক আসল কি না তা এটি বলতে পারে না।"],
+["This payment QR code has details worth checking before you pay.", "इस पेमेंट QR कोड में कुछ बातें हैं जिन्हें भुगतान से पहले जाँचना चाहिए।", "Is payment QR code me kuch baatein hain jinhe payment se pehle check karna chahiye.", "এই পেমেন্ট QR কোডে কিছু বিষয় আছে যা টাকা দেওয়ার আগে যাচাই করা উচিত।"],
+["Scan payment QR codes only when you want to pay.", "पेमेंट QR कोड सिर्फ़ तभी स्कैन करें जब आप भुगतान करना चाहते हों।", "Payment QR codes sirf tabhi scan karein jab aap payment karna chahte hon.", "পেমেন্ট QR কোড শুধু তখনই স্ক্যান করুন যখন আপনি টাকা দিতে চান।"],
+["If anyone says you will receive money by scanning, it is a scam.", "अगर कोई कहे कि स्कैन करने से आपको पैसे मिलेंगे, तो यह स्कैम है।", "Agar koi kahe ki scan karne se aapko paise milenge, to ye scam hai.", "কেউ যদি বলে স্ক্যান করলে আপনি টাকা পাবেন, তবে তা প্রতারণা।"],
+["Check the payee name your app shows before you enter an amount.", "रकम डालने से पहले अपने ऐप में दिखने वाला पाने वाले का नाम जाँचें।", "Raqam daalne se pehle apne app me dikhne wala paane wale ka naam check karein.", "টাকার অঙ্ক দেওয়ার আগে আপনার অ্যাপে দেখানো প্রাপকের নামটি যাচাই করুন।"],
+["This QR code does more than show text.", "यह QR कोड सिर्फ़ टेक्स्ट दिखाने से ज़्यादा करता है।", "Ye QR code sirf text dikhane se zyaada karta hai.", "এই QR কোড শুধু লেখা দেখানোর চেয়ে বেশি কিছু করে।"],
+["Read what your phone asks you to do before you allow it.", "अनुमति देने से पहले पढ़ें कि आपका फ़ोन आपसे क्या करने को कह रहा है।", "Permission dene se pehle padhein ki aapka phone aapse kya karne ko keh raha hai.", "অনুমতি দেওয়ার আগে পড়ে নিন আপনার ফোন আপনাকে কী করতে বলছে।"],
+["Do not join networks or send messages you did not plan to.", "ऐसे नेटवर्क से न जुड़ें या ऐसे संदेश न भेजें जिनकी आपने योजना नहीं बनाई थी।", "Aise networks se na judein ya aise messages na bhejein jinki aapne yojana nahi banayi thi.", "যে নেটওয়ার্কে বা বার্তায় যাওয়ার পরিকল্পনা ছিল না, তাতে যুক্ত হবেন না বা পাঠাবেন না।"],
+["This QR code contains plain text and no link.", "इस QR कोड में सादा टेक्स्ट है, कोई लिंक नहीं।", "Is QR code me saada text hai, koi link nahi.", "এই QR কোডে সাধারণ লেখা আছে, কোনো লিংক নেই।"],
+["Nothing suspicious was found.", "कुछ भी संदिग्ध नहीं मिला।", "Kuch bhi sandigdh nahi mila.", "সন্দেহজনক কিছু পাওয়া যায়নি।"],
+["Plain text is not harmful on its own.", "सादा टेक्स्ट अपने आप में हानिकारक नहीं होता।", "Saada text apne aap me harmful nahi hota.", "সাধারণ লেখা নিজে ক্ষতিকর নয়।"],
+["Be careful if it tells you to call a number or send money.", "अगर यह किसी नंबर पर कॉल करने या पैसे भेजने को कहे तो सावधान रहें।", "Agar ye kisi number par call karne ya paise bhejne ko kahe to savdhaan rahein.", "এটি কোনো নম্বরে কল করতে বা টাকা পাঠাতে বললে সতর্ক থাকুন।"],
+["If the code is a sticker on a poster, parking meter or table, check that it has not been stuck over the original.", "अगर कोड पोस्टर, पार्किंग मीटर या टेबल पर लगा स्टिकर है, तो देखें कि वह असली कोड के ऊपर चिपकाया तो नहीं गया।", "Agar code poster, parking meter ya table par laga sticker hai, to dekhein ki wo asli code ke upar chipkaya to nahi gaya.", "কোডটি পোস্টার, পার্কিং মিটার বা টেবিলে লাগানো স্টিকার হলে দেখে নিন এটি আসল কোডের ওপর সাঁটানো হয়নি তো।"]
+];
+</script>
+<script src="script.js"></script>
+</body>
+</html>
