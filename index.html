@@ -1,4 +1,13 @@
 <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>TrustCheck</title>
+</head>
+<body>
+    <script>
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -301,7 +310,20 @@ window.addEventListener("error",function(e){try{var d=document.getElementById("e
 <script>
 (function(){
 "use strict";
-const $=id=>document.getElementById(id);
+/* Shows any page error on screen (tap to dismiss). */
+window.addEventListener("error",function(e){try{var d=document.getElementById("errbar");if(!d){d=document.createElement("div");d.id="errbar";d.style.cssText="position:fixed;left:8px;right:8px;top:8px;z-index:99;background:#b3261e;color:#fff;padding:10px 12px;border-radius:10px;font:13px/1.4 system-ui,sans-serif;word-break:break-word";d.onclick=function(){d.remove()};document.body.appendChild(d)}d.textContent="Page error: "+(e.message||"unknown")+(e.lineno?" (line "+e.lineno+")":"")+". Tap to dismiss."}catch(x){}});
+/* If index.html does not match this file, missing elements are replaced by harmless stand-ins instead of crashing. */
+const MISSING=[];
+function ghost(){return new Proxy(function(){},{get:(t,k)=>k===Symbol.toPrimitive||k==="toString"||k==="valueOf"?()=>"":k==="then"?undefined:k==="length"?0:ghost(),set:()=>true,apply:()=>ghost()})}
+const $=id=>document.getElementById(id)||(MISSING.indexOf(id)<0&&MISSING.push(id),ghost());
+function reportMismatch(){
+  const m=[];
+  if(MISSING.length)m.push("index.html does not match app.js (missing: "+MISSING.slice(0,6).join(", ")+(MISSING.length>6?", ...":"")+"). Upload the matching index.html.");
+  if(!ROWS.length)m.push("Translation files i18n1.js and i18n2.js did not load, so only English works.");
+  if(!m.length)return;
+  let d=document.getElementById("errbar");
+  if(!d){d=document.createElement("div");d.id="errbar";d.style.cssText="position:fixed;left:8px;right:8px;top:8px;z-index:99;background:#b3261e;color:#fff;padding:10px 12px;border-radius:10px;font:13px/1.4 system-ui,sans-serif;word-break:break-word";d.onclick=function(){d.remove()};document.body.appendChild(d)}
+  d.textContent="File check: "+m.join(" ")+" Tap to dismiss."}
 const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
 const err=(id,m)=>{const e=$(id);e.textContent=m;e.hidden=false};
 const toks=s=>s.split(/[^a-z0-9]+/).filter(Boolean);
@@ -569,8 +591,9 @@ function known(w){
   if(WORDS.has(w))return true;
   for(const x of ["s","es","ed","d","ing","ly","er","ers"])if(w.length>x.length+2&&w.endsWith(x)&&WORDS.has(w.slice(0,-x.length)))return true;
   return w.endsWith("ing")&&WORDS.has(w.slice(0,-3)+"e")}
+function nonLatin(t){const r=t.replace(/[A-Za-z\u00C0-\u024F]/g,"");try{return new RegExp("\\p{L}","u").test(r)}catch(e){return /[\u0370-\uFFFF]/.test(r)}}
 function readable(t){
-  if(/\p{L}/u.test(t.replace(/[A-Za-z\u00C0-\u024F]/g,"")))return true;
+  if(nonLatin(t))return true;
   const w=t.toLowerCase().replace(/https?:\/\/\S+|www\.\S+|\S+@\S+/g," ").replace(/['\u2019]/g,"").match(/[a-z]{2,}/g)||[];
   if(!w.length)return false;
   return w.filter(known).length/w.length>=(w.length>8?0.4:0.5)}
@@ -877,21 +900,7 @@ const ROWS=[
 ["Demo mode: no text message is sent.", "डेमो मोड: कोई टेक्स्ट संदेश नहीं भेजा जाता।", "Demo mode: koi text message nahi bheja jaata.", "ডেমো মোড: কোনো টেক্সট মেসেজ পাঠানো হয় না।"],
 ["Your verification code is {}.", "आपका वेरिफ़िकेशन कोड {} है।", "Aapka verification code {} hai.", "আপনার ভেরিফিকেশন কোড {}।"],
 ["Enter a valid email ID, such as name@example.com.", "एक सही ईमेल आईडी दर्ज करें, जैसे name@example.com।", "Ek sahi email ID daaliye, jaise name@example.com.", "একটি সঠিক ইমেইল আইডি লিখুন, যেমন name@example.com।"],
-["Enter exactly 10 digits, with no spaces or country code.", "ठीक 10 अंक दर्ज करें, बिना स्पेस या देश कोड के।", "Bilkul 10 digits daaliye, bina space ya country code ke.", "ঠিক 10টি সংখ্যা লিখুন, স্পেস বা দেশের কোড ছাড়া।"],
-["Enter the 4-digit code.", "4 अंकों का कोड दर्ज करें।", "4 digit ka code daaliye.", "4 সংখ্যার কোড লিখুন।"],
-["That code does not match. Check it and try again.", "यह कोड मेल नहीं खाता। जाँचकर फिर कोशिश करें।", "Ye code match nahi karta. Check karke phir koshish karein.", "এই কোড মিলছে না। দেখে আবার চেষ্টা করুন।"],
-["Paste a web, Chrome or APK link", "वेब, Chrome या APK लिंक पेस्ट करें", "Web, Chrome ya APK link paste karein", "ওয়েব, Chrome বা APK লিংক পেস্ট করুন"],
-["Paste the suspicious message here", "संदिग्ध संदेश यहाँ पेस्ट करें", "Sandigdh message yahan paste karein", "সন্দেহজনক বার্তাটি এখানে পেস্ট করুন"],
-["Security tools", "सुरक्षा टूल", "Security tools", "নিরাপত্তা টুল"],
-["Link to check", "जाँचने के लिए लिंक", "Check karne ke liye link", "যাচাইয়ের জন্য লিংক"],
-["Message source", "संदेश का स्रोत", "Message ka source", "বার্তার উৎস"],
-["Message text", "संदेश का टेक्स्ट", "Message ka text", "বার্তার লেখা"],
-["Phone number or UPI ID", "फ़ोन नंबर या UPI आईडी", "Phone number ya UPI ID", "ফোন নম্বর বা UPI আইডি"],
-["Main", "मुख्य", "Main", "মূল"],
-["Close", "बंद करें", "Close", "বন্ধ করুন"],
-["What stood out", "क्या ध्यान खींचता है", "Kya khaas laga", "যা চোখে পড়ল"],
-["What to do", "क्या करें", "Kya karein", "কী করবেন"],
-["Check Another", "दूसरा जाँचें", "Doosra check karein", "আরেকটি যাচাই করুন"],
-["Scan Another", "दूसरा स्कैन करें", "Doosra scan karein", "আরেকটি স্ক্যান করুন"],
-["Your message, with warning signs marked", "आपका संदेश, चेतावनी संकेतों के निशान के साथ", "Aapka message, warning signs ke nishaan ke saath", "আপনার বার্তা, সতর্কতার চিহ্নসহ"],
-["Cleaned up and checked as: {}", "साफ़ करके इस रूप में जाँचा गया: {}", "Saaf karke is roop me chec
+["Enter exactly 10 digits, with no spaces or country code.", "ठीक 10 अंक दर
+     </script>
+</body>
+</html>
