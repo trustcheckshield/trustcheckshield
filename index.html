@@ -354,8 +354,7 @@ const VIEWS=["home","profile","history","privacy","language"];
 function view(v){
   VIEWS.forEach(x=>$("v-"+x).hidden=x!==v);
   const tab=v==="home"?"home":"profile";
-  ["home","profile"].forEach(x=>{const b=$("nav-"+x);b.classList.toggle("on",x===tab);if(x===tab)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
-  if(v==="profile")drawProfile();if(v==="history")drawHistView();
+  ["home","profile"].forEach(x=>{const b=$("nav-"+x);if(b){b.classList.toggle("on",x===tab);if(x===tab)b.setAttribute("aria-selected","true");else b.removeAttribute("aria-selected");}});
   window.scrollTo(0,0)}
 $("nav-home").addEventListener("click",()=>view("home"));
 $("nav-profile").addEventListener("click",()=>view("profile"));
