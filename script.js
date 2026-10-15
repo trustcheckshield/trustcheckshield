@@ -9,6 +9,7 @@ function reportMismatch(){
   const m=[];
   if(MISSING.length)m.push("index.html does not match script.js (missing: "+MISSING.slice(0,6).join(", ")+(MISSING.length>6?", ...":"")+"). Upload the matching index.html.");
   if(!ROWS.length)m.push("The translation data in index.html did not load, so only English works.");
+  else if(!window.TCS_LANG2)m.push("lang.js did not load, so scan details stay in English.");
   if(!m.length)return;
   let d=document.getElementById("errbar");
   if(!d){d=document.createElement("div");d.id="errbar";d.style.cssText="position:fixed;left:8px;right:8px;top:8px;z-index:99;background:#b3261e;color:#fff;padding:10px 12px;border-radius:10px;font:13px/1.4 system-ui,sans-serif;word-break:break-word";d.onclick=function(){d.remove()};document.body.appendChild(d)}
@@ -89,7 +90,7 @@ function show(id,r,hl){
   try{b.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"nearest"})}catch(e){}}
 
 /* ===== URL analysis ===== */
-const LBL={High:"High Risk",Medium:"Caution",Low:"Low Risk"};
+const LBL={High:"High Risk",Medium:"Medium Risk",Low:"Low Risk"};
 const OFFICIAL=["google.com"];
 const USERCONTENT=["sites.google.com","drive.google.com","docs.google.com","forms.google.com","script.google.com","drive.usercontent.google.com"];
 const REPOS=["apkpure.com","apkmirror.com","apkmody.io","happymod.com","uptodown.com","aptoide.com","apkcombo.com","mediafire.com","mega.nz","4shared.com","sendspace.com","gofile.io"];
@@ -267,8 +268,7 @@ function evalMsg(txt,pl){
     const s=m[0].replace(/[.,;!?\]}]+$/,""),u=parse(s);if(!u)continue;n++;
     const a=analyze(u);ranges.push([m.index,m.index+s.length]);
     if(a.flags.indexOf("short")>=0)short=true;
-    if(a.level==="High"){score+=4;sig.push("Link to "+a.host+" is High Risk. "+a.signals[0])}
-    else if(a.level==="Medium"){score+=2;sig.push("Link to "+a.host+" needs Caution. "+a.signals[0])}
+    if(a.level==="High"||a.level==="Medium"){score+=a.level==="High"?4:2;sig.push("Link to "+a.host+" is "+LBL[a.level]+". "+a.signals[0])}
     else{score+=1;sig.push("The message contains a link ("+a.host+"). Do not tap links you did not expect.")}}
   const letters=txt.replace(/[^a-z]/gi,"");
   if(letters.length>30&&letters.replace(/[^A-Z]/g,"").length/letters.length>0.5){score+=1;sig.push("Most of the message is in capital letters.")}
@@ -446,7 +446,7 @@ ROWS.forEach(r=>{const v={hi:r[1],hn:r[2],bn:r[3]};
 function sents(k){const o=[];let c="";for(let i=0;i<k.length;i++){c+=k[i];if(/[.!?]/.test(k[i])&&/\s/.test(k[i+1]||"")){o.push(c);c="";while(/\s/.test(k[i+1]||""))i++}}if(c)o.push(c);return o}
 function tk(k,l,deep){
   const e=TR[k];if(e&&e[l])return e[l];
-  for(const p of PAT){const m=k.match(p.re);if(m&&p.v[l]){let i=0;return p.v[l].replace(/\{\}/g,()=>tk(m[++i]||"",l,1))}}
+  for(const p of PAT){const m=k.match(p.re);if(m&&p.v[l]){let i=0;return p.v[l].replace(/\{\}/g,()=>tk(m[++i]||"",l))}}
   const q=k.match(/^([^:"]{3,60}): "([\s\S]*)"$/);if(q&&TR[q[1]]&&TR[q[1]][l])return TR[q[1]][l]+': "'+q[2]+'"';
   if(!deep){const s=sents(k);if(s.length>1){let hit=false;const o=s.map(x=>{const t=tk(x.trim(),l,1);if(t!==x.trim())hit=true;return t});if(hit)return o.join(" ")}}
   return k}
