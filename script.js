@@ -91,7 +91,13 @@ function show(id,r,hl){
 
 /* ===== URL analysis ===== */
 const LBL={High:"High Risk",Medium:"Medium Risk",Low:"Low Risk"};
-const OFFICIAL=["google.com"];
+/* Official verified domains. A link to one of these (or its subdomains) is shown as an official link and rated Low Risk. */
+const TRUSTED={"airtel.in":"Airtel","airtel.com":"Airtel","jio.com":"Jio","jio.in":"Jio","bsnl.co.in":"BSNL","myvi.in":"Vi",
+"sbi.co.in":"SBI","onlinesbi.sbi":"SBI","sbicard.com":"SBI Card","hdfcbank.com":"HDFC Bank","icicibank.com":"ICICI Bank","axisbank.com":"Axis Bank","kotak.com":"Kotak","pnbindia.in":"PNB","bankofbaroda.in":"Bank of Baroda","canarabank.com":"Canara Bank","unionbankofindia.co.in":"Union Bank","yesbank.in":"Yes Bank","indusind.com":"IndusInd Bank","idfcfirstbank.com":"IDFC FIRST Bank",
+"paytm.com":"Paytm","phonepe.com":"PhonePe","npci.org.in":"NPCI","bhimupi.org.in":"BHIM UPI",
+"uidai.gov.in":"UIDAI","incometax.gov.in":"Income Tax Department","irctc.co.in":"IRCTC","indiapost.gov.in":"India Post","parivahan.gov.in":"Parivahan","cybercrime.gov.in":"Cyber Crime Portal","sancharsaathi.gov.in":"Sanchar Saathi",
+"amazon.in":"Amazon","flipkart.com":"Flipkart","google.com":"Google","microsoft.com":"Microsoft","apple.com":"Apple"};
+function trustedOrg(h){for(const d in TRUSTED)if(h===d||h.endsWith("."+d))return[d,TRUSTED[d]];return null}
 const USERCONTENT=["sites.google.com","drive.google.com","docs.google.com","forms.google.com","script.google.com","drive.usercontent.google.com"];
 const REPOS=["apkpure.com","apkmirror.com","apkmody.io","happymod.com","uptodown.com","aptoide.com","apkcombo.com","mediafire.com","mega.nz","4shared.com","sendspace.com","gofile.io"];
 const CORE=["login","signin","verify","free","mod"];
@@ -142,11 +148,12 @@ function analyze(u){
   const sig=[],flags=new Set();let score=0,hard=false;
   const add=(w,t,f,crit)=>{score+=w;sig.push({w:w,t:t});if(f)flags.add(f);if(crit)hard=true};
   const r={host:host,main:main,proto:proto,path:path,qs:qs,ext:fext||ext};
-  if(!u.username&&!ip&&OFFICIAL.some(o=>isHost(host,o))&&!USERCONTENT.some(o=>isHost(host,o))&&!EXE.includes(fext)&&!/[?&](url|q|redirect|continue|link)=https?/i.test(qs)){
-    r.level="Low";r.official=true;r.flags=[];
-    r.desc="The domain "+host+" belongs to Google by name ("+main+"). Nothing in the address text looks unusual.";
-    r.rec="This matches an official Google address. Check that the page asks for what you expect, and sign in only on addresses that end in google.com.";
-    r.signals=["Main domain is "+main+", which is a Google domain.","The link uses "+proto+(proto==="HTTPS"?", which is encrypted.":".")];return r}
+  const tr=ip?null:trustedOrg(host);
+  if(!u.username&&!ip&&tr&&!USERCONTENT.some(o=>isHost(host,o))&&!EXE.includes(fext)&&!/[?&](url|q|redirect|continue|link)=https?/i.test(qs)){
+    r.level="Low";r.official=true;r.org=tr[1];r.orgDomain=tr[0];r.flags=[];
+    r.desc="The domain "+host+" is an official verified domain of "+tr[1]+" ("+main+"). Nothing in the address text looks unusual.";
+    r.rec="This matches an official "+tr[1]+" address. Check that the page asks for what you expect, and sign in only on addresses that end in "+tr[0]+".";
+    r.signals=["Main domain is "+main+", which is a verified official domain of "+tr[1]+".","The link uses "+proto+(proto==="HTTPS"?", which is encrypted.":".")];return r}
   const all=toks(host+" "+pq),repo=REPOS.find(d=>isHost(host,d));
   /* downloads and test files */
   if(/eicar/.test(pq)||/\.com\.txt$/.test(seg))add(5,"Antivirus test signature: the name \"EICAR\" or a .com.txt file is in the link. It is a harmless test file, but your antivirus will react to it and real malware sometimes copies the name.","eicar",true);
@@ -210,7 +217,7 @@ function steps(r){
   const clip=(x,n)=>x.length>n?x.slice(0,n)+"…":x;
   const c1=["Protocol: "+r.proto+(r.proto==="HTTPS"?" (encrypted).":" (not encrypted)."),"Host name: "+r.host+".","Main domain: "+r.main+".","Path: "+(clip(r.path,34)||"/")+(r.ext?" (file type ."+r.ext+")":"")+".","Query string: "+(r.qs?clip(r.qs,34):"none")+"."];
   const c2=r.signals.length?r.signals:["No unusual patterns were found in the host name, path or query string.","No downloads, test files, number addresses or lookalike names were found.","This only covers the address text."];
-  const d=r.official?["Verdict: Low Risk. The address matches an official Google domain.","Check that the page asks only for what you expect.","Sign in only on addresses that end in google.com."]
+  const d=r.official?["Verdict: Low Risk. The address matches an official "+r.org+" domain.","Check that the page asks only for what you expect.","Sign in only on addresses that end in "+r.orgDomain+"."]
     :["Verdict: "+LBL[r.level]+(r.level==="Low"?", based on the address text only.":".")].concat(r.flags.slice(0,2).map(f=>REC[f]));
   if(d.length<3)d.push(r.level==="Low"?"Check who runs the site before you download or pay.":"If it came in a message, do not reply to it.");
   box.append(stepCard("01 / PASTE","Analysis for "+r.host,c1),stepCard("02 / NOTICE","What stood out",c2),stepCard("03 / DECIDE","Your next step",d));
@@ -232,6 +239,11 @@ let plat="WhatsApp";
 Object.keys(PLAT).forEach(k=>{const b=mk("button","chip",k);b.type="button";b.setAttribute("aria-pressed",String(k===plat));
   b.addEventListener("click",()=>{plat=k;document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",String(c===b)))});$("plat").append(b)});
 const RULES=[
+{l:"Fake bank debit or panic alert",w:5,hard:1,tip:"Banks never ask you to reply NO, click a link or call a number to cancel a debit. Call your bank on the number printed on your card.",res:[/(?:\b(?:debited|deducted|withdrawn)\b[^\n]{0,50}(?:rs\.?|inr|₹)\s?\d[\d,]*|(?:rs\.?|inr|₹)\s?\d[\d,]*(?:\.\d+)?[^\n]{0,30}\b(?:debited|deducted|withdrawn)\b)/gi,/\b(?:reply\s+(?:no|n|stop|block|cancel|dispute|yes|y)\b|(?:click|tap)\s+(?:here|the link|below|now)|call\s+(?:us\s+|this number\s+)?(?:now|immediately|urgently)|dispute\s+(?:now|immediately|within))/gi]},
+{l:"Fake electricity disconnection alert",w:5,tip:"Electricity boards do not cut supply through an SMS that asks you to call a number. Pay bills only in the official board app or website.",res:[/\b(?:electricity|electric|power|bijli|light)\b/gi,/\b(?:disconnect(?:ed|ion)?|cut(?:ting)? off|will be cut|supply (?:will be )?(?:stopped|cut|disconnected)|connection (?:will be )?(?:cut|stopped|terminated))\b/gi,/\b(?:tonight|today|at\s+\d{1,2}(?:[:.]\d{2})?\s*(?:pm|am)|within\s+\d+\s*(?:hours?|hrs?|minutes?|mins?)|immediately|last (?:chance|warning)|previous (?:month'?s? )?bill|bill (?:is )?not (?:updated|paid)|contact (?:the )?(?:officer|executive|office))/gi]},
+{l:"Fake job or task earning scam",w:5,tip:"Real employers do not charge fees or pay for likes, reviews or tasks.",res:[/\b(?:earn(?:ing)?|income|salary|make|get paid)\b[^\n]{0,40}?(?:₹|rs\.?|inr)?\s?\d[\d,]*\s*(?:\/\s?|per\s+|a\s+|every\s+|each\s+)?(?:day|daily|hour|hr|week|weekly)\b/gi,/\b(?:like|liking|likes|subscribe|subscribing|youtube|videos?|reels?|tasks?|reviews?|ratings?|part[- ]time|work from home|wfh|data entry|typing job|telegram|whatsapp group|online job|hiring)\b/gi]},
+{l:"Fake KYC or account-block threat",w:5,tip:"Banks do not ask you to update KYC through links or messages. Use the bank's official app or visit a branch.",res:[/\b(?:kyc|pan(?: card)?|aadhaar|a\/c|account|sim|debit card|credit card|net ?banking|upi|wallet)\b/gi,/\b(?:block(?:ed)?|suspend(?:ed)?|deactivat(?:ed|ion)|frozen|freeze|expire[sd]?|closed|terminated|disabled|not updated|update(?:d)? (?:now|immediately|today|within)|verify (?:now|immediately|today|within))\b/gi,/(?:\bclick\b|\btap\b|\blink\b|https?:|bit\.ly|\bcall\b|\bcontact\b|\bimmediately\b|\burgent(?:ly)?\b|within\s+\d+|\btoday\b|\bnow\b|\basap\b|\botherwise\b|\bor else\b|last (?:chance|warning))/gi]},
+{l:"Fake e-challan or traffic fine notice",w:5,tip:"Check any challan only on the official Parivahan website or app.",res:[/\b(?:e-?challan|challan|traffic (?:fine|violation|police)|parivahan|rto)\b/gi,/\b(?:pending|unpaid|overdue|fine|penalty|pay|due|violation|notice)\b/gi,/(?:https?:|bit\.ly|\bclick\b|\blink\b|pay now|within\s+\d+|\bimmediately\b|\burgent(?:ly)?\b|\btoday\b|\bcall\b|\.apk)/gi]},
 {l:"Color prediction or betting platform",w:5,tip:"Color prediction and betting apps are often rigged and can be illegal. Do not deposit, recharge or share bank details.",re:/\b(91 ?club|tiranga( games?)?|daman( games?)?|wingo|jalwa|ssj ?fin|ok ?win|bdg ?win|rajaluck|goa ?games?|(colou?r|number) prediction|prediction (group|hack|tips?|app)|satta|matka|betting (id|app|tips?)|sure ?shot)\b/gi},
 {l:"Gaming, casino or betting offer",w:3,re:/\b(rummy|teen ?patti|aviator|casino|online betting|ludo (earn|cash|game)|dream ?11|fantasy (cricket|league))\b/gi},
 {l:"Welcome gift, bonus or reward bait",w:3,re:/\b(welcome (gift|bonus|reward)s?|(free|gift|bonus|reward) (code|coupon|voucher|cash|money|recharge)|(claim|get|collect|win)[^.\n]{0,20}(gift|reward|bonus|cash)|(gift|reward|bonus)s?[^.\n]{0,15}(waiting|ready|credited|unlocked)|(first|1st) (deposit|recharge) bonus|sign ?up bonus|register (and|&) (get|win|earn))\b/gi},
@@ -240,16 +252,16 @@ const RULES=[
 {l:"Urgent KYC or details update",w:3,tip:"Banks do not ask you to update KYC through links or messages. Use the bank's official app or visit a branch.",re:/\b(kyc|know your customer|pan (card )?(update|verification)|aadhaar (update|link)|update (your )?(details|account))\b/gi},
 {l:"Account, card or SIM block threat",w:3,re:/\b(account|card|upi|wallet|sim)[^.\n]{0,30}(block(ed)?|suspend(ed)?|deactivat(ed|ion)|frozen|freeze|closed|expire[sd]?)\b/gi},
 {l:"Utility or net banking cut-off threat",w:3,re:/\b(electricity|power|gas|net ?banking|pan card)[^.\n]{0,40}(disconnect(ed|ion)?|cut off|block(ed)?|deactivat(ed|ion)|terminated|suspend(ed)?)\b/gi},
-{l:"Unauthorized UPI or refund request",w:5,tip:"You never need your UPI PIN to receive money. Decline any collect request you did not start.",re:/\b(collect request|request money|approve (the |this )?(request|payment)|accept (the |this )?(collect )?request|(receive|get|claim)[^.\n]{0,25}(enter|using|with) (your )?(upi )?pin|scan (this )?qr[^.\n]{0,25}(receive|get|claim|refund)|(refund|cashback)[^.\n]{0,25}(upi pin|scan|accept)|(mistakenly|wrongly|by mistake)[^.\n]{0,25}(sent|transferred|credited)[^.\n]{0,25}(return|send back|refund))\b/gi},
+{l:"Unauthorized UPI or refund request",hard:1,w:5,tip:"You never need your UPI PIN to receive money. Decline any collect request you did not start.",re:/\b(collect request|request money|approve (the |this )?(request|payment)|accept (the |this )?(collect )?request|(receive|get|claim)[^.\n]{0,25}(enter|using|with) (your )?(upi )?pin|scan (this )?qr[^.\n]{0,25}(receive|get|claim|refund)|(refund|cashback)[^.\n]{0,25}(upi pin|scan|accept)|(mistakenly|wrongly|by mistake)[^.\n]{0,25}(sent|transferred|credited)[^.\n]{0,25}(return|send back|refund))\b/gi},
 {l:"Fake parcel or delivery notice",w:3,re:/\b(parcel|package|courier|delivery|shipment|customs)[^.\n]{0,50}(held|failed|pending|undelivered|fee|charge|reschedule|address|redeliver)/gi},
 {l:"Crypto or investment bait",w:3,re:/\b(crypto|bitcoin|usdt|forex|trading (group|tips)|guaranteed (returns?|profit)|double your (money|investment)|daily (profit|income)|investment (plan|opportunity)|stock tips)\b/gi},
-{l:"Request for OTP, PIN or password",w:5,tip:"Never share an OTP, PIN or password with anyone, even if they say they work for your bank.",re:/\b(share|send|tell|enter|provide|confirm)[^.\n]{0,25}(otp|pin|cvv|password|passcode|card number)\b|\b(otp|cvv|upi pin)[^.\n]{0,20}(share|send)/gi},
-{l:"Fee or advance payment request",w:3,re:/\b(processing fee|registration fee|joining fee|training fee|activation fee|security deposit|refundable deposit|pay (a )?(small )?(fee|amount)|send (me )?money|gift cards?)\b/gi},
+{l:"Request for OTP, PIN or password",hard:1,w:5,tip:"Never share an OTP, PIN or password with anyone, even if they say they work for your bank.",re:/\b(share|send|tell|enter|provide|confirm)[^.\n]{0,25}(otp|pin|cvv|password|passcode|card number)\b|\b(otp|cvv|upi pin)[^.\n]{0,20}(share|send)/gi},
+{l:"Fee or advance payment request",hard:1,w:3,re:/\b(processing fee|registration fee|joining fee|training fee|activation fee|security deposit|refundable deposit|pay (a )?(small )?(fee|amount)|send (me )?money|gift cards?)\b/gi},
 {l:"Fake job offer",w:3,tip:"Real employers do not charge fees or pay for likes, reviews or tasks.",re:/\b(hiring|vacanc(y|ies)|job offer|work from home|part[- ]time|data entry|typing job|earn (up to )?(₹|rs\.?|inr)? ?\d[\d,]*\s?(per|a|every|daily|weekly|monthly)|salary (₹|rs\.?|inr)? ?\d+|no (experience|investment) (needed|required)|joining fee|training fee|task (based|work)|(like|subscribe|review)[^.\n]{0,15}tasks?|prepaid tasks?|hr (manager|team))\b/gi},
-{l:"Remote access app request",w:4,re:/\b(anydesk|teamviewer|quicksupport|screen ?share|remote (access|support))\b/gi},
-{l:"Fake arrest or legal threat",w:4,re:/\b(digital arrest|arrest warrant|legal action against you|narcotics|cbi officer)\b/gi},
-{l:"Emergency money request",w:3,re:/\b(i am (in|stuck)[^.\n]{0,30}(hospital|airport|trouble)|your (son|daughter|relative)[^.\n]{0,20}(accident|arrest))\b/gi},
-{l:"Asks you to contact an unknown number",w:2,re:/\b(call|whatsapp|contact|message|text) (us |me )?(now |today )?(on|at)?:? ?(\+?91[\s-]?)?[6-9]\d{9}\b/gi},
+{l:"Remote access app request",hard:1,w:4,re:/\b(anydesk|teamviewer|quicksupport|screen ?share|remote (access|support))\b/gi},
+{l:"Fake arrest or legal threat",hard:1,w:4,re:/\b(digital arrest|arrest warrant|legal action against you|narcotics|cbi officer)\b/gi},
+{l:"Emergency money request",hard:1,w:3,re:/\b(i am (in|stuck)[^.\n]{0,30}(hospital|airport|trouble)|your (son|daughter|relative)[^.\n]{0,20}(accident|arrest))\b/gi},
+{l:"Asks you to contact an unknown number",hard:1,w:2,re:/\b(call|whatsapp|contact|message|text) (us |me )?(now |today )?(on|at)?:? ?(\+?91[\s-]?)?[6-9]\d{9}\b/gi},
 {p:"Telegram",l:"Paid signals or VIP group pitch",w:3,re:/\b(vip (group|channel|signals?)|paid signals?|pump (group|signals?)|join (my|our|the) (group|channel))\b/gi},
 {p:"Instagram DM",l:"Fake brand deal or account warning",w:2,re:/\b(brand (deal|collab)|paid (promotion|collab)|follow (and|&) (win|earn)|giveaway winner|copyright (violation|infringement)|account (will be )?(deleted|disabled))\b/gi},
 {p:"Email",l:"Unexpected attachment or invoice",w:2,re:/\b(attached (invoice|file|document|statement)|payment (advice|receipt)|invoice (attached|no\.?)|open the attachment|\.(zip|exe|scr|html?))\b/gi},
@@ -259,14 +271,19 @@ const RULES=[
 {n:1,l:"Generic greeting or account warning",w:1,re:/\b(dear (customer|user|account holder|valued)|verify your (account|identity|email)|your (mailbox|storage) is full|password (will )?expire)/gi}];
 const LINKRE=/\b(?:https?:\/\/|www\.)[^\s<>"')\]}]+|\b(?:[a-z0-9-]+\.)+(?:com|in|net|org|xyz|top|link|click|co|info|app|cc|ly|me|online|site|live|shop|vip|icu|apk|zip)(?:\/[^\s<>"')\]}]*)?/gi;
 function evalMsg(txt,pl){
-  let score=0,lure=false,short=false;const sig=[],ranges=[],tips=[];
-  RULES.forEach(R=>{if(R.p&&R.p!==pl)return;const re=new RegExp(R.re.source,"gi");let m,first=null;
-    while((m=re.exec(txt))){if(!first)first=m[0];ranges.push([m.index,m.index+m[0].length]);if(m[0].length===0)re.lastIndex++}
-    if(first){score+=R.w;if(!R.n)lure=true;if(R.tip&&tips.indexOf(R.tip)<0)tips.push(R.tip);sig.push(R.l+": \""+first.slice(0,50)+"\"")}});
+  let score=0,lure=false,short=false,hard=false,trusted=0,unknown=0;const sig=[],ranges=[],tips=[],ver=[];
+  RULES.forEach(R=>{if(R.p&&R.p!==pl)return;
+    const parts=R.res||[R.re];let first=null,rg=[],ok=true;
+    parts.forEach((x,i)=>{if(!ok)return;const re=new RegExp(x.source,"gi");let m,f=null;
+      while((m=re.exec(txt))){if(f===null)f=m[0];rg.push([m.index,m.index+m[0].length]);if(m[0].length===0)re.lastIndex++}
+      if(f===null)ok=false;else if(i===0)first=f});
+    if(ok){ranges.push.apply(ranges,rg);score+=R.w;if(!R.n)lure=true;if(R.hard)hard=true;if(R.tip&&tips.indexOf(R.tip)<0)tips.push(R.tip);sig.push(R.l+": \""+first.slice(0,50)+"\"")}});
   const lre=new RegExp(LINKRE.source,"gi");let m,n=0;
   while((m=lre.exec(txt))&&n<3){if(m.index>0&&txt[m.index-1]==="@")continue;
     const s=m[0].replace(/[.,;!?\]}]+$/,""),u=parse(s);if(!u)continue;n++;
-    const a=analyze(u);ranges.push([m.index,m.index+s.length]);
+    const a=analyze(u);
+    if(a.official){trusted++;ver.push("Official verified domain link: "+a.host+" ("+a.org+").");continue}
+    unknown++;ranges.push([m.index,m.index+s.length]);
     if(a.flags.indexOf("short")>=0)short=true;
     if(a.level==="High"||a.level==="Medium"){score+=a.level==="High"?4:2;sig.push("Link to "+a.host+" is "+LBL[a.level]+". "+a.signals[0])}
     else{score+=1;sig.push("The message contains a link ("+a.host+"). Do not tap links you did not expect.")}}
@@ -274,7 +291,11 @@ function evalMsg(txt,pl){
   if(letters.length>30&&letters.replace(/[^A-Z]/g,"").length/letters.length>0.5){score+=1;sig.push("Most of the message is in capital letters.")}
   if(/[!?]{3,}/.test(txt)){score+=1;sig.push("Repeated exclamation or question marks.")}
   if(short&&lure){score=Math.max(score,5);sig.unshift("Short link combined with reward, bank, job or scam wording. Scammers use short links to hide the real address.")}
-  return{level:rate(score,5,2),sig:sig,ranges:ranges,tips:tips}}
+  if(unknown&&lure){score+=2;sig.push("A link from an unverified site appears together with scam wording.")}
+  let level=rate(score,5,2),capped=false;
+  const verified=trusted>0&&unknown===0;
+  if(verified){if(hard)ver.push("The link is official, but the wording still asks for a risky action.");else if(level!=="Low"){level="Low";capped=true}}
+  return{level:level,sig:ver.concat(sig),ranges:ranges,tips:tips,verified:verified,capped:capped}}
 const WORDS=new Set("a about above after again all also am an and any are as at be because been before being below between both but by can cannot could did do does doing down during each few for from further had has have having he her here hers him his how if in into is it its just me more most my no nor not now of off on once only or other our out over own same she should so some such than that the their them then there these they this those through to too under until up very was we were what when where which while who whom why will with would you your yours yourself hi hello hey dear sir madam mr mrs ms ok okay yes yeah thanks thank please pls plz sorry bye good morning evening night day today tomorrow tonight yesterday wish wishes happy birthday congrats congratulations welcome account bank card debit credit upi pin otp cvv password login log signin sign verify verification update details link click tap open download install app apk call message msg sms text send sent receive received refund money amount rs inr rupees rupee cash payment pay paid paying transfer transferred transaction txn balance blocked block suspended suspend expire expired expires expiring deactivated activate active urgent urgently immediately immediate soon last chance final notice warning alert limited offer free gift rewards reward bonus coupon voucher prize lottery winner won win claim collect selected lucky draw jackpot recharge deposit withdraw withdrawal withdrawn unlock fee fees charge charges registration processing joining training refundable security job jobs work home part time full earn earning income salary daily weekly monthly per hour hours week month year hiring vacancy vacancies data entry typing task tasks like subscribe review follow share join group channel telegram whatsapp instagram facebook messenger email mail gmail google microsoft apple amazon flipkart paytm phonepe gpay netflix sbi hdfc icici axis kotak pnb airtel jio bsnl irctc aadhaar aadhar pan kyc customer customers user users member name number mobile phone sim electricity bill power gas disconnect disconnected cut parcel package courier delivery delivered shipment customs address held failed pending reschedule track tracking order orders invoice attached attachment file document statement receipt advice police court arrest arrested warrant legal action case officer cbi tax department government govt official support help service services team care helpline contact reply respond confirm confirmed approve approval request requested accept declined reject cancelled cancel complete completed process processed success successful invalid error wrong mistake mistakenly accidentally return back investment invest trading trade crypto bitcoin usdt forex profit profits returns guaranteed double stock stocks market shares ipo plan opportunity club game games gaming play betting bet casino rummy teen patti aviator ludo prediction color colour satta matka dream fantasy cricket match level vip signal signals pump ssjfin daman tiranga wingo jalwa okwin get got give given take taken make made see seen know need needs want wants go going gone come came coming meet meeting met called calling talk speak tell told say said ask asked check checked find found look looking wait waiting stop start started try tried use used using keep kept let put set show shown buy bought sell sold opened close closed read write wrote visit visiting reach reached arrive arrived leave left bring brought feel think thought hope love liked party dinner lunch breakfast food office school college class exam result results ticket tickets flight train bus cab ride car bike house room hotel booking book booked people person friend friends family brother sister mother father mom dad son daughter wife husband boss one two three four five six seven eight nine ten hundred thousand lakh crore minutes minute min mins hrs seconds second new old big small bad best better high low long short fast quick easy hard real fake safe secure trusted genuine original important required mandatory compulsory valid verified unverified suspicious unknown private public personal dont cant wont didnt doesnt isnt arent wasnt werent hasnt havent couldnt wouldnt shouldnt im ive id ill youre youve youll hes shes thats whats theres lets aap aapka aapki aapke apna apni apne main mein mai hum hamara hamari tum tumhara tera tere mera meri mere hai hain ho hoga hogi honge hua hui hue tha thi raha rahi rahe kar karo karna kare karein karke kiya kiye kya kyun kyu kaise kab kahan kaun kitna kitne ka ki ke ko se par pe ne ya aur bhi nahi nahin na haan ji jee bhai behen dost abhi aaj kal ab jab tab agar toh lekin magar isse usse yeh ye woh wo yahan wahan jaldi turant fauran paisa paise khata khate band chalu jayega jayegi jaayega milega milegi milenge mil gaya gayi gaye lo lena liya dena diya dijiye bhejo bheje bhej bhejna bhejiye batao bataye bata dekho dekhe dekh suno sun padhe jeeto jeet inaam warna varna role id ssid type key url title org tel addr city country product item price ref seat event date start end location desc description version model serial batch sku code pa pn am cu tn tr mc".split(" "));
 function known(w){
   if(WORDS.has(w))return true;
@@ -312,10 +333,10 @@ function scanMsg(){
   if(!gate())return;const txt=$("msg").value.trim();
   if(!validMsg(txt)){err("msgE","Please enter a valid message or link to analyze.");$("msgR").hidden=true;return}
   $("msgE").hidden=true;
-  const e=evalMsg(txt,plat),level=e.level;
+  const e=evalMsg(txt,plat),level=e.level,ok=e.verified&&level==="Low";
   const r={level:level,signals:e.sig,
-    desc:level==="High"?"This message matches several common fraud patterns. Treat it as a scam until proven otherwise.":level==="Medium"?"This message has patterns that scammers often use. Be careful.":"No common scam patterns were found in this message text. That does not prove it is genuine.",
-    rec:(level==="High"?"Do not reply, click any link, install anything or share codes. Block and report the sender. If you already acted, call your bank and 1930 straight away. ":level==="Medium"?"Do not click links or share details. Confirm with the company using a phone number or website you already trust. ":"Stay careful with links and requests for money or codes. ")+e.tips.slice(0,2).join(" ")+" "+PLAT[plat]};
+    desc:ok?"The link in this message points to an official verified domain."+(e.capped?" Some wording looked like a scam pattern, but the only link is official, so the risk is reduced.":" No scam patterns were found in the text."):level==="High"?"This message matches several common fraud patterns. Treat it as a scam until proven otherwise.":level==="Medium"?"This message has patterns that scammers often use. Be careful.":"No common scam patterns were found in this message text. That does not prove it is genuine.",
+    rec:ok?"Official domain verified. Still, open the link only if you expected this message, and never share OTPs, PINs or passwords. "+PLAT[plat]:(level==="High"?"Do not reply, click any link, install anything or share codes. Block and report the sender. If you already acted, call your bank and 1930 straight away. ":level==="Medium"?"Do not click links or share details. Confirm with the company using a phone number or website you already trust. ":"Stay careful with links and requests for money or codes. ")+e.tips.slice(0,2).join(" ")+" "+PLAT[plat]};
   show("msgR",r,e.ranges.length?hlNode(txt,e.ranges):null);logScan("Message ("+plat+")",txt,level)}
 
 /* ===== number and UPI ===== */
@@ -440,8 +461,9 @@ const LTAG={en:"en",hi:"hi",hn:"hi-Latn",bn:"bn"};
 /* Translation table: [English, Hindi, Hinglish, Bengali]. {} = any text, {#} = digits. Add rows here to translate more text. */
 const ROWS=window.TCS_ROWS||[];
 const TR={},PAT=[];
+function mkRe(en){return new RegExp("^"+en.split(/(\{#\}|\{\*\}|\{\})/).map(p=>p==="{#}"?"(\\d+)":p==="{*}"?"([\\s\\S]+?)":p==="{}"?"((?:(?!\\.\\s)[\\s\\S])+?)":p.replace(/[.*+?^$()|[\]\\]/g,"\\$&")).join("")+"$")}
 ROWS.forEach(r=>{const v={hi:r[1],hn:r[2],bn:r[3]};
-  if(/\{#?\}/.test(r[0]))PAT.push({re:new RegExp("^"+r[0].replace(/[.*+?^$()|[\]\\]/g,"\\$&").replace(/\{#\}/g,"(\\d+)").replace(/\{\}/g,"([\\s\\S]+?)")+"$"),v:v});
+  if(/\{[#*]?\}/.test(r[0]))PAT.push({re:mkRe(r[0]),v:v});
   else TR[r[0]]=v});
 function sents(k){const o=[];let c="";for(let i=0;i<k.length;i++){c+=k[i];if(/[.!?]/.test(k[i])&&/\s/.test(k[i+1]||"")){o.push(c);c="";while(/\s/.test(k[i+1]||""))i++}}if(c)o.push(c);return o}
 function tk(k,l,deep){
