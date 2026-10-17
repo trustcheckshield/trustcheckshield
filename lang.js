@@ -240,7 +240,9 @@ window.TCS_ROWS=(window.TCS_ROWS||[]).concat([
 ["Check that the page asks for what you expect, and sign in only on addresses that end in {}.", "देखें कि पेज वही माँग रहा है जो आप उम्मीद करते हैं, और साइन इन सिर्फ़ {} पर ख़त्म होने वाले पते पर करें।", "Dekhein ki page wahi maang raha hai jo aap ummeed karte hain, aur sign in sirf {} par khatam hone wale address par karein.", "দেখে নিন পেজটি আপনার প্রত্যাশামতো জিনিসই চাইছে কি না, এবং শুধু {}-এ শেষ হওয়া ঠিকানাতেই সাইন ইন করুন।"],
 ["Main domain is {}, which is a verified official domain of {}.", "मुख्य डोमेन {} है, जो {} का सत्यापित आधिकारिक डोमेन है।", "Main domain {} hai, jo {} ka verified official domain hai.", "মূল ডোমেইন {}, যা {}-এর যাচাইকৃত অফিসিয়াল ডোমেইন।"],
 ["The address matches an official {} domain.", "पता {} के आधिकारिक डोमेन से मेल खाता है।", "Address {} ke official domain se match karta hai.", "ঠিকানাটি {}-এর অফিসিয়াল ডোমেইনের সঙ্গে মেলে।"],
-["Sign in only on addresses that end in {}.", "साइन इन सिर्फ़ {} पर ख़त्म होने वाले पतों पर करें।", "Sign in sirf {} par khatam hone wale addresses par karein.", "শুধু {}-এ শেষ হওয়া ঠিকানাতেই সাইন ইন করুন।"]
+["Sign in only on addresses that end in {}.", "साइन इन सिर्फ़ {} पर ख़त्म होने वाले पतों पर करें।", "Sign in sirf {} par khatam hone wale addresses par karein.", "শুধু {}-এ শেষ হওয়া ঠিকানাতেই সাইন ইন করুন।"],
+["Risk score", "जोखिम स्कोर", "Risk score", "ঝুঁকির স্কোর"],
+["Risk score {#} out of 100", "जोखिम स्कोर 100 में से {}", "Risk score 100 me se {}", "ঝুঁকির স্কোর 100-এর মধ্যে {}"]
 ]);
 window.TCS_LANG2=true;
 /* END OF lang.js */
