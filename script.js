@@ -79,14 +79,42 @@ function pick(t){document.querySelectorAll(".tool").forEach(b=>b.setAttribute("a
 document.querySelectorAll(".tool").forEach(b=>b.addEventListener("click",()=>pick(b.dataset.t)));
 
 /* ===== result renderer ===== */
+/* ===== risk meter (animated gauge + score out of 100) ===== */
+const MCOL={Low:"#10B981",Medium:"#F59E0B",High:"#EF4444"},ARC=Math.PI*80;
+/* score -> percent: Low 0-30, Medium 31-70, High 71-100 (always consistent with the level) */
+function riskPct(level,score,hi,med){
+  if(level==="Low")return Math.max(3,Math.min(30,4+score*9));
+  if(level==="Medium")return Math.min(68,40+Math.max(0,score-med)*12);
+  return Math.min(100,74+Math.max(0,score-hi)*5)}
+function pctColor(p){return p<=30?MCOL.Low:p<=70?MCOL.Medium:MCOL.High}
+function arcD(p0,p1){const pt=p=>[100-80*Math.cos(Math.PI*p),100-80*Math.sin(Math.PI*p)],a=pt(p0),b=pt(p1);return"M"+a[0].toFixed(2)+" "+a[1].toFixed(2)+" A80 80 0 0 1 "+b[0].toFixed(2)+" "+b[1].toFixed(2)}
+function svgEl(t,at){const e=document.createElementNS("http://www.w3.org/2000/svg",t);for(const k in at)e.setAttribute(k,at[k]);return e}
+function buildMeter(pct){
+  pct=Math.max(0,Math.min(100,Math.round(pct)));
+  const el=mk("div","meter");el.setAttribute("role","img");el.setAttribute("aria-label","Risk score "+pct+" out of 100");
+  const svg=svgEl("svg",{viewBox:"0 0 200 112","aria-hidden":"true",focusable:"false"});
+  [[0,.3,MCOL.Low],[.3,.7,MCOL.Medium],[.7,1,MCOL.High]].forEach(z=>svg.append(svgEl("path",{d:arcD(z[0],z[1]),class:"zone",stroke:z[2]})));
+  const fill=svgEl("path",{d:arcD(0,1),class:"fill","stroke-dasharray":ARC.toFixed(2),"stroke-dashoffset":ARC.toFixed(2),stroke:MCOL.Low}),
+    needle=svgEl("line",{x1:100,y1:100,x2:100,y2:38,class:"needle",transform:"rotate(-90 100 100)"});
+  svg.append(fill,needle,svgEl("circle",{cx:100,cy:100,r:6,class:"hub"}));
+  const val=mk("div","mv"),num=mk("b","","0");
+  val.append(num,mk("small","","/100"),mk("span","mc","Risk score"));el.append(svg,val);
+  const draw=v=>{const c=pctColor(v);fill.setAttribute("stroke-dashoffset",(ARC*(1-v/100)).toFixed(2));fill.setAttribute("stroke",c);
+    needle.setAttribute("transform","rotate("+(-90+1.8*v).toFixed(2)+" 100 100)");num.firstChild.data=String(Math.round(v));num.style.color=c};
+  return{el:el,run:()=>{
+    const reduce=!!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches),t0=performance.now(),dur=reduce?0:1000;
+    const step=t=>{const k=dur?Math.min(1,(t-t0)/dur):1,e=1-Math.pow(1-k,3);draw(k<1?pct*e:pct);if(k<1&&el.isConnected)requestAnimationFrame(step)};
+    draw(0);requestAnimationFrame(step)}}}
+
 function show(id,r,hl){
   const b=$(id);b.textContent="";["urlR","msgR","upiR","qrR"].forEach(x=>{if(x!==id)$(x).hidden=true});
-  b.append(mk("div","badge "+r.level.toLowerCase(),LBL[r.level]),mk("p","verdict",r.desc));if(r.note)b.append(mk("p","note",r.note));
+  const mt=buildMeter(r.pct!=null?r.pct:({Low:10,Medium:50,High:85})[r.level]),head=mk("div","rhead");head.append(mt.el,mk("div","badge "+r.level.toLowerCase(),LBL[r.level]));
+  b.append(head,mk("p","verdict",r.desc));if(r.note)b.append(mk("p","note",r.note));
   if(hl)b.append(hl);
   if(r.signals&&r.signals.length){b.append(mk("div","lbl","What stood out"));const ul=mk("ul","sig");r.signals.forEach(s=>ul.append(mk("li","",s)));b.append(ul)}
   b.append(mk("div","lbl","What to do"),mk("p","txt",r.rec));
   const nb=mk("button","btn ghost",id==="qrR"?"Scan Another":"Check Another");nb.type="button";nb.style.marginTop="16px";nb.addEventListener("click",RESET[id]);b.append(nb);
-  b.classList.remove("fade");b.hidden=false;
+  b.classList.remove("fade");b.hidden=false;mt.run();
   try{b.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"nearest"})}catch(e){}}
 
 /* ===== URL analysis ===== */
@@ -150,7 +178,7 @@ function analyze(u){
   const r={host:host,main:main,proto:proto,path:path,qs:qs,ext:fext||ext};
   const tr=ip?null:trustedOrg(host);
   if(!u.username&&!ip&&tr&&!USERCONTENT.some(o=>isHost(host,o))&&!EXE.includes(fext)&&!/[?&](url|q|redirect|continue|link)=https?/i.test(qs)){
-    r.level="Low";r.official=true;r.org=tr[1];r.orgDomain=tr[0];r.flags=[];
+    r.score=0;r.pct=3;r.level="Low";r.official=true;r.org=tr[1];r.orgDomain=tr[0];r.flags=[];
     r.desc="The domain "+host+" is an official verified domain of "+tr[1]+" ("+main+"). Nothing in the address text looks unusual.";
     r.rec="This matches an official "+tr[1]+" address. Check that the page asks for what you expect, and sign in only on addresses that end in "+tr[0]+".";
     r.signals=["Main domain is "+main+", which is a verified official domain of "+tr[1]+".","The link uses "+proto+(proto==="HTTPS"?", which is encrypted.":".")];return r}
@@ -201,7 +229,7 @@ function analyze(u){
   if(hits.length)add(4,"Flagged word"+(hits.length>1?"s":"")+" in the address: "+hits.join(", ")+". Pages like this are often used for phishing.","phish",true);
   if(more.length)add(1,"Account-related words found: "+more.join(", ")+".");
   const level=hard||score>=4?"High":score>=2?"Medium":"Low";
-  sig.sort((a,b)=>b.w-a.w);r.signals=sig.map(x=>x.t);r.flags=[...flags];r.level=level;
+  sig.sort((a,b)=>b.w-a.w);r.signals=sig.map(x=>x.t);r.flags=[...flags];r.level=level;r.score=score;r.pct=riskPct(level,score,4,2);
   const top=r.signals[0]||"";
   r.desc=level==="High"?"This link is very likely dangerous. Main reason: "+top:level==="Medium"?"Parts of this link look unusual. Main reason: "+top:sig.length?"Only a minor pattern was found in "+host+".":"No suspicious patterns found in the address text for "+host+".";
   r.rec=({High:"Do not open this link. ",Medium:"Be careful before you open this link. ",Low:"Normal care applies. This result does not confirm that the site is safe. "})[level]+r.flags.map(f=>REC[f]).slice(0,2).join(" ")+(level==="Low"?"Never share passwords or one-time codes on a page you did not open yourself.":"");
@@ -295,7 +323,8 @@ function evalMsg(txt,pl){
   let level=rate(score,5,2),capped=false;
   const verified=trusted>0&&unknown===0;
   if(verified){if(hard)ver.push("The link is official, but the wording still asks for a risky action.");else if(level!=="Low"){level="Low";capped=true}}
-  return{level:level,sig:ver.concat(sig),ranges:ranges,tips:tips,verified:verified,capped:capped}}
+  let pct=riskPct(level,score,5,2);if(verified&&!hard&&level==="Low")pct=capped?6:3;
+  return{level:level,pct:pct,sig:ver.concat(sig),ranges:ranges,tips:tips,verified:verified,capped:capped}}
 const WORDS=new Set("a about above after again all also am an and any are as at be because been before being below between both but by can cannot could did do does doing down during each few for from further had has have having he her here hers him his how if in into is it its just me more most my no nor not now of off on once only or other our out over own same she should so some such than that the their them then there these they this those through to too under until up very was we were what when where which while who whom why will with would you your yours yourself hi hello hey dear sir madam mr mrs ms ok okay yes yeah thanks thank please pls plz sorry bye good morning evening night day today tomorrow tonight yesterday wish wishes happy birthday congrats congratulations welcome account bank card debit credit upi pin otp cvv password login log signin sign verify verification update details link click tap open download install app apk call message msg sms text send sent receive received refund money amount rs inr rupees rupee cash payment pay paid paying transfer transferred transaction txn balance blocked block suspended suspend expire expired expires expiring deactivated activate active urgent urgently immediately immediate soon last chance final notice warning alert limited offer free gift rewards reward bonus coupon voucher prize lottery winner won win claim collect selected lucky draw jackpot recharge deposit withdraw withdrawal withdrawn unlock fee fees charge charges registration processing joining training refundable security job jobs work home part time full earn earning income salary daily weekly monthly per hour hours week month year hiring vacancy vacancies data entry typing task tasks like subscribe review follow share join group channel telegram whatsapp instagram facebook messenger email mail gmail google microsoft apple amazon flipkart paytm phonepe gpay netflix sbi hdfc icici axis kotak pnb airtel jio bsnl irctc aadhaar aadhar pan kyc customer customers user users member name number mobile phone sim electricity bill power gas disconnect disconnected cut parcel package courier delivery delivered shipment customs address held failed pending reschedule track tracking order orders invoice attached attachment file document statement receipt advice police court arrest arrested warrant legal action case officer cbi tax department government govt official support help service services team care helpline contact reply respond confirm confirmed approve approval request requested accept declined reject cancelled cancel complete completed process processed success successful invalid error wrong mistake mistakenly accidentally return back investment invest trading trade crypto bitcoin usdt forex profit profits returns guaranteed double stock stocks market shares ipo plan opportunity club game games gaming play betting bet casino rummy teen patti aviator ludo prediction color colour satta matka dream fantasy cricket match level vip signal signals pump ssjfin daman tiranga wingo jalwa okwin get got give given take taken make made see seen know need needs want wants go going gone come came coming meet meeting met called calling talk speak tell told say said ask asked check checked find found look looking wait waiting stop start started try tried use used using keep kept let put set show shown buy bought sell sold opened close closed read write wrote visit visiting reach reached arrive arrived leave left bring brought feel think thought hope love liked party dinner lunch breakfast food office school college class exam result results ticket tickets flight train bus cab ride car bike house room hotel booking book booked people person friend friends family brother sister mother father mom dad son daughter wife husband boss one two three four five six seven eight nine ten hundred thousand lakh crore minutes minute min mins hrs seconds second new old big small bad best better high low long short fast quick easy hard real fake safe secure trusted genuine original important required mandatory compulsory valid verified unverified suspicious unknown private public personal dont cant wont didnt doesnt isnt arent wasnt werent hasnt havent couldnt wouldnt shouldnt im ive id ill youre youve youll hes shes thats whats theres lets aap aapka aapki aapke apna apni apne main mein mai hum hamara hamari tum tumhara tera tere mera meri mere hai hain ho hoga hogi honge hua hui hue tha thi raha rahi rahe kar karo karna kare karein karke kiya kiye kya kyun kyu kaise kab kahan kaun kitna kitne ka ki ke ko se par pe ne ya aur bhi nahi nahin na haan ji jee bhai behen dost abhi aaj kal ab jab tab agar toh lekin magar isse usse yeh ye woh wo yahan wahan jaldi turant fauran paisa paise khata khate band chalu jayega jayegi jaayega milega milegi milenge mil gaya gayi gaye lo lena liya dena diya dijiye bhejo bheje bhej bhejna bhejiye batao bataye bata dekho dekhe dekh suno sun padhe jeeto jeet inaam warna varna role id ssid type key url title org tel addr city country product item price ref seat event date start end location desc description version model serial batch sku code pa pn am cu tn tr mc".split(" "));
 function known(w){
   if(WORDS.has(w))return true;
@@ -334,7 +363,7 @@ function scanMsg(){
   if(!validMsg(txt)){err("msgE","Please enter a valid message or link to analyze.");$("msgR").hidden=true;return}
   $("msgE").hidden=true;
   const e=evalMsg(txt,plat),level=e.level,ok=e.verified&&level==="Low";
-  const r={level:level,signals:e.sig,
+  const r={level:level,pct:e.pct,signals:e.sig,
     desc:ok?"The link in this message points to an official verified domain."+(e.capped?" Some wording looked like a scam pattern, but the only link is official, so the risk is reduced.":" No scam patterns were found in the text."):level==="High"?"This message matches several common fraud patterns. Treat it as a scam until proven otherwise.":level==="Medium"?"This message has patterns that scammers often use. Be careful.":"No common scam patterns were found in this message text. That does not prove it is genuine.",
     rec:ok?"Official domain verified. Still, open the link only if you expected this message, and never share OTPs, PINs or passwords. "+PLAT[plat]:(level==="High"?"Do not reply, click any link, install anything or share codes. Block and report the sender. If you already acted, call your bank and 1930 straight away. ":level==="Medium"?"Do not click links or share details. Confirm with the company using a phone number or website you already trust. ":"Stay careful with links and requests for money or codes. ")+e.tips.slice(0,2).join(" ")+" "+PLAT[plat]};
   show("msgR",r,e.ranges.length?hlNode(txt,e.ranges):null);logScan("Message ("+plat+")",txt,level)}
@@ -354,7 +383,7 @@ function checkUpi(v){
   const s=v.trim();
   if(s.includes("@")){
     if(!UPIRE.test(s))return null;const x=upiId(s),level=rate(x.s,4,2);
-    return{level:level,signals:x.sig,
+    return{level:level,pct:riskPct(level,x.s,4,2),signals:x.sig,
       desc:level==="High"?"This UPI ID has patterns often seen in fraud.":level==="Medium"?"Parts of this UPI ID deserve a closer look.":"Nothing unusual in the format of this UPI ID. This cannot show whether it has been reported.",
       rec:"Check the name your payment app shows before you pay. You never need a PIN to receive money, so refuse any request to enter your PIN for a refund or prize."}}
   const p=s.replace(/[\s-]/g,""),m=p.match(/^(?:\+?91|0)?([6-9]\d{9})$/),sig=[];let sc=0;
@@ -362,7 +391,7 @@ function checkUpi(v){
   else if(/^\+\d{8,15}$/.test(p)){sc+=2;sig.push("This is an international number ("+p.slice(0,4)+"…). Scam calls and messages often come from numbers you do not expect.")}
   else return null;
   const level=rate(sc,4,2);
-  return{level:level,signals:sig,
+  return{level:level,pct:riskPct(level,sc,4,2),signals:sig,
     desc:level==="Low"?"The format looks like a normal "+(m?"Indian mobile":"international")+" number. This cannot show whether it has been reported.":"This number has a pattern worth a closer look. This cannot show whether it has been reported.",
     rec:"Do not share OTPs, PINs or card details with anyone who calls or messages you, even if they say they are from your bank. Hang up and call the number printed on your card."}}
 function scanUpi(){
@@ -381,15 +410,15 @@ function qrAnalyze(t){
     if(am){sc+=1;sig.push("The code already sets an amount: "+am+".")}
     if(UPIRE.test(pa)){const x=upiId(pa);sc+=x.s;sig.push.apply(sig,x.sig)}else{sc+=2;sig.push("The payee ID is missing or malformed.")}
     const level=rate(sc,4,2);
-    return{level:level,signals:sig,desc:level==="Low"?"A normal-looking payment QR code. This cannot show whether the payee is genuine.":"This payment QR code has details worth checking before you pay.",
+    return{level:level,pct:riskPct(level,sc,4,2),signals:sig,desc:level==="Low"?"A normal-looking payment QR code. This cannot show whether the payee is genuine.":"This payment QR code has details worth checking before you pay.",
       rec:"Scan payment QR codes only when you want to pay. If anyone says you will receive money by scanning, it is a scam. Check the payee name your app shows before you enter an amount."}}
   const u=parse(t);
   if(u){const a=analyze(u);a.signals=a.signals.concat(["A QR code hides the link until you scan it. Read the address your phone shows before you open it."]);
     a.rec+=" If the code is a sticker on a poster, parking meter or table, check that it has not been stuck over the original.";return a}
   const sch=t.match(/^([a-z][a-z0-9+.-]*):/i);
   if(sch){sc=2;sig.push("The code starts an action of type \""+sch[1].toLowerCase()+":\" such as a call, text, email or Wi-Fi join.");
-    return{level:"Medium",signals:sig,desc:"This QR code does more than show text.",rec:"Read what your phone asks you to do before you allow it. Do not join networks or send messages you did not plan to."}}
-  return{level:"Low",signals:[],desc:"This QR code contains plain text and no link. Nothing suspicious was found.",rec:"Plain text is not harmful on its own. Be careful if it tells you to call a number or send money."}}
+    return{level:"Medium",pct:40,signals:sig,desc:"This QR code does more than show text.",rec:"Read what your phone asks you to do before you allow it. Do not join networks or send messages you did not plan to."}}
+  return{level:"Low",pct:4,signals:[],desc:"This QR code contains plain text and no link. Nothing suspicious was found.",rec:"Plain text is not harmful on its own. Be careful if it tells you to call a number or send money."}}
 function qrRun(val){
   if(!gate())return;const t=val.trim();
   if(!t){err("qrE","Scan a QR code, upload an image, or paste its contents first.");$("qrR").hidden=true;return}
