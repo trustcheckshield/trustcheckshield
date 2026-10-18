@@ -78,10 +78,69 @@ $("nav-profile").addEventListener("click",()=>view("profile"));
 function pick(t){document.querySelectorAll(".tool").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.t===t)));const same=!$("t-"+t).hidden;["url","msg","upi","qr"].forEach(x=>$("t-"+x).hidden=x!==t);if(!same)["urlR","msgR","upiR","qrR"].forEach(i=>$(i).hidden=true)}
 document.querySelectorAll(".tool").forEach(b=>b.addEventListener("click",()=>pick(b.dataset.t)));
 
+/* ===== RISK METER (flat, ultra-compact) ===== */
+/* Exact bands: 5-30 Low (green), 31-70 Medium (orange), 71-98 High (red). The category is ALWAYS derived from the score. */
+const RISK_MIN=5,RISK_MAX=98;
+function levelFromPercent(p){return p<=30?"Low":p<=70?"Medium":"High"}
+/* Converts the scanner's weighted indicator points into a realistic score.
+   raw     = total weighted points from the scanner (more indicators = higher)
+   medAt   = points where Medium starts, highAt = points where High starts (the thresholds the scanners already use)
+   forceHigh = a critical indicator (executable file, lookalike brand, OTP request...) so the score is at least 71
+   soft    = 0..0.99 from minor factors (no HTTPS, unusual ending, long or odd text...) that spreads scores inside a band */
+function pointsToPercent(raw,medAt,highAt,forceHigh,soft){
+  raw=Math.max(0,Number(raw)||0);soft=Math.min(0.99,Math.max(0,Number(soft)||0));let p;
+  if(raw>=highAt)p=71+(raw-highAt)*5+soft*4;
+  else if(raw>=medAt)p=31+Math.min(0.99,(raw-medAt)/(highAt-medAt)*0.85+soft*0.14)*39;
+  else p=RISK_MIN+(medAt>0?raw/medAt*18:0)+soft*7;
+  if(forceHigh&&p<71)p=71+soft*4;
+  return Math.round(Math.min(RISK_MAX,Math.max(RISK_MIN,p)))}
+const SAFE_TLDS=["com","in","org","net","gov","edu","co","io","app","dev","info"];
+/* Minor link factors (not HTTPS, unusual ending, long or digit-heavy host, deep path or query). Returns 0..0.99 */
+function urlSoft(u){
+  const h=u.hostname,tld=h.split(".").pop().toLowerCase();let s=0;
+  if(u.protocol==="http:")s+=0.3;
+  if(SAFE_TLDS.indexOf(tld)<0)s+=0.15;
+  s+=Math.min(0.15,Math.max(0,h.length-12)/100);
+  s+=Math.min(0.1,(h.match(/\d/g)||[]).length*0.03);
+  s+=Math.min(0.1,Math.max(0,h.split(".").length-2)*0.05);
+  s+=Math.min(0.1,u.pathname.length/400);
+  s+=Math.min(0.1,u.search.length/300);
+  return Math.min(0.99,s)}
+/* Minor text factors for numbers, UPI IDs and QR contents (digits, symbols, length). Returns 0..0.99 */
+function textSoft(t){
+  t=String(t||"");const d=(t.match(/\d/g)||[]).length,sp=(t.match(/[^a-z0-9@.\s]/gi)||[]).length;
+  return Math.min(0.99,d*0.03+sp*0.04+Math.min(0.2,t.length/300))}
+/* Reads the score a scanner attached to its result (r.pct). Falls back to r.score points if pct is missing. */
+function riskPercentOf(r){
+  if(typeof r.pct==="number"&&isFinite(r.pct))return Math.min(RISK_MAX,Math.max(RISK_MIN,Math.round(r.pct)));
+  return pointsToPercent(r.score,2,4,r.level==="High",0)}
+function renderRiskGauge(score,level,reasons){
+  const RISK_METER_SCORE=Math.round(Math.min(RISK_MAX,Math.max(RISK_MIN,Number(score)||0)));
+  const lv=levelFromPercent(RISK_METER_SCORE),label=LBL[lv];
+  const box=mk("div","rbar "+lv.toLowerCase());
+  box.setAttribute("role","img");box.setAttribute("aria-label","Risk score "+RISK_METER_SCORE+" out of 100, "+label);
+  const num=mk("b","","0"),sc=mk("span","rb-score");sc.append(num," / 100");
+  const row=mk("div","rb-row");row.append(sc,mk("span","rb-tag",label));
+  const fill=mk("div","rb-fill"),track=mk("div","rb-track");track.append(fill);
+  box.append(row,track);
+  if(Array.isArray(reasons)&&reasons.length){const ul=mk("ul","sig");reasons.forEach(t=>ul.append(mk("li","",t)));box.append(ul)}
+  return{node:box,fill:fill,num:num,score:RISK_METER_SCORE}}
+/* Call from anywhere: updateRiskMeter(76,"High",["reason 1","reason 2"],hostElement). The score (5-98) decides the category and colour; level is kept only for compatibility. */
+function updateRiskMeter(score,level,reasons,host){
+  host=host||document.getElementById("riskMeter");if(!host)return null;
+  const g=renderRiskGauge(score,level,reasons);host.textContent="";host.append(g.node);
+  const still=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const go=()=>{g.fill.style.width=g.score+"%"};
+  if(still){go();g.num.textContent=String(g.score);return g}
+  requestAnimationFrame(()=>requestAnimationFrame(go));
+  const t0=performance.now(),dur=700;
+  (function tick(t){const k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3);g.num.textContent=String(Math.round(g.score*e));if(k<1)requestAnimationFrame(tick)})(t0);
+  return g}
+
 /* ===== result renderer ===== */
 function show(id,r,hl){
   const b=$(id);b.textContent="";["urlR","msgR","upiR","qrR"].forEach(x=>{if(x!==id)$(x).hidden=true});
-  b.append(mk("div","badge "+r.level.toLowerCase(),LBL[r.level]),mk("p","verdict",r.desc));if(r.note)b.append(mk("p","note",r.note));
+  const gm=mk("div");b.append(gm,mk("p","verdict",r.desc));updateRiskMeter(riskPercentOf(r),r.level,[],gm);if(r.note)b.append(mk("p","note",r.note));
   if(hl)b.append(hl);
   if(r.signals&&r.signals.length){b.append(mk("div","lbl","What stood out"));const ul=mk("ul","sig");r.signals.forEach(s=>ul.append(mk("li","",s)));b.append(ul)}
   b.append(mk("div","lbl","What to do"),mk("p","txt",r.rec));
@@ -150,7 +209,7 @@ function analyze(u){
   const r={host:host,main:main,proto:proto,path:path,qs:qs,ext:fext||ext};
   const tr=ip?null:trustedOrg(host);
   if(!u.username&&!ip&&tr&&!USERCONTENT.some(o=>isHost(host,o))&&!EXE.includes(fext)&&!/[?&](url|q|redirect|continue|link)=https?/i.test(qs)){
-    r.level="Low";r.official=true;r.org=tr[1];r.orgDomain=tr[0];r.flags=[];
+    r.level="Low";r.pct=pointsToPercent(0,2,4,false,urlSoft(u)*0.5);r.official=true;r.org=tr[1];r.orgDomain=tr[0];r.flags=[];
     r.desc="The domain "+host+" is an official verified domain of "+tr[1]+" ("+main+"). Nothing in the address text looks unusual.";
     r.rec="This matches an official "+tr[1]+" address. Check that the page asks for what you expect, and sign in only on addresses that end in "+tr[0]+".";
     r.signals=["Main domain is "+main+", which is a verified official domain of "+tr[1]+".","The link uses "+proto+(proto==="HTTPS"?", which is encrypted.":".")];return r}
@@ -201,7 +260,7 @@ function analyze(u){
   if(hits.length)add(4,"Flagged word"+(hits.length>1?"s":"")+" in the address: "+hits.join(", ")+". Pages like this are often used for phishing.","phish",true);
   if(more.length)add(1,"Account-related words found: "+more.join(", ")+".");
   const level=hard||score>=4?"High":score>=2?"Medium":"Low";
-  sig.sort((a,b)=>b.w-a.w);r.signals=sig.map(x=>x.t);r.flags=[...flags];r.level=level;
+  sig.sort((a,b)=>b.w-a.w);r.signals=sig.map(x=>x.t);r.flags=[...flags];r.level=level;r.score=score;r.pct=pointsToPercent(score,2,4,hard,urlSoft(u));
   const top=r.signals[0]||"";
   r.desc=level==="High"?"This link is very likely dangerous. Main reason: "+top:level==="Medium"?"Parts of this link look unusual. Main reason: "+top:sig.length?"Only a minor pattern was found in "+host+".":"No suspicious patterns found in the address text for "+host+".";
   r.rec=({High:"Do not open this link. ",Medium:"Be careful before you open this link. ",Low:"Normal care applies. This result does not confirm that the site is safe. "})[level]+r.flags.map(f=>REC[f]).slice(0,2).join(" ")+(level==="Low"?"Never share passwords or one-time codes on a page you did not open yourself.":"");
@@ -294,8 +353,9 @@ function evalMsg(txt,pl){
   if(unknown&&lure){score+=2;sig.push("A link from an unverified site appears together with scam wording.")}
   let level=rate(score,5,2),capped=false;
   const verified=trusted>0&&unknown===0;
+  let pct=pointsToPercent(score,2,5,false,Math.min(0.99,sig.length*0.15+n*0.1));
   if(verified){if(hard)ver.push("The link is official, but the wording still asks for a risky action.");else if(level!=="Low"){level="Low";capped=true}}
-  return{level:level,sig:ver.concat(sig),ranges:ranges,tips:tips,verified:verified,capped:capped}}
+  return{level:level,sig:ver.concat(sig),ranges:ranges,tips:tips,verified:verified,capped:capped,score:score,pct:capped?Math.min(pct,25):pct}}
 const WORDS=new Set("a about above after again all also am an and any are as at be because been before being below between both but by can cannot could did do does doing down during each few for from further had has have having he her here hers him his how if in into is it its just me more most my no nor not now of off on once only or other our out over own same she should so some such than that the their them then there these they this those through to too under until up very was we were what when where which while who whom why will with would you your yours yourself hi hello hey dear sir madam mr mrs ms ok okay yes yeah thanks thank please pls plz sorry bye good morning evening night day today tomorrow tonight yesterday wish wishes happy birthday congrats congratulations welcome account bank card debit credit upi pin otp cvv password login log signin sign verify verification update details link click tap open download install app apk call message msg sms text send sent receive received refund money amount rs inr rupees rupee cash payment pay paid paying transfer transferred transaction txn balance blocked block suspended suspend expire expired expires expiring deactivated activate active urgent urgently immediately immediate soon last chance final notice warning alert limited offer free gift rewards reward bonus coupon voucher prize lottery winner won win claim collect selected lucky draw jackpot recharge deposit withdraw withdrawal withdrawn unlock fee fees charge charges registration processing joining training refundable security job jobs work home part time full earn earning income salary daily weekly monthly per hour hours week month year hiring vacancy vacancies data entry typing task tasks like subscribe review follow share join group channel telegram whatsapp instagram facebook messenger email mail gmail google microsoft apple amazon flipkart paytm phonepe gpay netflix sbi hdfc icici axis kotak pnb airtel jio bsnl irctc aadhaar aadhar pan kyc customer customers user users member name number mobile phone sim electricity bill power gas disconnect disconnected cut parcel package courier delivery delivered shipment customs address held failed pending reschedule track tracking order orders invoice attached attachment file document statement receipt advice police court arrest arrested warrant legal action case officer cbi tax department government govt official support help service services team care helpline contact reply respond confirm confirmed approve approval request requested accept declined reject cancelled cancel complete completed process processed success successful invalid error wrong mistake mistakenly accidentally return back investment invest trading trade crypto bitcoin usdt forex profit profits returns guaranteed double stock stocks market shares ipo plan opportunity club game games gaming play betting bet casino rummy teen patti aviator ludo prediction color colour satta matka dream fantasy cricket match level vip signal signals pump ssjfin daman tiranga wingo jalwa okwin get got give given take taken make made see seen know need needs want wants go going gone come came coming meet meeting met called calling talk speak tell told say said ask asked check checked find found look looking wait waiting stop start started try tried use used using keep kept let put set show shown buy bought sell sold opened close closed read write wrote visit visiting reach reached arrive arrived leave left bring brought feel think thought hope love liked party dinner lunch breakfast food office school college class exam result results ticket tickets flight train bus cab ride car bike house room hotel booking book booked people person friend friends family brother sister mother father mom dad son daughter wife husband boss one two three four five six seven eight nine ten hundred thousand lakh crore minutes minute min mins hrs seconds second new old big small bad best better high low long short fast quick easy hard real fake safe secure trusted genuine original important required mandatory compulsory valid verified unverified suspicious unknown private public personal dont cant wont didnt doesnt isnt arent wasnt werent hasnt havent couldnt wouldnt shouldnt im ive id ill youre youve youll hes shes thats whats theres lets aap aapka aapki aapke apna apni apne main mein mai hum hamara hamari tum tumhara tera tere mera meri mere hai hain ho hoga hogi honge hua hui hue tha thi raha rahi rahe kar karo karna kare karein karke kiya kiye kya kyun kyu kaise kab kahan kaun kitna kitne ka ki ke ko se par pe ne ya aur bhi nahi nahin na haan ji jee bhai behen dost abhi aaj kal ab jab tab agar toh lekin magar isse usse yeh ye woh wo yahan wahan jaldi turant fauran paisa paise khata khate band chalu jayega jayegi jaayega milega milegi milenge mil gaya gayi gaye lo lena liya dena diya dijiye bhejo bheje bhej bhejna bhejiye batao bataye bata dekho dekhe dekh suno sun padhe jeeto jeet inaam warna varna role id ssid type key url title org tel addr city country product item price ref seat event date start end location desc description version model serial batch sku code pa pn am cu tn tr mc".split(" "));
 function known(w){
   if(WORDS.has(w))return true;
@@ -334,7 +394,7 @@ function scanMsg(){
   if(!validMsg(txt)){err("msgE","Please enter a valid message or link to analyze.");$("msgR").hidden=true;return}
   $("msgE").hidden=true;
   const e=evalMsg(txt,plat),level=e.level,ok=e.verified&&level==="Low";
-  const r={level:level,signals:e.sig,
+  const r={level:level,score:e.score,pct:e.pct,signals:e.sig,
     desc:ok?"The link in this message points to an official verified domain."+(e.capped?" Some wording looked like a scam pattern, but the only link is official, so the risk is reduced.":" No scam patterns were found in the text."):level==="High"?"This message matches several common fraud patterns. Treat it as a scam until proven otherwise.":level==="Medium"?"This message has patterns that scammers often use. Be careful.":"No common scam patterns were found in this message text. That does not prove it is genuine.",
     rec:ok?"Official domain verified. Still, open the link only if you expected this message, and never share OTPs, PINs or passwords. "+PLAT[plat]:(level==="High"?"Do not reply, click any link, install anything or share codes. Block and report the sender. If you already acted, call your bank and 1930 straight away. ":level==="Medium"?"Do not click links or share details. Confirm with the company using a phone number or website you already trust. ":"Stay careful with links and requests for money or codes. ")+e.tips.slice(0,2).join(" ")+" "+PLAT[plat]};
   show("msgR",r,e.ranges.length?hlNode(txt,e.ranges):null);logScan("Message ("+plat+")",txt,level)}
@@ -354,7 +414,7 @@ function checkUpi(v){
   const s=v.trim();
   if(s.includes("@")){
     if(!UPIRE.test(s))return null;const x=upiId(s),level=rate(x.s,4,2);
-    return{level:level,signals:x.sig,
+    return{level:level,pct:pointsToPercent(x.s,2,4,false,textSoft(s)),signals:x.sig,
       desc:level==="High"?"This UPI ID has patterns often seen in fraud.":level==="Medium"?"Parts of this UPI ID deserve a closer look.":"Nothing unusual in the format of this UPI ID. This cannot show whether it has been reported.",
       rec:"Check the name your payment app shows before you pay. You never need a PIN to receive money, so refuse any request to enter your PIN for a refund or prize."}}
   const p=s.replace(/[\s-]/g,""),m=p.match(/^(?:\+?91|0)?([6-9]\d{9})$/),sig=[];let sc=0;
@@ -362,7 +422,7 @@ function checkUpi(v){
   else if(/^\+\d{8,15}$/.test(p)){sc+=2;sig.push("This is an international number ("+p.slice(0,4)+"…). Scam calls and messages often come from numbers you do not expect.")}
   else return null;
   const level=rate(sc,4,2);
-  return{level:level,signals:sig,
+  return{level:level,pct:pointsToPercent(sc,2,4,false,textSoft(s)),signals:sig,
     desc:level==="Low"?"The format looks like a normal "+(m?"Indian mobile":"international")+" number. This cannot show whether it has been reported.":"This number has a pattern worth a closer look. This cannot show whether it has been reported.",
     rec:"Do not share OTPs, PINs or card details with anyone who calls or messages you, even if they say they are from your bank. Hang up and call the number printed on your card."}}
 function scanUpi(){
@@ -381,15 +441,15 @@ function qrAnalyze(t){
     if(am){sc+=1;sig.push("The code already sets an amount: "+am+".")}
     if(UPIRE.test(pa)){const x=upiId(pa);sc+=x.s;sig.push.apply(sig,x.sig)}else{sc+=2;sig.push("The payee ID is missing or malformed.")}
     const level=rate(sc,4,2);
-    return{level:level,signals:sig,desc:level==="Low"?"A normal-looking payment QR code. This cannot show whether the payee is genuine.":"This payment QR code has details worth checking before you pay.",
+    return{level:level,pct:pointsToPercent(sc,2,4,false,textSoft(t)),signals:sig,desc:level==="Low"?"A normal-looking payment QR code. This cannot show whether the payee is genuine.":"This payment QR code has details worth checking before you pay.",
       rec:"Scan payment QR codes only when you want to pay. If anyone says you will receive money by scanning, it is a scam. Check the payee name your app shows before you enter an amount."}}
   const u=parse(t);
   if(u){const a=analyze(u);a.signals=a.signals.concat(["A QR code hides the link until you scan it. Read the address your phone shows before you open it."]);
     a.rec+=" If the code is a sticker on a poster, parking meter or table, check that it has not been stuck over the original.";return a}
   const sch=t.match(/^([a-z][a-z0-9+.-]*):/i);
   if(sch){sc=2;sig.push("The code starts an action of type \""+sch[1].toLowerCase()+":\" such as a call, text, email or Wi-Fi join.");
-    return{level:"Medium",signals:sig,desc:"This QR code does more than show text.",rec:"Read what your phone asks you to do before you allow it. Do not join networks or send messages you did not plan to."}}
-  return{level:"Low",signals:[],desc:"This QR code contains plain text and no link. Nothing suspicious was found.",rec:"Plain text is not harmful on its own. Be careful if it tells you to call a number or send money."}}
+    return{level:"Medium",pct:pointsToPercent(sc,2,4,false,textSoft(t)),signals:sig,desc:"This QR code does more than show text.",rec:"Read what your phone asks you to do before you allow it. Do not join networks or send messages you did not plan to."}}
+  return{level:"Low",pct:pointsToPercent(0,2,4,false,textSoft(t)),signals:[],desc:"This QR code contains plain text and no link. Nothing suspicious was found.",rec:"Plain text is not harmful on its own. Be careful if it tells you to call a number or send money."}}
 function qrRun(val){
   if(!gate())return;const t=val.trim();
   if(!t){err("qrE","Scan a QR code, upload an image, or paste its contents first.");$("qrR").hidden=true;return}
