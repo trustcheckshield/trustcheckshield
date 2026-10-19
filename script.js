@@ -5,7 +5,7 @@
 // Supabase Setup
 const SUPABASE_URL = "https://gdaombdrrwfwjmyckpkb.supabase.co";
 const SUPABASE_KEY = "sb_publishable_oFMxci_WS8OzxJUmJLufIRA_nPTEYj3W";
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = (typeof supabase !== "undefined") ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
 /* If index.html does not match this file, missing elements are replaced by harmless stand-ins instead of crashing. */
 function ghost(){return new Proxy(function(){},{get:(t,k)=>k===Symbol.toPrimitive||k==="toString"||k==="valueOf"?()=>"":k==="then"?undefined:k==="length"?0:ghost(),set:()=>true,apply:()=>ghost()})}
