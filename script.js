@@ -3,8 +3,8 @@
 "use strict";
 
 // Supabase Setup (Safe Initialization)
-const SUPABASE_URL = "https://gdaombdrrwfwjmyckpkb.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkYW9tYmRycndmd2pteWNrcGtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0MjMwNjgsImV4cCI6MjEwNzk5OTA2OH0.PbJlubdtI_QHgahdj0SUXwF_7baguD9qGH_LPPAer00"
+const SUPABASE_URL = "https://gdaoxbdrrwfvjmyckpkb.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkYW94YmRycndmd2pteWNrcGtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0MjMwNjgsImV4cCI6MjEwNzk5OTA2OH0.PbJlubdtI_QHgahdj0SUXwF_7baguD9qGH_LPPAer00";
 const supabaseClient = (typeof supabase !== "undefined") ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
 /* If index.html does not match this file, missing elements are replaced by harmless stand-ins instead of crashing. */
