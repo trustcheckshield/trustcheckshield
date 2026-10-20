@@ -526,7 +526,7 @@ window.addEventListener("storage",e=>{if(e.key==="tcs_lang"){if(e.newValue&&e.ne
   if(!$("v-profile").hidden)drawProfile()});
   /* ===== Supabase Email OTP (standalone) ===== */
 const SB_URL = "https://gdaoxbdrrwfvjmyckpkb.supabase.co";
-const SB_KEY = "sb_publishable_oFNxci_W580zx_JUnLuFIRA_nPTEYJ3n";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkYW94YmRycndmd2pteWNrcGtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0MjMwNjgsImV4cCI6MjEwNzk5OTA2OH0.PbJlubdtI_QHgahdj0SUXwF_7baguD9qGH_LPPAer00";
 
 // Client ek hi baar banta hai (send aur verify same client use karte hain)
 let _sbClient = null;
