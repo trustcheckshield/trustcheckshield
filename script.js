@@ -541,93 +541,89 @@ function getSupabase() {
   return _sbClient;
 }
 
-// 1. Send OTP
+// 1. Send OTP Function (Email par OTP bhejne ke liye)
 window.sendOTP = async function () {
-  try {
-    const emailInput = document.getElementById("emailInput");
-    const email = emailInput ? emailInput.value.trim().toLowerCase() : "";
+  const emailInput = document.getElementById("emailInput");
+  const email = emailInput ? emailInput.value.trim().toLowerCase() : "";
 
-    if (!email) {
-      alert("Kripya pehle apna email address enter karein!");
-      return;
-    }
-
-    const sb = getSupabase();
-    if (!sb) {
-      alert("Supabase load nahi hua. Page reload karke 2 second baad try karein.");
-      return;
-    }
-
-    const { error } = await sb.auth.signInWithOtp({
-      email: email,
-      options: { shouldCreateUser: true }
-    });
-
-    if (error) {
-      alert("OTP error: " + error.message);
-      return;
-    }
-
-    alert("Aapke email (" + email + ") par OTP bhej diya gaya hai!");
-    const otpSec = document.getElementById("otpSection");
-    if (otpSec) {
-      otpSec.hidden = false;
-      otpSec.style.display = "block";
-    }
-    const otpInput = document.getElementById("otpInput");
-    if (otpInput) otpInput.focus();
-  } catch (e) {
-    alert("Error: " + (e && e.message ? e.message : e));
+  if (!email) {
+    alert("Kripya pehle apna email address enter karein!");
+    return;
   }
+
+  const sb = getSupabase();
+  if (!sb) {
+    alert("Supabase load nahi hua. Page reload karke try karein.");
+    return;
+  }
+
+  // Active session ko clear karte hain taaki fresh login ho
+  await sb.auth.signOut();
+
+  const { error } = await sb.auth.signInWithOtp({
+    email: email,
+    options: { shouldCreateUser: true }
+  });
+
+  if (error) {
+    alert("OTP error: " + error.message);
+    return;
+  }
+
+  alert("Aapke email (" + email + ") par 6-digit OTP bhej diya gaya hai!");
+  
+  // OTP input section show karein
+  const otpSec = document.getElementById("otpSection");
+  if (otpSec) {
+    otpSec.hidden = false;
+    otpSec.style.display = "block";
+  }
+
+  const otpInput = document.getElementById("otpInput");
+  if (otpInput) otpInput.focus();
 };
 
-// 2. Verify OTP
+// 2. Verify OTP Function (Sahi OTP dalne par hi user signup/login hoga)
 window.verifyOTP = async function () {
-  try {
-    const emailInput = document.getElementById("emailInput");
-    const otpInput = document.getElementById("otpInput");
-    const email = emailInput ? emailInput.value.trim().toLowerCase() : "";
-    const otp = otpInput ? otpInput.value.trim() : "";
+  const emailInput = document.getElementById("emailInput");
+  const otpInput = document.getElementById("otpInput");
+  
+  const email = emailInput ? emailInput.value.trim().toLowerCase() : "";
+  const otp = otpInput ? otpInput.value.trim() : "";
 
-    if (!email) {
-      alert("Kripya apna email address enter karein!");
-      return;
-    }
-    if (!otp) {
-      alert("Kripya email par aaya OTP enter karein!");
-      return;
-    }
-
-    const sb = getSupabase();
-    if (!sb) {
-      alert("Supabase load nahi hua. Page reload karein.");
-      return;
-    }
-
-    const { error } = await sb.auth.verifyOtp({
-      email: email,
-      token: otp,
-      type: "email"
-    });
-
-    if (error) {
-      alert("Verification Error: " + error.message);
-      return;
-    }
-
-    // App ka apna login save karo, phir page reload karo
-    const first = (email.split("@")[0].replace(/[._\-+0-9]+/g, " ").trim().split(" ")[0]) || "User";
-    localStorage.setItem("tcs_session", JSON.stringify({
-      id: email,
-      name: first.charAt(0).toUpperCase() + first.slice(1),
-      via: "Email OTP",
-      contact: ["Email ID", email]
-    }));
-    alert("Login Successful! Welcome!");
-    location.reload();
-  } catch (e) {
-    alert("Error: " + (e && e.message ? e.message : e));
+  if (!email || !otp) {
+    alert("Kripya email aur OTP dono enter karein!");
+    return;
   }
+
+  const sb = getSupabase();
+  if (!sb) {
+    alert("Supabase load nahi hua. Page reload karein.");
+    return;
+  }
+
+  const { data, error } = await sb.auth.verifyOtp({
+    email: email,
+    token: otp,
+    type: 'email'
+  });
+
+  if (error) {
+    alert("Wrong OTP! Verification Error: " + error.message);
+    return;
+  }
+
+  // Sahi OTP verify hone par hi login session create hoga
+  const first = (email.split("@")[0].replace(/[^a-zA-Z0-9]/g, " ").trim().split(" ")[0]) || "User";
+  localStorage.setItem("tcs_session", JSON.stringify({
+    id: email,
+    name: first.charAt(0).toUpperCase() + first.slice(1),
+    via: "Email OTP",
+    contact: ["Email ID", email]
+  }));
+
+  alert("Signup & Login Successful! Welcome!");
+  location.reload(); 
 };
   paint();steps(null);if(!user)openModal();try{initLang()}catch(e){}reportMismatch();
 })();
