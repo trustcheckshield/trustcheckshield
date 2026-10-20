@@ -524,50 +524,22 @@ $("upiGo").addEventListener("click",scanUpi);$("upi").addEventListener("keydown"
 window.addEventListener("storage",e=>{if(e.key==="tcs_lang"){if(e.newValue&&e.newValue!==lang)setLang(e.newValue);return}if(e.key!==SK)return;const was=user;user=loadSession();paint();
   if(!user&&was){clearScreen();if(!$("v-history").hidden)view("profile");openModal()}else if(user&&!was)$("modal").hidden=true;
   if(!$("v-profile").hidden)drawProfile()});
-// Global Email OTP Functions for HTML onclick
-window.sendOTP = async function() {
-  const email = document.getElementById("emailInput").value.trim();
+  window.sendOTP = async function () {
+  try {
+    const email = document.getElementById("emailInput").value.trim();
+    if (!email) { alert("Kripya pehle apna email address enter karein!"); return; }
+    if (!supabaseClient) { alert("Supabase load nahi hua. Page reload karein."); return; }
 
-  if (!email) {
-    alert("Kripya pehle apna email address enter karein!");
-    return;
-  }
+    const { error } = await supabaseClient.auth.signInWithOtp({
+      email: email,
+      options: { shouldCreateUser: true }
+    });
 
-  const { data, error } = await supabase.auth.signInWithOtp({
-    email: email,
-    options: {
-      shouldCreateUser: true
-    }
-  });
-
-  if (error) {
-    alert("OTP bhejne me dikkat aayi: " + error.message);
-  } else {
-    alert("Aapke Gmail (" + email + ") par 6-digit OTP bhej diya gaya hai!");
+    if (error) { alert("OTP error: " + error.message); return; }
+    alert("OTP bhej diya gaya hai: " + email);
     document.getElementById("otpSection").style.display = "block";
-  }
-};
-
-window.verifyOTP = async function() {
-  const email = document.getElementById("emailInput").value.trim();
-  const otp = document.getElementById("otpInput").value.trim();
-
-  if (!otp) {
-    alert("Kripya Gmail par aaya 6-digit OTP enter karein!");
-    return;
-  }
-
-  const { data, session, error } = await supabase.auth.verifyOtp({
-    email: email,
-    token: otp,
-    type: 'email'
-  });
-
-  if (error) {
-    alert("Galat OTP! Kripya Gmail inbox check karke sahi code daalein.");
-  } else {
-    alert("Login Successful! Welcome!");
-    console.log("Logged-in User Details:", data.user);
+  } catch (e) {
+    alert("Error: " + (e && e.message ? e.message : e));
   }
 };
   paint();steps(null);if(!user)openModal();try{initLang()}catch(e){}reportMismatch();
