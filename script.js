@@ -521,7 +521,13 @@ function getSupabase() {
                      document.querySelector("input[type='email']");
 
   const email = emailInput ? emailInput.value.trim().toLowerCase() : "";
+  console.log("Detected Email:", email);
 
+  if (!email) {
+    alert("Kripya pehle apna email address enter karein!");
+    return;
+  }
+    
   if (!email) {
     alert("Kripya pehle apna email address enter karein!");
     return;
