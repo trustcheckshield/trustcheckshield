@@ -515,7 +515,11 @@ function getSupabase() {
 }
 
   window.sendOTP = async function () {
-  const emailInput = document.getElementById("emailInput") || document.getElementById("p-email") || document.querySelector("input[type='email']");
+  const emailInput = document.getElementById("emailInput") || 
+                     document.getElementById("p-email") || 
+                     document.querySelector("#modal input[type='email']") || 
+                     document.querySelector("input[type='email']");
+
   const email = emailInput ? emailInput.value.trim().toLowerCase() : "";
 
   if (!email) {
