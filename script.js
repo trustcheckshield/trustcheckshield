@@ -598,6 +598,10 @@ window.verifyOTP = async function () {
   alert("Signup & Login Successful! Welcome!");
   location.reload(); 
 };
+  window.closeModal = function() {
+  const modal = document.getElementById("modal");
+  if (modal) modal.hidden = true;
+};
  if (!localStorage.getItem("tcs_session")) {
   const modal = document.getElementById("modal");
   if (modal) modal.hidden = false;
