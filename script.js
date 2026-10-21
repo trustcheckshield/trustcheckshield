@@ -32,17 +32,13 @@ user=loadSession();
 /* ===== history ===== */
 const hkey=()=>user?"history_"+user.id:null;
 function hist(){const k=hkey();if(!k)return[];try{const h=JSON.parse(store.getItem(k)||"[]");return Array.isArray(h)?h:[]}catch(e){return[]}}
-function logScan(type,input,level){const k=hkey();if(!k)return;const h=hist();h.unshift({type:type,input:input.replace(/\s+/g," ").slice(0,60),level:level,t:Date.now()});try{store.setItem(k,JSON.stringify(h.slice(0,50)))}catch(e){}}
-
-/* ===== auth ===== */
-const panes=["p-opts","p-email","p-mob","p-otp"];
-function pane(id,sub){panes.forEach(p=>$(p).hidden=p!==id);$("ms").textContent=sub||"Sign in to run checks and see your results.";
-  ["emE","mbE","otE"].forEach(e=>$(e).hidden=true);
-  const f={"p-email":"em","p-mob":"mb","p-otp":"ot"}[id];if(f){$(f).value="";setTimeout(()=>$(f).focus(),0)}}
-function openModal(){lastFocus=document.activeElement;pane("p-opts");$("modal").hidden=false;setTimeout(()=>$("p-opts").querySelector("button").focus(),0)}
-function closeModal(){$("modal").hidden=true;if(lastFocus&&lastFocus.focus)lastFocus.focus()}
-function paint(){$("authBtn").textContent=user?"Logout":"Login";$("welcome").hidden=!user;if(user)$("welcome").textContent="Hi, "+user.name}
-function login(u){user=u;try{store.setItem(SK,JSON.stringify(u))}catch(e){}paint();$("modal").hidden=true;if(!$("v-profile").hidden)drawProfile()}
+const panes = ["p-opts"];
+function pane(id) {
+  panes.forEach(p => {
+    const el = document.getElementById(p);
+    if (el) el.hidden = (p !== id);
+  });
+}
 function clearScreen(){["urlR","msgR","upiR","qrR"].forEach(i=>$(i).hidden=true);["url","msg","upi","qrTxt"].forEach(i=>$(i).value="");["urlE","msgE","upiE","qrE"].forEach(i=>$(i).hidden=true);steps(null);$("stepsSub").textContent="Check a link and these steps update to match it."}
 function logout(){user=null;try{store.removeItem(SK)}catch(e){}paint();clearScreen();if(!$("v-history").hidden)view("profile");else if(!$("v-profile").hidden)drawProfile();openModal()}
 function gate(){if(user)return true;openModal();return false}
