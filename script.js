@@ -9,7 +9,7 @@ const supabaseClient = (typeof supabase !== "undefined") ? supabase.createClient
 
 /* If index.html does not match this file, missing elements are replaced by harmless stand-ins instead of crashing. */
 const MISSING = [];
-const $=id=>document.getElementById(id)||(MISSING.indexOf(id)<0&&MISSING.push(id),ghost());
+const $=id=>document.getElementById(id)||(MISSING.indexOf(id)<0&&MISSING.push(id);
 function reportMismatch(){
   const m=[];
   if(MISSING.length)m.push("index.html does not match script.js (missing: "+MISSING.slice(0,6).join(", ")+(MISSING.length>6?", ...":"")+"). Upload the matching index.html.");
