@@ -514,16 +514,14 @@ function getSupabase() {
   return _sbClient;
 }
 
-// 1. Send OTP Function (Email par OTP bhejne ke liye)
-window.sendOTP = async function () {
-  const emailInput = document.getElementById("emailInput");
+  window.sendOTP = async function () {
+  const emailInput = document.getElementById("emailInput") || document.getElementById("p-email") || document.querySelector("input[type='email']");
   const email = emailInput ? emailInput.value.trim().toLowerCase() : "";
 
   if (!email) {
     alert("Kripya pehle apna email address enter karein!");
     return;
   }
-
   const sb = getSupabase();
   if (!sb) {
     alert("Supabase load nahi hua. Page reload karke try karein.");
