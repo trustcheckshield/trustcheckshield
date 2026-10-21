@@ -47,28 +47,6 @@ function login(u){user=u;try{store.setItem(SK,JSON.stringify(u))}catch(e){}paint
 function clearScreen(){["urlR","msgR","upiR","qrR"].forEach(i=>$(i).hidden=true);["url","msg","upi","qrTxt"].forEach(i=>$(i).value="");["urlE","msgE","upiE","qrE"].forEach(i=>$(i).hidden=true);steps(null);$("stepsSub").textContent="Check a link and these steps update to match it."}
 function logout(){user=null;try{store.removeItem(SK)}catch(e){}paint();clearScreen();if(!$("v-history").hidden)view("profile");else if(!$("v-profile").hidden)drawProfile();openModal()}
 function gate(){if(user)return true;openModal();return false}
-document.querySelectorAll("[data-p]").forEach(b=>b.addEventListener("click",()=>{const p=b.dataset.p;pane.p=p;
-  $("emL").textContent="Your "+p+" email ID";$("em").placeholder="name@"+p.toLowerCase()+".com";pane("p-email","Sign in with "+p)}));
-$("mobBtn").addEventListener("click",()=>pane("p-mob","Mobile number sign-in"));
-document.querySelectorAll("[data-back]").forEach(b=>b.addEventListener("click",()=>pane("p-opts")));
-$("emGo").addEventListener("click",()=>{const v=$("em").value.trim();
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v))return err("emE","Enter a valid email ID, such as name@example.com.");
-  const n=v.split("@")[0].replace(/[._\-+0-9]+/g," ").trim().split(" ")[0]||"User";
-  login({id:v.toLowerCase(),name:n.charAt(0).toUpperCase()+n.slice(1),via:pane.p||"Email",contact:["Email ID",v]})});
-$("mbGo").addEventListener("click",()=>{const v=$("mb").value.trim();
-  if(!/^\d{10}$/.test(v))return err("mbE","Enter exactly 10 digits, with no spaces or country code.");
-  phone=v;code=String(Math.floor(1000+Math.random()*9000));
-  $("demo").textContent="Demo mode: no text message is sent. Your verification code is "+code+".";
-  pane("p-otp","Code requested for the number ending in "+phone.slice(-4))});
-$("otGo").addEventListener("click",()=>{const v=$("ot").value.trim();
-  if(!/^\d{4}$/.test(v))return err("otE","Enter the 4-digit code.");
-  if(v!==code)return err("otE","That code does not match. Check it and try again.");
-  login({id:"mobile_"+hash(phone),name:"User",via:"Mobile number",contact:["Mobile number","Ending in "+phone.slice(-4)]})});
-["em","mb","ot"].forEach(id=>$(id).addEventListener("keydown",e=>{if(e.key==="Enter")$({em:"emGo",mb:"mbGo",ot:"otGo"}[id]).click()}));
-$("mx").addEventListener("click",closeModal);
-$("modal").addEventListener("click",e=>{if(e.target===$("modal"))closeModal()});
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("modal").hidden)closeModal()});
-$("authBtn").addEventListener("click",()=>user?logout():openModal());
 
 /* ===== navigation ===== */
 const VIEWS=["home","profile","history","privacy","language"];
