@@ -602,6 +602,10 @@ window.verifyOTP = async function () {
   const modal = document.getElementById("modal");
   if (modal) modal.hidden = true;
 };
+  window.openModal = function() {
+  const modal = document.getElementById("modal");
+  if (modal) modal.hidden = false;
+};
  if (!localStorage.getItem("tcs_session")) {
   const modal = document.getElementById("modal");
   if (modal) modal.hidden = false;
