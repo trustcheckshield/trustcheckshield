@@ -154,34 +154,59 @@
   <button type="button" id="nav-profile"><span class="ic">👤</span>Profile</button>
 </nav>
 
-<div id="modal" role="dialog" aria-modal="true" aria-labelledby="mt" hidden>
-  <div class="box">
-    <button class="x" id="mx" type="button" aria-label="Close">&times;</button>
-    <h2 id="mt">Sign in to TrustCheck Shield</h2>
-    <p class="s" id="ms">Sign in to run checks and see your results.</p>
-    <div class="pane" id="p-opts">
-      <button class="prov" type="button" data-p="Google"><i>G</i>Continue with Google</button>
-      <button class="prov" type="button" data-p="Microsoft"><i>M</i>Continue with Microsoft</button>
-      <div class="row3">
-        <button class="prov" type="button" data-p="Facebook"><i>f</i>Facebook</button>
-        <button class="prov" type="button" data-p="Instagram"><i>I</i>Instagram</button>
-        <button class="prov" type="button" id="mobBtn"><i>#</i>Mobile</button>
+<!-- LOGIN MODAL -->
+<div id="modal" class="modal-overlay" hidden>
+  <div class="modal-box">
+    <button type="button" class="close-btn" onclick="closeModal()">&times;</button>
+    <h2>Sign in to TrustCheck Shield</h2>
+    
+    <div id="p-opts">
+      <p style="margin-bottom: 15px;">Enter your Email address to receive a verification OTP.</p>
+      
+      <!-- Email Input -->
+      <div class="field" style="margin-bottom: 12px;">
+        <input 
+          type="email" 
+          id="emailInput" 
+          placeholder="name@gmail.com" 
+          style="width: 100%; padding: 10px; box-sizing: border-box;" 
+          required 
+        />
+      </div>
+      
+      <!-- Send OTP Button -->
+      <button 
+        class="btn" 
+        type="button" 
+        onclick="window.sendOTP()" 
+        style="width: 100%;"
+      >
+        Send 6-Digit OTP
+      </button>
+
+      <!-- OTP Section (Hidden initially) -->
+      <div id="otpSection" hidden style="display: none; margin-top: 15px;">
+        <div class="field" style="margin-bottom: 12px;">
+          <input 
+            type="text" 
+            id="otpInput" 
+            placeholder="Enter 6-digit OTP" 
+            maxlength="6" 
+            style="width: 100%; padding: 10px; box-sizing: border-box;" 
+          />
+        </div>
+        <button 
+          class="btn" 
+          type="button" 
+          onclick="window.verifyOTP()" 
+          style="width: 100%;"
+        >
+          Verify OTP & Access Website
+        </button>
       </div>
     </div>
-    <div class="pane" id="p-email" hidden>
-      <label for="em" id="emL">Email ID</label>
-      <input id="em" type="email" inputmode="email" autocomplete="off" placeholder="name@example.com">
-      <div class="err" id="emE" role="alert" hidden></div>
-      <button class="btn" id="emGo" type="button">Continue</button>
-      <button class="back" type="button" data-back>Back to options</button>
-    </div>
-    <div class="pane" id="p-mob" hidden>
-      <label for="mb">10-digit mobile number</label>
-      <input id="mb" type="tel" inputmode="numeric" maxlength="10" autocomplete="off" placeholder="9876543210">
-      <div class="err" id="mbE" role="alert" hidden></div>
-      <button class="btn" id="mbGo" type="button">Send verification code</button>
-      <button class="back" type="button" data-back>Back to options</button>
-    </div>
+  </div>
+</div>
     <div class="pane" id="p-otp" hidden>
       <div class="demo" id="demo"></div>
       <label for="ot">4-digit verification code</label>
