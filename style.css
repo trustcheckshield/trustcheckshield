@@ -142,4 +142,7 @@ background:color-mix(in srgb,var(--rc) 10%,var(--card));border:1px solid color-m
 #modal .box .mmsg.ok{background:#17301f;color:#7fd39a}
 #modal .box .mmsg.bad{background:#3b1b19;color:#f2918a}
 #modal .box .fine{text-align:center;color:#6f8478;font-size:12px;margin:4px 0 0}
+#modal .box .tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:4px;margin:0 0 16px;border-radius:12px;background:#0c1712;border:1px solid #2b3a34}
+#modal .box .tab{font:inherit;font-weight:700;font-size:14px;padding:9px;border:0;border-radius:9px;background:transparent;color:#9db0a6;cursor:pointer}
+#modal .box .tab.on{background:#7fc4a9;color:#10211a}
 /* END OF style.css */
