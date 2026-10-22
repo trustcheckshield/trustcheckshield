@@ -2,16 +2,24 @@
 (function(){
 "use strict";
 
-/* ===== Supabase (email OTP) =====
-   Paste YOUR values from Supabase dashboard > Project Settings > API.
-   Use only the Project URL and the publishable (anon) key. NEVER put a secret or service_role key here. */
-const SUPABASE_URL="PASTE_YOUR_SUPABASE_URL_HERE";
-const SUPABASE_KEY="PASTE_YOUR_SUPABASE_PUBLISHABLE_KEY_HERE";
+/* ===== Supabase configuration ===== */
+const SUPABASE_URL="https://gdaoxbdrrwfvjmyckpkb.supabase.co";
+const SUPABASE_KEY="sb_publishable_oFMxcWSB0zhxJUHjLUfiRA_mP7eYj3W";
+/* The two sites this app runs on. Add both in Supabase: Authentication > URL Configuration (Site URL + Redirect URLs). */
+const SITE_URLS=["https://trustcheckshield.vercel.app/","https://trustcheckshield.github.io/"];
+const SUPABASE_CDNS=["https://unpkg.com/@supabase/supabase-js@2","https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"];
 let supabaseClient=null;
 function getSupabase(){
-  if(!supabaseClient&&window.supabase&&/^https:\/\//.test(SUPABASE_URL)){
+  if(!supabaseClient&&window.supabase&&typeof window.supabase.createClient==="function"){
     try{supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){supabaseClient=null}}
   return supabaseClient}
+function loadScript(src){
+  return new Promise(res=>{const t=document.createElement("script");t.src=src;t.onload=()=>res(true);t.onerror=()=>res(false);document.head.append(t);setTimeout(()=>res(false),10000)})}
+/* Returns the client; if the main CDN failed, tries backup CDNs once. */
+async function ensureSupabase(){
+  if(getSupabase())return supabaseClient;
+  for(let i=0;i<SUPABASE_CDNS.length&&!window.supabase;i++)await loadScript(SUPABASE_CDNS[i]);
+  return getSupabase()}
 /* If index.html does not match this file, missing elements are replaced by harmless stand-ins instead of crashing. */
 const MISSING=[];
 function ghost(){return new Proxy(function(){},{get:(t,k)=>k===Symbol.toPrimitive||k==="toString"||k==="valueOf"?()=>"":k==="then"?undefined:k==="length"?0:ghost(),set:()=>true,apply:()=>ghost()})}
@@ -43,7 +51,7 @@ function logScan(type,input,level){const k=hkey();if(!k)return;const h=hist();h.
 
 /* ===== auth (email OTP via Supabase) ===== */
 function setMsg(t,kind){const m=$("modalMsg");m.textContent=t||"";m.className="mmsg"+(kind?" "+kind:"");m.hidden=!t}
-function resetModal(){$("modalEmail").value="";$("modalOtp").value="";$("modalOtpSection").hidden=true;setMsg("");$("modalSendBtn").disabled=false;$("modalVerifyBtn").disabled=false}
+function resetModal(){clearInterval(otpTimer);["modalEmail","modalName","modalOtp"].forEach(i=>$(i).value="");$("modalOtpSection").hidden=true;$("modalSendBtn").disabled=false;$("modalSendBtn").textContent="Send 6-Digit OTP";$("modalVerifyBtn").disabled=false;setAuthMode("login")}
 function openModal(){lastFocus=document.activeElement;resetModal();$("modal").hidden=false;setTimeout(()=>$("modalEmail").focus(),0)}
 function closeModal(){$("modal").hidden=true;if(lastFocus&&lastFocus.focus)lastFocus.focus()}
 function paint(){
@@ -52,41 +60,76 @@ function paint(){
   $("welcome").hidden=!user;if(user)$("welcome").textContent="Hi, "+user.name}
 function login(u){user=u;try{store.setItem(SK,JSON.stringify(u))}catch(e){}paint();$("modal").hidden=true;if(!$("v-profile").hidden)drawProfile()}
 function clearScreen(){["urlR","msgR","upiR","qrR"].forEach(i=>$(i).hidden=true);["url","msg","upi","qrTxt"].forEach(i=>$(i).value="");["urlE","msgE","upiE","qrE"].forEach(i=>$(i).hidden=true);steps(null);$("stepsSub").textContent="Check a link and these steps update to match it."}
-function logout(){user=null;try{store.removeItem(SK)}catch(e){}try{const sb=getSupabase();if(sb)sb.auth.signOut()}catch(e){}paint();clearScreen();if(!$("v-history").hidden)view("profile");else if(!$("v-profile").hidden)drawProfile();openModal()}
+function logout(){user=null;try{store.removeItem(SK)}catch(e){}try{const sb=getSupabase();if(sb)sb.auth.signOut({scope:"local"})}catch(e){}paint();clearScreen();if(!$("v-history").hidden)view("profile");else if(!$("v-profile").hidden)drawProfile();openModal()}
 function gate(){if(user)return true;openModal();return false}
+let authMode="login",otpTimer=null;
 const EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+function setAuthMode(m){
+  authMode=m==="signup"?"signup":"login";const su=authMode==="signup";
+  $("modalTabLogin").classList.toggle("on",!su);$("modalTabSignup").classList.toggle("on",su);
+  $("modalTabLogin").setAttribute("aria-selected",String(!su));$("modalTabSignup").setAttribute("aria-selected",String(su));
+  $("modalNameWrap").hidden=!su;
+  $("mt").textContent=su?"Create your TrustCheck Shield account":"Sign in to TrustCheck Shield";
+  $("ms").textContent=su?"New here? Enter your name and email. We will send a verification OTP.":"Enter your Email address to receive a verification OTP.";
+  setMsg("")}
+function startCooldown(sec){
+  const b=$("modalSendBtn");let n=sec;clearInterval(otpTimer);b.disabled=true;
+  const tick=()=>{if(n<=0){clearInterval(otpTimer);b.disabled=false;b.textContent="Resend OTP";return}b.textContent="Resend OTP in "+n+"s";n--};
+  tick();otpTimer=setInterval(tick,1000)}
+function otpError(er){
+  const m=String((er&&er.message)||er||"");
+  if(/signups? not allowed|user not found/i.test(m))return"No account found for this email. Please use the Sign Up tab first.";
+  if(/rate limit|only request this after|too many/i.test(m))return"Too many requests. Please wait a minute and try again. ("+m+")";
+  if(/invalid api key|apikey/i.test(m))return"The Supabase key is not valid. Copy the publishable key again from your Supabase dashboard.";
+  return"OTP error: "+m}
+function userFromSb(u){
+  const email=String((u&&u.email)||"").toLowerCase(),md=(u&&u.user_metadata)||{};
+  const first=(email.split("@")[0].replace(/[._\-+0-9]+/g," ").trim().split(" ")[0])||"User";
+  const nm=String(md.full_name||md.name||"").trim().split(" ")[0]||(first.charAt(0).toUpperCase()+first.slice(1));
+  return{id:email,name:nm,via:"Email OTP",contact:["Email ID",email]}}
 async function sendOTP(){
-  const email=$("modalEmail").value.trim().toLowerCase();
+  const email=$("modalEmail").value.trim().toLowerCase(),name=$("modalName").value.trim(),su=authMode==="signup";
   if(!email){setMsg("Please enter your email address.","bad");return}
   if(!EMAIL_RE.test(email)){setMsg("Enter a valid email ID, such as name@example.com.","bad");return}
-  const sb=getSupabase();
-  if(!sb){setMsg("Cannot connect to Supabase. Check SUPABASE_URL and SUPABASE_KEY, then reload the page.","bad");return}
-  const btn=$("modalSendBtn");btn.disabled=true;setMsg("Sending OTP...");
+  if(su&&!name){setMsg("Please enter your name to sign up.","bad");return}
+  const btn=$("modalSendBtn");btn.disabled=true;setMsg("Connecting...");
   try{
-    const r=await sb.auth.signInWithOtp({email:email});
-    if(r.error){setMsg("OTP error: "+r.error.message,"bad");return}
+    const sb=await ensureSupabase();
+    if(!sb){setMsg("Could not load Supabase. Check your internet connection, or try another network, then reload.","bad");btn.disabled=false;return}
+    const opts={shouldCreateUser:su};
+    if(su&&name)opts.data={full_name:name};
+    if(SITE_URLS.indexOf(location.origin+"/")>=0)opts.emailRedirectTo=location.origin+"/";
+    setMsg("Sending OTP...");
+    const r=await sb.auth.signInWithOtp({email:email,options:opts});
+    if(r.error){setMsg(otpError(r.error),"bad");btn.disabled=false;return}
     $("modalOtpSection").hidden=false;
     setMsg("OTP sent to "+email+". Check your inbox and spam folder.","ok");
-    $("modalOtp").focus()}
-  catch(e){setMsg("Network error: "+(e&&e.message?e.message:e)+". If this keeps happening, your network may be blocking supabase.co.","bad")}
-  finally{btn.disabled=false}}
+    $("modalOtp").focus();startCooldown(60)}
+  catch(e){setMsg("Network error: "+(e&&e.message?e.message:e)+". If this keeps happening, your network may be blocking supabase.co.","bad");btn.disabled=false}}
 async function verifyOTP(){
   const email=$("modalEmail").value.trim().toLowerCase(),otp=$("modalOtp").value.trim();
   if(!email){setMsg("Please enter your email address.","bad");return}
   if(!/^\d{6}$/.test(otp)){setMsg("Enter the 6-digit OTP from your email.","bad");return}
-  const sb=getSupabase();
-  if(!sb){setMsg("Cannot connect to Supabase. Reload the page and try again.","bad");return}
   const btn=$("modalVerifyBtn");btn.disabled=true;setMsg("Verifying...");
   try{
+    const sb=await ensureSupabase();
+    if(!sb){setMsg("Could not load Supabase. Reload the page and try again.","bad");return}
     const r=await sb.auth.verifyOtp({email:email,token:otp,type:"email"});
-    if(r.error){setMsg("Verification error: "+r.error.message,"bad");return}
-    const first=(email.split("@")[0].replace(/[._\-+0-9]+/g," ").trim().split(" ")[0])||"User";
-    const u={id:email,name:first.charAt(0).toUpperCase()+first.slice(1),via:"Email OTP",contact:["Email ID",email]};
-    try{localStorage.setItem(SK,JSON.stringify(u));location.reload()}
-    catch(e){login(u)}}
+    if(r.error){setMsg(/expired|invalid/i.test(r.error.message)?"That OTP is wrong or has expired. Request a new one.":"Verification error: "+r.error.message,"bad");return}
+    const su=r.data&&r.data.user;
+    login(userFromSb(su&&su.email?su:{email:email,user_metadata:{full_name:$("modalName").value.trim()}}))}
   catch(e){setMsg("Network error: "+(e&&e.message?e.message:e),"bad")}
   finally{btn.disabled=false}}
-window.openModal=openModal;window.closeModal=closeModal;window.sendOTP=sendOTP;window.verifyOTP=verifyOTP;window.doLogout=logout;
+/* If Supabase already holds a session (for example after a magic-link click), sign the app in too. */
+async function syncSession(){
+  try{
+    const sb=await ensureSupabase();if(!sb)return;
+    const r=await sb.auth.getSession(),ses=r&&r.data&&r.data.session;
+    if(ses&&ses.user&&!user)login(userFromSb(ses.user));
+    sb.auth.onAuthStateChange((ev,sess)=>{if(ev==="SIGNED_IN"&&sess&&sess.user&&!user)login(userFromSb(sess.user))})}
+  catch(e){}}
+window.openModal=openModal;window.closeModal=closeModal;window.sendOTP=sendOTP;window.verifyOTP=verifyOTP;window.doLogout=logout;window.setAuthMode=setAuthMode;
+$("modalName").addEventListener("keydown",e=>{if(e.key==="Enter")sendOTP()});
 $("modal").addEventListener("click",e=>{if(e.target===$("modal"))closeModal()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("modal").hidden)closeModal()});
 $("modalEmail").addEventListener("keydown",e=>{if(e.key==="Enter")sendOTP()});
@@ -603,6 +646,6 @@ $("upiGo").addEventListener("click",scanUpi);$("upi").addEventListener("keydown"
 window.addEventListener("storage",e=>{if(e.key==="tcs_lang"){if(e.newValue&&e.newValue!==lang)setLang(e.newValue);return}if(e.key!==SK)return;const was=user;user=loadSession();paint();
   if(!user&&was){clearScreen();if(!$("v-history").hidden)view("profile");openModal()}else if(user&&!was)$("modal").hidden=true;
   if(!$("v-profile").hidden)drawProfile()});
-paint();steps(null);if(!user)openModal();try{initLang()}catch(e){}reportMismatch();
+paint();steps(null);if(!user)openModal();try{initLang()}catch(e){}reportMismatch();syncSession();
 })();
 /* END OF script.js */
