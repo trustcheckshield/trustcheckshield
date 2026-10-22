@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>TrustCheck Shield</title>
 <link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div class="shell">
@@ -69,24 +69,11 @@
 
   <!-- PROFILE -->
   <main id="v-profile" hidden>
-   <!-- EMAIL OTP AUTHENTICATION -->
-<div class="card" id="t-auth" style="margin-top: 15px;" hidden>
-  <h3>Email Sign In / Verification</h3>
-  
-  <!-- Step 1: Email Input -->
-  <div class="field" style="margin-bottom: 10px;">
-    <input type="email" id="emailInput" placeholder="Enter your email" style="width: 100%; padding: 10px; box-sizing: border-box;" required />
-  </div>
-  <button class="btn" type="button" onclick="window.sendOTP()" style="width: 100%;">Send 6-Digit OTP</button>
-
-  <!-- Step 2: OTP Input Section -->
-  <div id="otpSection" hidden style="display: none; margin-top: 15px;">
-    <div class="field" style="margin-bottom: 10px;">
-      <input type="text" id="otpInput" placeholder="Enter 6-digit OTP" maxlength="6" style="width: 100%; padding: 10px; box-sizing: border-box;" />
-    </div>
-    <button class="btn" type="button" onclick="window.verifyOTP()" style="width: 100%;">Verify OTP & Sign In</button>
-  </div>
-  
+    <section class="card" id="t-auth" hidden>
+      <h2>Email Sign In / Verification</h2>
+      <p class="sd">Sign in with a one-time code sent to your email.</p>
+      <button class="btn" id="profLoginBtn" type="button" onclick="openModal()">Sign in with email</button>
+    </section>
     <h1>Profile</h1>
     <p class="lead">Your account, your past checks and help in one place.</p>
     <section class="card"><h2>Account</h2><div id="acct" style="margin-top:12px"></div></section>
@@ -154,69 +141,21 @@
   <button type="button" id="nav-profile"><span class="ic">👤</span>Profile</button>
 </nav>
 
-<!-- LOGIN MODAL -->
-<div id="modal" class="modal-overlay" hidden>
-  <div class="modal-box">
-    <button type="button" class="close-btn" onclick="closeModal()">&times;</button>
-    <h2>Sign in to TrustCheck Shield</h2>
-    
-    <div id="p-opts">
-      <p style="margin-bottom: 15px;">Enter your Email address to receive a verification OTP.</p>
-      
-      <!-- Email Input -->
-      <div class="field" style="margin-bottom: 12px;">
-        <input 
-          type="email" 
-          id="emailInput" 
-          placeholder="name@gmail.com" 
-          style="width: 100%; padding: 10px; box-sizing: border-box;" 
-          required 
-        />
-      </div>
-      
-      <!-- Send OTP Button -->
-      <button 
-        class="btn" 
-        type="button" 
-        onclick="window.sendOTP()" 
-        style="width: 100%;"
-      >
-        Send 6-Digit OTP
-      </button>
-
-      <!-- OTP Section (Hidden initially) -->
-      <div id="otpSection" hidden style="display: none; margin-top: 15px;">
-        <div class="field" style="margin-bottom: 12px;">
-          <input 
-            type="text" 
-            id="otpInput" 
-            placeholder="Enter 6-digit OTP" 
-            maxlength="6" 
-            style="width: 100%; padding: 10px; box-sizing: border-box;" 
-          />
-        </div>
-        <button 
-          class="btn" 
-          type="button" 
-          onclick="window.verifyOTP()" 
-          style="width: 100%;"
-        >
-          Verify OTP & Access Website
-        </button>
-      </div>
+<div id="modal" role="dialog" aria-modal="true" aria-labelledby="mt" hidden>
+  <div class="box">
+    <button class="x" id="mx" type="button" aria-label="Close" onclick="closeModal()">&times;</button>
+    <h2 id="mt">Sign in to TrustCheck Shield</h2>
+    <p class="s" id="ms">Enter your Email address to receive a verification OTP.</p>
+    <label for="modalEmail">Email address</label>
+    <input id="modalEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="name@example.com">
+    <button class="btn" id="modalSendBtn" type="button" onclick="sendOTP()">Send 6-Digit OTP</button>
+    <div id="modalOtpSection" hidden>
+      <label for="modalOtp">6-digit OTP</label>
+      <input id="modalOtp" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="000000">
+      <button class="btn" id="modalVerifyBtn" type="button" onclick="verifyOTP()">Verify OTP &amp; Login</button>
     </div>
-  </div>
-</div>
-    <div class="pane" id="p-otp" hidden>
-      <div class="demo" id="demo"></div>
-      <label for="ot">4-digit verification code</label>
-      <input id="ot" type="text" inputmode="numeric" maxlength="4" autocomplete="one-time-code" placeholder="0000">
-      <div class="err" id="otE" role="alert" hidden></div>
-      <button class="btn" id="otGo" type="button">Verify and log in</button>
-      <button class="back" type="button" data-back>Back to options</button>
-    </div>
-    <div class="div">Security Access Required</div>
-    <p class="fine">Demo sign-in: nothing is sent or verified. Your details stay in this browser.</p>
+    <div class="mmsg" id="modalMsg" role="alert" hidden></div>
+    <p class="fine">A one-time code is emailed to you. It is only used to sign you in.</p>
   </div>
 </div>
 
