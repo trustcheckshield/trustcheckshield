@@ -3,15 +3,18 @@
 "use strict";
 
 /* ===== Supabase configuration ===== */
-const SUPABASE_URL="https://gdaoxbdrrwfvjmyckpkb.supabase.co";
+const SUPABASE_URL="https://gdaombdrrwfwjmyckpkb.supabase.co";
 const SUPABASE_KEY="sb_publishable_oFMxcWSB0zhxJUHjLUfiRA_mP7eYj3W";
 /* The two sites this app runs on. Add both in Supabase: Authentication > URL Configuration (Site URL + Redirect URLs). */
 const SITE_URLS=["https://trustcheckshield.vercel.app/","https://trustcheckshield.github.io/"];
+/* Direct connection by default. Set USE_PROXY to true ONLY if your network blocks supabase.co AND vercel.json is uploaded (Vercel site only). */
+const USE_PROXY=false;
+const SUPABASE_BASE=(USE_PROXY&&/\.vercel\.app$/.test(location.hostname))?location.origin+"/supabase":SUPABASE_URL;
 const SUPABASE_CDNS=["https://unpkg.com/@supabase/supabase-js@2","https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"];
 let supabaseClient=null;
 function getSupabase(){
   if(!supabaseClient&&window.supabase&&typeof window.supabase.createClient==="function"){
-    try{supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){supabaseClient=null}}
+    try{supabaseClient=window.supabase.createClient(SUPABASE_BASE,SUPABASE_KEY)}catch(e){supabaseClient=null}}
   return supabaseClient}
 function loadScript(src){
   return new Promise(res=>{const t=document.createElement("script");t.src=src;t.onload=()=>res(true);t.onerror=()=>res(false);document.head.append(t);setTimeout(()=>res(false),10000)})}
@@ -78,6 +81,7 @@ function startCooldown(sec){
   tick();otpTimer=setInterval(tick,1000)}
 function otpError(er){
   const m=String((er&&er.message)||er||"");
+  if(/failed to fetch|networkerror|load failed|fetch failed/i.test(m))return"Cannot reach the server. Your network may be blocking Supabase. Try the Vercel link (trustcheckshield.vercel.app), mobile data or another Wi-Fi, or set Private DNS to one.one.one.one.";
   if(/signups? not allowed|user not found/i.test(m))return"No account found for this email. Please use the Sign Up tab first.";
   if(/rate limit|only request this after|too many/i.test(m))return"Too many requests. Please wait a minute and try again. ("+m+")";
   if(/invalid api key|apikey/i.test(m))return"The Supabase key is not valid. Copy the publishable key again from your Supabase dashboard.";
