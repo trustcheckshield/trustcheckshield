@@ -102,7 +102,7 @@ async function sendOTP(){
     if(!sb){setMsg("Could not load Supabase. Check your internet connection, or try another network, then reload.","bad");btn.disabled=false;return}
     const opts={shouldCreateUser:su};
     if(su&&name)opts.data={full_name:name};
-    if(SITE_URLS.indexOf(location.origin+"/")>=0)opts.emailRedirectTo=location.origin+"/";
+    opts.emailRedirectTo=SITE_URLS[0]; /* links in emails always open the Vercel site */
     setMsg("Sending OTP...");
     const r=await sb.auth.signInWithOtp({email:email,options:opts});
     if(r.error){setMsg(otpError(r.error),"bad");btn.disabled=false;return}
