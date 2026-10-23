@@ -54,7 +54,7 @@ function logScan(type,input,level){const k=hkey();if(!k)return;const h=hist();h.
 
 /* ===== auth (email OTP via Supabase) ===== */
 function setMsg(t,kind){const m=$("modalMsg");m.textContent=t||"";m.className="mmsg"+(kind?" "+kind:"");m.hidden=!t}
-function resetModal(){clearInterval(otpTimer);["modalEmail","modalName","modalOtp"].forEach(i=>$(i).value="");$("modalOtpSection").hidden=true;$("modalSendBtn").disabled=false;$("modalSendBtn").textContent="Send 6-Digit OTP";$("modalVerifyBtn").disabled=false;setAuthMode("login")}
+function resetModal(){clearInterval(otpTimer);["modalEmail","modalName","modalOtp"].forEach(i=>$(i).value="");$("modalOtpSection").hidden=true;$("modalSendBtn").disabled=false;$("modalSendBtn").textContent="Send OTP";$("modalVerifyBtn").disabled=false;setAuthMode("login")}
 function openModal(){lastFocus=document.activeElement;resetModal();$("modal").hidden=false;setTimeout(()=>$("modalEmail").focus(),0)}
 function closeModal(){$("modal").hidden=true;if(lastFocus&&lastFocus.focus)lastFocus.focus()}
 function paint(){
@@ -100,6 +100,11 @@ async function sendOTP(){
   try{
     const sb=await ensureSupabase();
     if(!sb){setMsg("Could not load Supabase. Check your internet connection, or try another network, then reload.","bad");btn.disabled=false;return}
+    /* Is this email already registered? Needs the email_exists() SQL function (see instructions). If it is missing, we simply skip this check. */
+    let exists=null;
+    try{const q=await sb.rpc("email_exists",{check_email:email});if(!q.error&&typeof q.data==="boolean")exists=q.data}catch(e){}
+    if(su&&exists===true){setAuthMode("login");$("modalEmail").value=email;setMsg("This email is already registered. Please log in: tap Send OTP below.","bad");btn.disabled=false;return}
+    if(!su&&exists===false){setAuthMode("signup");$("modalEmail").value=email;setMsg("No account found for this email. Please enter your name and sign up first.","bad");btn.disabled=false;return}
     const opts={shouldCreateUser:su};
     if(su&&name)opts.data={full_name:name};
     opts.emailRedirectTo=SITE_URLS[0]; /* links in emails always open the Vercel site */
@@ -113,7 +118,7 @@ async function sendOTP(){
 async function verifyOTP(){
   const email=$("modalEmail").value.trim().toLowerCase(),otp=$("modalOtp").value.trim();
   if(!email){setMsg("Please enter your email address.","bad");return}
-  if(!/^\d{6}$/.test(otp)){setMsg("Enter the 6-digit OTP from your email.","bad");return}
+  if(!/^\d{6,8}$/.test(otp)){setMsg("Enter the full OTP code from your email (6 to 8 digits).","bad");return}
   const btn=$("modalVerifyBtn");btn.disabled=true;setMsg("Verifying...");
   try{
     const sb=await ensureSupabase();
