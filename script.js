@@ -62,7 +62,7 @@ function paint(){
   $("authBtn").setAttribute("onclick",user?"doLogout()":"openModal()");
   $("welcome").hidden=!user;if(user)$("welcome").textContent="Hi, "+user.name}
 function login(u){user=u;try{store.setItem(SK,JSON.stringify(u))}catch(e){}paint();$("modal").hidden=true;if(!$("v-profile").hidden)drawProfile()}
-function clearScreen(){["urlR","msgR","upiR","qrR"].forEach(i=>$(i).hidden=true);["url","msg","upi","qrTxt"].forEach(i=>$(i).value="");["urlE","msgE","upiE","qrE"].forEach(i=>$(i).hidden=true);steps(null);$("stepsSub").textContent="Check a link and these steps update to match it."}
+function clearScreen(){scanEpoch++;SCAN_TOOLS.forEach(resetScanUI);["urlR","msgR","upiR","qrR"].forEach(i=>$(i).hidden=true);["url","msg","upi","qrTxt"].forEach(i=>$(i).value="");["urlE","msgE","upiE","qrE"].forEach(i=>$(i).hidden=true);steps(null);$("stepsSub").textContent="Check a link and these steps update to match it."}
 function logout(){user=null;try{store.removeItem(SK)}catch(e){}try{const sb=getSupabase();if(sb)sb.auth.signOut({scope:"local"})}catch(e){}paint();clearScreen();if(!$("v-history").hidden)view("profile");else if(!$("v-profile").hidden)drawProfile();openModal()}
 function gate(){if(user)return true;openModal();return false}
 let authMode="login",otpTimer=null;
@@ -213,8 +213,40 @@ function updateRiskMeter(score,level,reasons,host){
   (function tick(t){const k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3);g.num.textContent=String(Math.max(1,Math.round(g.score*e)));if(k<1)requestAnimationFrame(tick)})(t0);
   return g}
 
+/* ===== scanner animation (2.5 s loader, then the result is revealed) ===== */
+const SCAN_MS=2500,SCAN_TOOLS=["url","msg","upi","qr"];
+const SCAN_STEPS={
+  url:["Reading the link structure...","Checking HTTPS and domain pattern...","Looking for risky words and file types...","Finalizing the risk score..."],
+  msg:["Reading the message...","Checking urgency and pressure wording...","Checking links and scam phrases...","Finalizing the risk score..."],
+  upi:["Reading the number or UPI ID...","Checking the format and handle...","Checking for fraud-style wording...","Finalizing the risk score..."],
+  qr:["Reading the QR content...","Checking the link or payment details...","Looking for redirects and risky patterns...","Finalizing the risk score..."]};
+let deferShow=false,pend=[],scanEpoch=0;const scanBusy={};
+function resetScanUI(t){scanBusy[t]=false;$(t+"Scan").hidden=true;$(t+"In").hidden=false}
+/* Runs the normal scan function with its on-screen output held back. If it produced a result, plays the loader first. */
+function scanWith(tool,fn){
+  if(scanBusy[tool])return;
+  deferShow=true;pend=[];
+  try{fn()}finally{deferShow=false}
+  const queue=pend;pend=[];
+  if(queue.length)playScan(tool,queue)}
+function playScan(tool,queue){
+  const ep=scanEpoch,box=$(tool+"Scan"),inp=$(tool+"In"),bar=$(tool+"ScanBar"),txt=$(tool+"ScanTxt"),pct=$(tool+"ScanPct"),res=$(tool+"R"),list=SCAN_STEPS[tool];
+  scanBusy[tool]=true;res.hidden=true;inp.hidden=true;box.hidden=false;bar.style.width="0%";pct.textContent="0%";
+  let idx=-1;const t0=performance.now();
+  function frame(){
+    if(ep!==scanEpoch)return;
+    const k=Math.min(1,Math.max(0,(performance.now()-t0)/SCAN_MS)),p=k<0.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+    const i=Math.min(list.length-1,Math.floor(k*list.length));
+    if(i!==idx){idx=i;txt.textContent=list[i]}
+    bar.style.width=(p*100).toFixed(1)+"%";pct.textContent=Math.round(p*100)+"%";
+    if(k<1){requestAnimationFrame(frame);return}
+    txt.textContent="Scan complete";
+    setTimeout(()=>{if(ep!==scanEpoch)return;resetScanUI(tool);queue.forEach(f=>f())},300)}
+  requestAnimationFrame(frame)}
+
 /* ===== result renderer ===== */
 function show(id,r,hl){
+  if(deferShow){pend.push(()=>show(id,r,hl));return}
   const b=$(id);b.textContent="";["urlR","msgR","upiR","qrR"].forEach(x=>{if(x!==id)$(x).hidden=true});
   const gm=mk("div");b.append(gm,mk("p","verdict",r.desc));updateRiskMeter(riskPercentOf(r),r.level,[],gm);if(r.note)b.append(mk("p","note",r.note));
   if(hl)b.append(hl);
@@ -344,6 +376,7 @@ function analyze(u){
 
 function stepCard(n,h,items){const d=mk("div","step");const ul=mk("ul");items.forEach(i=>ul.append(mk("li","",i)));d.append(mk("div","n",n),mk("h4","",h),ul);return d}
 function steps(r){
+  if(deferShow&&r){pend.push(()=>steps(r));return}
   const box=$("steps");box.textContent="";
   if(!r){box.append(
     stepCard("01 / PASTE","Bring the link here",["Paste a complete website, download or APK link.","The text stays in your browser.","The check reads the protocol, host name, path and query string."]),
@@ -556,11 +589,11 @@ async function onQrFile(e){
     await loadJsQR();
     const i=await loadImg(f),val=await decodeSource(i,i.naturalWidth,i.naturalHeight);
     if(!val){err("qrE","No QR code was found in that picture. Try again with the whole code in view, steady and well lit, or paste the QR contents below.");return}
-    $("qrTxt").value=val;qrRun(val)}
+    $("qrTxt").value=val;scanWith("qr",()=>qrRun(val))}
   catch(x){err("qrE","That picture could not be opened. Try another photo or a JPG or PNG screenshot, or paste the QR contents below.")}}
 ["qrCam","qrFile"].forEach(id=>$(id).addEventListener("change",onQrFile));
 ["camLbl","upLbl"].forEach(id=>$(id).addEventListener("click",e=>{if(!user){e.preventDefault();openModal()}}));
-$("qrGo").addEventListener("click",()=>{if(!gate())return;const t=$("qrTxt").value.trim();if(!validQr(t)){err("qrE","Invalid QR content. Please paste a valid QR URL, UPI string, or readable text.");$("qrR").hidden=true;return}qrRun(t)});
+$("qrGo").addEventListener("click",()=>{if(!gate())return;const t=$("qrTxt").value.trim();if(!validQr(t)){err("qrE","Invalid QR content. Please paste a valid QR URL, UPI string, or readable text.");$("qrR").hidden=true;return}scanWith("qr",()=>qrRun(t))});
 
 /* ===== profile ===== */
 function drawHistView(){
@@ -649,9 +682,9 @@ $("copy1930").addEventListener("click",()=>{
   const b=$("copy1930"),done=()=>{b.textContent="Copied: 1930";setTimeout(()=>{b.textContent="Copy number"},2500)};
   const fb=()=>{try{const t=document.createElement("textarea");t.value="1930";t.style.position="fixed";t.style.opacity="0";document.body.append(t);t.select();document.execCommand("copy");t.remove();done()}catch(e){b.textContent="Dial 1930"}};
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText("1930").then(done,fb);else fb()});
-$("urlGo").addEventListener("click",scanUrl);$("url").addEventListener("keydown",e=>{if(e.key==="Enter")scanUrl()});
-$("msgGo").addEventListener("click",scanMsg);
-$("upiGo").addEventListener("click",scanUpi);$("upi").addEventListener("keydown",e=>{if(e.key==="Enter")scanUpi()});
+$("urlGo").addEventListener("click",()=>scanWith("url",scanUrl));$("url").addEventListener("keydown",e=>{if(e.key==="Enter")scanWith("url",scanUrl)});
+$("msgGo").addEventListener("click",()=>scanWith("msg",scanMsg));
+$("upiGo").addEventListener("click",()=>scanWith("upi",scanUpi));$("upi").addEventListener("keydown",e=>{if(e.key==="Enter")scanWith("upi",scanUpi)});
 window.addEventListener("storage",e=>{if(e.key==="tcs_lang"){if(e.newValue&&e.newValue!==lang)setLang(e.newValue);return}if(e.key!==SK)return;const was=user;user=loadSession();paint();
   if(!user&&was){clearScreen();if(!$("v-history").hidden)view("profile");openModal()}else if(user&&!was)$("modal").hidden=true;
   if(!$("v-profile").hidden)drawProfile()});
