@@ -27,9 +27,17 @@
 
     <section class="card" id="t-url">
       <h2>Link / URL Inspector</h2><p class="sd">Paste a website link or an APK download link.</p>
+      <div class="scan-in" id="urlIn">
       <div class="field"><input id="url" type="text" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Paste a web, Chrome or APK link" aria-label="Link to check"><button class="btn" id="urlGo" type="button">Check risk</button></div>
       <div class="err" id="urlE" role="alert" hidden></div>
       <p class="note">Brackets, quotes and extra characters around a link are cleaned up automatically.</p>
+      </div>
+      <div class="scanner" id="urlScan" hidden role="status" aria-live="polite">
+        <div class="sc-head"><span class="sc-dot" aria-hidden="true"></span><span>Security scan in progress</span></div>
+        <div class="sc-status" id="urlScanTxt">Starting scan...</div>
+        <div class="sc-track"><div class="sc-fill" id="urlScanBar"></div></div>
+        <div class="sc-meta"><span id="urlScanPct">0%</span><span>On-device check</span></div>
+      </div>
       <div class="res" id="urlR" hidden aria-live="polite"></div>
       <h3 class="sec">A thoughtful pause, in three steps</h3>
       <p class="sub" id="stepsSub">Check a link and these steps update to match it.</p>
@@ -38,29 +46,53 @@
 
     <section class="card" id="t-msg" hidden>
       <h2>Universal Message Scam Checker</h2><p class="sd">Choose where the message came from, then paste it.</p>
+      <div class="scan-in" id="msgIn">
       <div class="chips" id="plat" role="group" aria-label="Message source"></div>
       <textarea id="msg" aria-label="Message text" placeholder="Paste the suspicious message here"></textarea>
       <div class="err" id="msgE" role="alert" hidden></div>
       <button class="btn" id="msgGo" type="button" style="margin-top:12px;width:100%">Check message</button>
+      </div>
+      <div class="scanner" id="msgScan" hidden role="status" aria-live="polite">
+        <div class="sc-head"><span class="sc-dot" aria-hidden="true"></span><span>Security scan in progress</span></div>
+        <div class="sc-status" id="msgScanTxt">Starting scan...</div>
+        <div class="sc-track"><div class="sc-fill" id="msgScanBar"></div></div>
+        <div class="sc-meta"><span id="msgScanPct">0%</span><span>On-device check</span></div>
+      </div>
       <div class="res" id="msgR" hidden aria-live="polite"></div>
     </section>
 
     <section class="card" id="t-upi" hidden>
       <h2>Number &amp; UPI Checker</h2><p class="sd">Enter a phone number or a UPI ID such as name@bank.</p>
+      <div class="scan-in" id="upiIn">
       <div class="field"><input id="upi" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="9876543210 or name@bank" aria-label="Phone number or UPI ID"><button class="btn" id="upiGo" type="button">Check number or ID</button></div>
       <div class="err" id="upiE" role="alert" hidden></div>
       <p class="note">This checks the format and wording only. It cannot tell whether a number or ID has been reported.</p>
+      </div>
+      <div class="scanner" id="upiScan" hidden role="status" aria-live="polite">
+        <div class="sc-head"><span class="sc-dot" aria-hidden="true"></span><span>Security scan in progress</span></div>
+        <div class="sc-status" id="upiScanTxt">Starting scan...</div>
+        <div class="sc-track"><div class="sc-fill" id="upiScanBar"></div></div>
+        <div class="sc-meta"><span id="upiScanPct">0%</span><span>On-device check</span></div>
+      </div>
       <div class="res" id="upiR" hidden aria-live="polite"></div>
     </section>
 
     <section class="card" id="t-qr" hidden>
       <h2>QR Code Scanner</h2><p class="sd">Check a QR code before you open the link or pay.</p>
+      <div class="scan-in" id="qrIn">
       <div class="row"><input class="vh" id="qrCam" type="file" accept="image/*" capture="environment"><label class="btn" id="camLbl" for="qrCam">Scan with camera</label><input class="vh" id="qrFile" type="file" accept="image/*"><label class="btn ghost" id="upLbl" for="qrFile">Upload QR image</label></div>
       <label for="qrTxt" class="txt" style="display:block;margin-bottom:6px">Or paste what the QR code contains</label>
       <textarea id="qrTxt" style="min-height:70px" placeholder="https://… or upi://pay?…"></textarea>
       <div class="err" id="qrE" role="alert" hidden></div>
       <button class="btn" id="qrGo" type="button" style="margin-top:12px;width:100%">Check QR content</button>
       <p class="note">Scan with camera opens your phone's camera app so you can take a picture of the QR code. Upload QR image lets you pick a screenshot from your gallery. Pictures are read on your device and are not uploaded.</p>
+      </div>
+      <div class="scanner" id="qrScan" hidden role="status" aria-live="polite">
+        <div class="sc-head"><span class="sc-dot" aria-hidden="true"></span><span>Security scan in progress</span></div>
+        <div class="sc-status" id="qrScanTxt">Starting scan...</div>
+        <div class="sc-track"><div class="sc-fill" id="qrScanBar"></div></div>
+        <div class="sc-meta"><span id="qrScanPct">0%</span><span>On-device check</span></div>
+      </div>
       <div class="res" id="qrR" hidden aria-live="polite"></div>
     </section>
 
@@ -156,10 +188,10 @@
     </div>
     <label for="modalEmail">Email address</label>
     <input id="modalEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="name@example.com">
-    <button class="btn" id="modalSendBtn" type="button" onclick="sendOTP()">Send 6-Digit OTP</button>
+    <button class="btn" id="modalSendBtn" type="button" onclick="sendOTP()">Send OTP</button>
     <div id="modalOtpSection" hidden>
-      <label for="modalOtp">6-digit OTP</label>
-      <input id="modalOtp" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="000000">
+      <label for="modalOtp">OTP code</label>
+      <input id="modalOtp" type="text" inputmode="numeric" maxlength="8" autocomplete="one-time-code" placeholder="Enter the code from your email">
       <button class="btn" id="modalVerifyBtn" type="button" onclick="verifyOTP()">Verify OTP &amp; Login</button>
     </div>
     <div class="mmsg" id="modalMsg" role="alert" hidden></div>
