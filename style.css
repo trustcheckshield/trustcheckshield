@@ -145,4 +145,18 @@ background:color-mix(in srgb,var(--rc) 10%,var(--card));border:1px solid color-m
 #modal .box .tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:4px;margin:0 0 16px;border-radius:12px;background:#0c1712;border:1px solid #2b3a34}
 #modal .box .tab{font:inherit;font-weight:700;font-size:14px;padding:9px;border:0;border-radius:9px;background:transparent;color:#9db0a6;cursor:pointer}
 #modal .box .tab.on{background:#7fc4a9;color:#10211a}
+/* ===== Scanner animation ===== */
+.scanner{position:relative;overflow:hidden;margin-top:14px;padding:16px;border-radius:14px;background:#0c1712;border:1px solid #2b5a47;color:#e8efe9;box-shadow:0 0 18px rgba(25,255,160,.12)}
+.scanner::after{content:"";position:absolute;left:0;right:0;top:-40%;height:40%;pointer-events:none;background:linear-gradient(to bottom,transparent,rgba(25,255,160,.14),transparent);animation:scSweep 1.6s linear infinite}
+@keyframes scSweep{to{top:110%}}
+.sc-head{display:flex;align-items:center;gap:10px;font:700 12px ui-monospace,"SF Mono",Menlo,Consolas,monospace;letter-spacing:.12em;text-transform:uppercase;color:#7fd39a}
+.sc-dot{width:8px;height:8px;border-radius:50%;background:#19ffa0;box-shadow:0 0 8px #19ffa0;animation:scPulse 1s ease-in-out infinite}
+@keyframes scPulse{50%{opacity:.35}}
+.sc-status{margin:12px 0 10px;min-height:1.5em;font-size:14px;color:#cfeee2}
+.sc-track{height:8px;border-radius:999px;background:rgba(255,255,255,.09);overflow:hidden}
+.sc-fill{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#0fa97a,#19ffa0);box-shadow:0 0 10px #19ffa0,0 0 20px rgba(25,255,160,.5)}
+.sc-meta{display:flex;justify-content:space-between;margin-top:8px;font:600 12px ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#9db0a6}
+@keyframes resIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.res:not([hidden]){animation:resIn .4s ease}
+@media (prefers-reduced-motion:reduce){.scanner::after,.sc-dot,.res:not([hidden]){animation:none}}
 /* END OF style.css */
