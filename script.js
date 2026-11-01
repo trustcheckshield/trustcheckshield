@@ -145,7 +145,7 @@ $("modalEmail").addEventListener("keydown",e=>{if(e.key==="Enter")sendOTP()});
 $("modalOtp").addEventListener("keydown",e=>{if(e.key==="Enter")verifyOTP()});
 
 /* ===== navigation ===== */
-const VIEWS=["home","profile","history","privacy","language"];
+const VIEWS=["home","profile","history","privacy","language","reports"];
 function view(v){
   VIEWS.forEach(x=>{const e=$("v-"+x);if(e)e.hidden=x!==v});
   const tab=v==="home"?"home":"profile";
@@ -671,7 +671,7 @@ function initLang(){
   setLang(saved)}
 /* ===== end language engine ===== */
 
-/* ===== community scam reports (saved in this browser only) ===== */
+/* ===== community scam reports (form in a popup, history on its own page; saved in this browser only) ===== */
 const REPORT_KEY="tcs_reports";
 const REPORT_TYPES=["url","phone","sms","qr"];
 const REPORT_LABELS={url:"Link / URL",phone:"Phone number",sms:"SMS / Message",qr:"QR code"};
@@ -734,32 +734,28 @@ function submitReport(){
   try{store.setItem(REPORT_KEY,JSON.stringify(list.slice(0,200)))}catch(e){setReportMsg("Could not save the report on this device.");return}
   closeReport();
   alert("\u2705 Thank you! Your report has been saved.")}
-/* ---- reported history (text is inserted with textContent, so nothing a user typed can run as code) ---- */
-function openReportHistory(){
-  lastFocus=document.activeElement;
+/* ---- reported history page (text is inserted with textContent, so nothing a user typed can run as code) ---- */
+function openReportHistoryPage(){
   const L=$("repList"),list=loadReports();L.textContent="";
-  $("repHistCount").textContent=list.length?list.length+(list.length===1?" report":" reports")+" saved on this device":"Nothing reported yet";
-  if(!list.length)L.append(mk("li","rep-empty","No reports yet. Use Report a Scam / Threat to add one."));
+  $("repHistCount").textContent=list.length?list.length+(list.length===1?" report":" reports")+" saved on this device. Newest first.":"Nothing reported yet.";
+  if(!list.length)L.append(mk("li","rep-empty","No reports yet. Use Report a Scam / Threat in Profile to add one."));
   list.forEach(r=>{
     const li=mk("li","rep-item"),top=mk("div","rep-top");
     top.append(mk("span","rep-type",REPORT_LABELS[r.type]||"Report"),mk("span","rep-date",isFinite(r.t)?new Date(r.t).toLocaleString([],REPORT_DATE):""));
     li.append(top,mk("div","rep-val",String(r.value||"")));
     if(r.desc)li.append(mk("div","rep-desc",String(r.desc)));
     L.append(li)});
-  $("reportHistModal").hidden=false;setTimeout(()=>$("repHistDone").focus(),0)}
-function closeReportHistory(){$("reportHistModal").hidden=true;if(lastFocus&&lastFocus.focus)lastFocus.focus()}
+  view("reports")}
 $("mReport").addEventListener("click",openReport);
 $("reportSubmit").addEventListener("click",submitReport);
 $("reportCancel").addEventListener("click",closeReport);
 $("reportClose").addEventListener("click",closeReport);
-$("reportHistBtn").addEventListener("click",()=>{closeReport();openReportHistory()});
-$("repHistClose").addEventListener("click",closeReportHistory);
-$("repHistDone").addEventListener("click",closeReportHistory);
+$("reportHistBtn").addEventListener("click",()=>{closeReport();openReportHistoryPage()});
+$("rhBack").addEventListener("click",()=>view("profile"));
 $("reportType").addEventListener("change",()=>{$("reportValue").placeholder=REPORT_HINTS[$("reportType").value]||"";setReportMsg("")});
 $("reportModal").addEventListener("click",e=>{if(e.target===$("reportModal"))closeReport()});
-$("reportHistModal").addEventListener("click",e=>{if(e.target===$("reportHistModal"))closeReportHistory()});
-document.addEventListener("keydown",e=>{if(e.key!=="Escape")return;if(!$("reportModal").hidden)closeReport();else if(!$("reportHistModal").hidden)closeReportHistory()});
-window.openReport=openReport;window.openReportHistory=openReportHistory;
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("reportModal").hidden)closeReport()});
+window.openReport=openReport;window.openReportHistoryPage=openReportHistoryPage;
 
 /* ===== wire up ===== */
 function hideRes(id){const b=$(id);if(b.hidden)return;b.classList.add("fade");setTimeout(()=>{b.hidden=true;b.classList.remove("fade")},200)}
