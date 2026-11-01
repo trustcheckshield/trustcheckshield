@@ -139,6 +139,14 @@
     </section>
   </main>
 
+  <!-- REPORTED HISTORY (full-screen page, opened from the report form) -->
+  <main id="v-reports" hidden>
+    <button class="bk" id="rhBack" type="button">← Back</button>
+    <h1>Reported History</h1>
+    <p class="lead" id="repHistCount"></p>
+    <section class="card"><ul class="rep-list" id="repList"></ul></section>
+  </main>
+
   <!-- SCAN HISTORY (sub-view of Profile) -->
   <main id="v-history" hidden>
     <button class="bk" id="hBack" type="button">← Back</button>
@@ -223,16 +231,6 @@
     </div>
     <button class="rp-link" id="reportHistBtn" type="button">View Reported History</button>
     <p class="rp-disc"><strong>Disclaimer:</strong> Reports are crowdsourced from community members and stored securely for awareness and simulation purposes. Trust Check Shield does not verify the absolute authenticity of user-submitted entries and assumes no liability for actions taken based on this data.</p>
-  </div>
-</div>
-
-<div id="reportHistModal" role="dialog" aria-modal="true" aria-labelledby="repHistTitle" hidden>
-  <div class="box">
-    <button class="x" id="repHistClose" type="button" aria-label="Close">&times;</button>
-    <h2 id="repHistTitle">Reported History</h2>
-    <p class="s" id="repHistCount"></p>
-    <ul class="rep-list" id="repList"></ul>
-    <button class="btn ghost" id="repHistDone" type="button">Close</button>
   </div>
 </div>
 
