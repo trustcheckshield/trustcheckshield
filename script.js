@@ -671,6 +671,96 @@ function initLang(){
   setLang(saved)}
 /* ===== end language engine ===== */
 
+/* ===== community scam reports (saved in this browser only) ===== */
+const REPORT_KEY="tcs_reports";
+const REPORT_TYPES=["url","phone","sms","qr"];
+const REPORT_LABELS={url:"Link / URL",phone:"Phone number",sms:"SMS / Message",qr:"QR code"};
+const REPORT_HINTS={url:"https://example.com/offer",phone:"+91 9876543210",sms:"Paste the message text",qr:"Paste what the QR code contains"};
+const REPORT_DATE={day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"};
+function loadReports(){try{const r=JSON.parse(store.getItem(REPORT_KEY)||"[]");return Array.isArray(r)?r.filter(x=>x&&typeof x==="object"):[]}catch(e){return[]}}
+/* Makes two spellings of the same entity compare equal (case, spaces, http/https, www, trailing slash, +91 / 0 prefix). */
+function normEntity(type,v){
+  let s=String(v||"").trim().toLowerCase().replace(/\s+/g," ");
+  if(type==="phone"){const d=s.replace(/\D/g,"");return d.length>10?d.slice(-10):d}
+  if(type==="url"||type==="qr")s=s.replace(/^[a-z][a-z0-9+.-]*:\/\//,"").replace(/^www\./,"").replace(/\/+$/,"");
+  return s}
+/* ---- format checks ---- */
+function validUrlEntity(v){
+  const s=String(v||"").trim();
+  if(!s||/\s/.test(s))return false;
+  let full=s;
+  if(!/^https?:\/\//i.test(s)){
+    if(/^[a-z][a-z0-9+.-]*:/i.test(s)&&!/^[^/]+:\d+/.test(s))return false;
+    full="https://"+s}
+  try{
+    const h=new URL(full).hostname;
+    if(/^\d{1,3}(\.\d{1,3}){3}$/.test(h))return h.split(".").every(n=>Number(n)<=255);
+    return /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:[a-z]{2,}|xn--[a-z0-9-]{2,})$/i.test(h)}
+  catch(e){return false}}
+function validPhoneEntity(v){
+  const s=String(v||"").trim();
+  if(!/^\+?[\d\s().-]+$/.test(s))return false;
+  const d=s.replace(/\D/g,"");
+  return d.length>=10&&d.length<=15&&!/^(\d)\1+$/.test(d)}
+/* Text must reach a minimum length and use at least 4 different characters, so "hgh" or "aaaaaaaaaa" is rejected. */
+function validTextEntity(v,min){
+  const s=String(v||"").replace(/\s+/g," ").trim();
+  return s.length>=min&&new Set(s.toLowerCase().replace(/\s/g,"").split("")).size>=4}
+function reportError(type,value){
+  if(!value)return"\u26A0\uFE0F Please enter the value you want to report.";
+  if(type==="url"&&!validUrlEntity(value))return"\u26A0\uFE0F Please enter a valid URL or link.";
+  if(type==="phone"&&!validPhoneEntity(value))return"\u26A0\uFE0F Please enter a valid phone number.";
+  if(type==="sms"&&!validTextEntity(value,10))return"\u26A0\uFE0F Please enter at least 10 characters of the message.";
+  if(type==="qr"&&!validTextEntity(value,5))return"\u26A0\uFE0F Please enter the QR code content (at least 5 characters).";
+  return""}
+/* ---- report form ---- */
+function setReportMsg(t){const m=$("reportMsg");m.textContent=t||"";m.hidden=!t}
+function openReport(){
+  lastFocus=document.activeElement;
+  $("reportType").value="url";$("reportValue").value="";$("reportDesc").value="";
+  $("reportValue").placeholder=REPORT_HINTS.url;setReportMsg("");
+  $("reportModal").hidden=false;setTimeout(()=>$("reportType").focus(),0)}
+function closeReport(){$("reportModal").hidden=true;if(lastFocus&&lastFocus.focus)lastFocus.focus()}
+function submitReport(){
+  const type=$("reportType").value,value=$("reportValue").value.trim(),desc=$("reportDesc").value.trim();
+  if(REPORT_TYPES.indexOf(type)<0){setReportMsg("Please choose a threat type.");return}
+  const problem=reportError(type,value);
+  if(problem){setReportMsg(problem);return}
+  setReportMsg("");
+  const norm=normEntity(type,value),list=loadReports();
+  if(list.some(r=>r.norm===norm)){
+    alert("\u26A0\uFE0F You have already reported this entity. Multiple reports for the same item from your device are not allowed.");return}
+  list.unshift({id:Date.now().toString(36),type:type,value:value.slice(0,300),norm:norm,desc:desc.slice(0,500),t:Date.now()});
+  try{store.setItem(REPORT_KEY,JSON.stringify(list.slice(0,200)))}catch(e){setReportMsg("Could not save the report on this device.");return}
+  closeReport();
+  alert("\u2705 Thank you! Your report has been saved.")}
+/* ---- reported history (text is inserted with textContent, so nothing a user typed can run as code) ---- */
+function openReportHistory(){
+  lastFocus=document.activeElement;
+  const L=$("repList"),list=loadReports();L.textContent="";
+  $("repHistCount").textContent=list.length?list.length+(list.length===1?" report":" reports")+" saved on this device":"Nothing reported yet";
+  if(!list.length)L.append(mk("li","rep-empty","No reports yet. Use Report a Scam / Threat to add one."));
+  list.forEach(r=>{
+    const li=mk("li","rep-item"),top=mk("div","rep-top");
+    top.append(mk("span","rep-type",REPORT_LABELS[r.type]||"Report"),mk("span","rep-date",isFinite(r.t)?new Date(r.t).toLocaleString([],REPORT_DATE):""));
+    li.append(top,mk("div","rep-val",String(r.value||"")));
+    if(r.desc)li.append(mk("div","rep-desc",String(r.desc)));
+    L.append(li)});
+  $("reportHistModal").hidden=false;setTimeout(()=>$("repHistDone").focus(),0)}
+function closeReportHistory(){$("reportHistModal").hidden=true;if(lastFocus&&lastFocus.focus)lastFocus.focus()}
+$("mReport").addEventListener("click",openReport);
+$("reportSubmit").addEventListener("click",submitReport);
+$("reportCancel").addEventListener("click",closeReport);
+$("reportClose").addEventListener("click",closeReport);
+$("reportHistBtn").addEventListener("click",()=>{closeReport();openReportHistory()});
+$("repHistClose").addEventListener("click",closeReportHistory);
+$("repHistDone").addEventListener("click",closeReportHistory);
+$("reportType").addEventListener("change",()=>{$("reportValue").placeholder=REPORT_HINTS[$("reportType").value]||"";setReportMsg("")});
+$("reportModal").addEventListener("click",e=>{if(e.target===$("reportModal"))closeReport()});
+$("reportHistModal").addEventListener("click",e=>{if(e.target===$("reportHistModal"))closeReportHistory()});
+document.addEventListener("keydown",e=>{if(e.key!=="Escape")return;if(!$("reportModal").hidden)closeReport();else if(!$("reportHistModal").hidden)closeReportHistory()});
+window.openReport=openReport;window.openReportHistory=openReportHistory;
+
 /* ===== wire up ===== */
 function hideRes(id){const b=$(id);if(b.hidden)return;b.classList.add("fade");setTimeout(()=>{b.hidden=true;b.classList.remove("fade")},200)}
 const RESET={
