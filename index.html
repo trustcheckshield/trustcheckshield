@@ -113,6 +113,7 @@
       <button class="menu" id="mHist" type="button"><span class="ml">🕘 Scan History</span><span class="cnt" id="histCnt"></span><span class="ar" aria-hidden="true">›</span></button>
       <button class="menu" id="mPriv" type="button"><span class="ml">🔒 Privacy Policy</span><span class="ar" aria-hidden="true">›</span></button>
       <button class="menu" id="mLang" type="button"><span class="ml"><span>🌐 Language</span><span id="langCur">: English</span></span><span class="ar" aria-hidden="true">›</span></button>
+      <button class="menu" id="mReport" type="button"><span class="ml">🚨 Report a Scam / Threat</span><span class="ar" aria-hidden="true">›</span></button>
     </section>
     <section class="card"><h2>Support / Help &amp; Report Fraud</h2><p class="sd">Report a scam first, then read answers to common questions.</p>
       <div class="report"><h3>Report Fraud</h3>
@@ -196,6 +197,42 @@
     </div>
     <div class="mmsg" id="modalMsg" role="alert" hidden></div>
     <p class="fine">A one-time code is emailed to you. It is only used to sign you in.</p>
+  </div>
+</div>
+
+<div id="reportModal" role="dialog" aria-modal="true" aria-labelledby="reportTitle" hidden>
+  <div class="box">
+    <button class="x" id="reportClose" type="button" aria-label="Close">&times;</button>
+    <h2 id="reportTitle">Report a Scam / Threat</h2>
+    <p class="s">Help others stay aware. Tell us what you came across.</p>
+    <label for="reportType">Threat type</label>
+    <select id="reportType">
+      <option value="url">Fraudulent Link/URL</option>
+      <option value="phone">Scam Phone Number</option>
+      <option value="sms">Fake SMS/Message</option>
+      <option value="qr">Fake QR Code</option>
+    </select>
+    <label for="reportValue">Entity value</label>
+    <input id="reportValue" type="text" maxlength="300" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://example.com/offer">
+    <label for="reportDesc">Description</label>
+    <textarea id="reportDesc" maxlength="500" placeholder="What happened? Add any details that help others (optional)"></textarea>
+    <div class="mmsg" id="reportMsg" role="alert" hidden></div>
+    <div class="rp-actions">
+      <button class="btn" id="reportSubmit" type="button">Submit report</button>
+      <button class="btn ghost" id="reportCancel" type="button">Cancel</button>
+    </div>
+    <button class="rp-link" id="reportHistBtn" type="button">View Reported History</button>
+    <p class="rp-disc"><strong>Disclaimer:</strong> Reports are crowdsourced from community members and stored securely for awareness and simulation purposes. Trust Check Shield does not verify the absolute authenticity of user-submitted entries and assumes no liability for actions taken based on this data.</p>
+  </div>
+</div>
+
+<div id="reportHistModal" role="dialog" aria-modal="true" aria-labelledby="repHistTitle" hidden>
+  <div class="box">
+    <button class="x" id="repHistClose" type="button" aria-label="Close">&times;</button>
+    <h2 id="repHistTitle">Reported History</h2>
+    <p class="s" id="repHistCount"></p>
+    <ul class="rep-list" id="repList"></ul>
+    <button class="btn ghost" id="repHistDone" type="button">Close</button>
   </div>
 </div>
 
