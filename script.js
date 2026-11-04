@@ -145,7 +145,7 @@ $("modalEmail").addEventListener("keydown",e=>{if(e.key==="Enter")sendOTP()});
 $("modalOtp").addEventListener("keydown",e=>{if(e.key==="Enter")verifyOTP()});
 
 /* ===== navigation ===== */
-const VIEWS=["home","profile","history","privacy","language","reports"];
+const VIEWS=["home","profile","history","privacy","language"];
 function view(v){
   VIEWS.forEach(x=>{const e=$("v-"+x);if(e)e.hidden=x!==v});
   const tab=v==="home"?"home":"profile";
@@ -244,11 +244,127 @@ function playScan(tool,queue){
     setTimeout(()=>{if(ep!==scanEpoch)return;resetScanUI(tool);queue.forEach(f=>f())},300)}
   requestAnimationFrame(frame)}
 
+/* ===== community scam database (Supabase: table "scams", live updates) ===== */
+const SCAM_URL="https://iqnglyycpshxwpynhdro.supabase.co";
+const SCAM_KEY="sb_publishable_0r0e18IK_og3nFb5bPZifw_fq-MPpy3";
+const SCAM_MIN_REPORTS=1; /* raise to 3 or more so a single prank report cannot flag an entity */
+const SCAM_LABELS={url:"Link / URL",phone:"Phone number",sms:"SMS / Message",qr:"QR code",upi:"UPI ID"};
+const CROWD_SRC={urlR:["url","url"],msgR:["msg","msg"],upiR:["upi","upi"],qrR:["qr","qrTxt"]};
+const CROWD_DISC="Disclaimer: Verification results are based on crowdsourced community submissions. Trust Check Shield does not independently guarantee accuracy and bears no legal liability.";
+let scamDb=null,scamChannel=null;const scamRows=new Map();
+/* Separate client for this project. It never stores a login session. */
+function getScamDb(){
+  if(!scamDb&&window.supabase&&typeof window.supabase.createClient==="function"){
+    try{scamDb=window.supabase.createClient(SCAM_URL,SCAM_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}})}catch(e){scamDb=null}}
+  return scamDb}
+async function ensureScamDb(){
+  if(getScamDb())return scamDb;
+  for(let i=0;i<SUPABASE_CDNS.length&&!window.supabase;i++)await loadScript(SUPABASE_CDNS[i]);
+  return getScamDb()}
+/* One spelling for every entity: phone numbers keep their last 10 digits, links lose http(s)://, www., ?query, #fragment and the trailing slash. */
+function normScam(v){
+  let s=String(v||"").trim().toLowerCase().replace(/\s+/g," ");
+  if(!s)return"";
+  const digits=s.replace(/\D/g,"");
+  if(/^\+?[\d\s().-]+$/.test(s)&&digits.length>=10&&digits.length<=15)return digits.length>10?digits.slice(-10):digits;
+  if(!/\s/.test(s)&&(/^(https?:\/\/|www\.)/.test(s)||/^[^\s\/@]+\.[a-z]{2,}(\/|$)/.test(s)))
+    s=s.replace(/^[a-z][a-z0-9+.-]*:\/\//,"").replace(/^www\./,"").split(/[?#]/)[0].replace(/\/+$/,"");
+  return s.slice(0,300)}
+/* Only links, phone numbers and UPI IDs are looked up. Message text, Wi-Fi codes and other QR text are never sent. */
+function crowdEntities(tool,raw){
+  const out=new Set(),add=v=>{const n=normScam(v);if(n.length>=5)out.add(n)},r=String(raw||"").trim();
+  if(tool==="url"){const c=extractUrl(r);add(c||r)}
+  else if(tool==="upi")add(r);
+  else if(tool==="msg"){
+    (r.match(new RegExp(LINKRE.source,"gi"))||[]).slice(0,4).forEach(add);
+    (r.replace(/[\s().-]/g,"").match(/(?:\+?91|0)?[6-9]\d{9}/g)||[]).slice(0,3).forEach(add)}
+  else if(tool==="qr"){
+    if(/^upi:\/\//i.test(r)){try{const pa=new URL(r).searchParams.get("pa");if(pa)add(pa)}catch(e){}}
+    else if(parse(r))add(r)}
+  /* official verified domains (google.com, sbi.co.in ...) are never looked up, so a false report cannot flag them */
+  return Array.from(out).filter(n=>{const h=n.split("/")[0];return!(/^[a-z0-9.-]+\.[a-z]{2,}$/.test(h)&&trustedOrg(h))}).slice(0,6)}
+function scamCacheSet(r){
+  if(r&&r.id!=null&&r.query_val)scamRows.set(r.id,{id:r.id,q:normScam(r.query_val),type:r.scam_type,desc:r.description||"",t:r.created_at})}
+const likeEsc=s=>s.replace(/[\\%_]/g,"\\$&");
+/* Asks the database directly (exact + partial). Used together with the live cache. */
+async function scamServerLookup(norms){
+  const db=getScamDb();if(!db)throw new Error("no client");
+  const cols="id,query_val,scam_type,description,created_at";
+  const hosts=Array.from(new Set(norms.map(n=>n.split("/")[0]).filter((h,i)=>h!==norms[i]&&h.indexOf(".")>0)));
+  const jobs=norms.map(n=>db.from("scams").select(cols).ilike("query_val","%"+likeEsc(n)+"%").limit(20))
+    .concat(hosts.map(h=>db.from("scams").select(cols).eq("query_val",h).limit(20)));
+  const res=await Promise.race([Promise.all(jobs),new Promise((_,no)=>setTimeout(()=>no(new Error("timeout")),6000))]);
+  const rows=[];res.forEach(x=>{if(x.error)throw x.error;(x.data||[]).forEach(d=>rows.push(d))});
+  return rows}
+/* Finds matches in the cache plus any rows just fetched. Groups by reported value and counts the reports. */
+function scamMatches(norms,extra){
+  const all=new Map(scamRows);(extra||[]).forEach(r=>{if(r&&r.id!=null&&r.query_val)all.set(r.id,{id:r.id,q:normScam(r.query_val),type:r.scam_type,desc:r.description||"",t:r.created_at})});
+  const hits=new Map();
+  norms.forEach(n=>all.forEach(r=>{
+    const q=r.q;if(!q)return;
+    if(q===n||n.indexOf(q+"/")===0||(n.length>=6&&q.indexOf(n)>=0)){
+      const h=hits.get(q)||{q:q,count:0,type:r.type,desc:r.desc,t:r.t};
+      h.count++;if(String(r.t||"")>String(h.t||"")){h.t=r.t;h.type=r.type;h.desc=r.desc||h.desc}
+      hits.set(q,h)}}));
+  return Array.from(hits.values()).sort((a,b)=>b.count-a.count)}
+/* Fills the community box under a result card. */
+async function communityCheck(resId,host){
+  const src=CROWD_SRC[resId];if(!src)return;
+  const raw=$(src[1]).value,norms=crowdEntities(src[0],raw);
+  if(!norms.length)return;
+  host.append(mk("div","crowd-load","Checking community reports..."));
+  let extra=[],offline=false;
+  try{extra=await scamServerLookup(norms)}catch(e){offline=true}
+  const hits=scamMatches(norms,extra).filter(h=>h.count>=SCAM_MIN_REPORTS);
+  host.textContent="";
+  if(hits.length){
+    const box=mk("div","crowd-flag");box.setAttribute("role","alert");
+    box.append(mk("div","cf-title","\u26A0\uFE0F Flagged Scam Detected!"));
+    hits.slice(0,3).forEach(h=>{
+      const d=mk("div","cf-item"),when=h.t&&isFinite(Date.parse(h.t))?" \u00B7 last reported "+new Date(h.t).toLocaleDateString([],{day:"numeric",month:"short",year:"numeric"}):"";
+      d.append(mk("div","cf-val",h.q),mk("div","cf-meta","Reported "+h.count+(h.count===1?" time":" times")+" \u00B7 "+(SCAM_LABELS[h.type]||"Scam")+when));
+      if(h.desc)d.append(mk("div","cf-desc",h.desc));
+      box.append(d)});
+    box.append(mk("div","crowd-disc",CROWD_DISC));host.append(box);return}
+  const box=mk("div","crowd-none");
+  if(offline&&!scamRows.size){
+    box.append(mk("div","cn-title","Community database could not be reached"),mk("div","cn-sub","Check your connection and try again. The scan above still ran on your device."))}
+  else{
+    box.append(mk("div","cn-title","\u2139\uFE0F No active reports found"),mk("div","cn-sub","This only means nobody has reported it here yet. It does not prove it is safe."));
+    const b=mk("button","btn ghost","Report this as a New Scam");b.type="button";
+    b.addEventListener("click",()=>{
+      const t=src[0]==="msg"?"sms":src[0]==="upi"?(/^[\d\s+().-]+$/.test(raw.trim())?"phone":"upi"):src[0];
+      openReportWith(t,src[0]==="msg"?raw:(norms[0]||raw))});
+    box.append(b)}
+  box.append(mk("div","crowd-disc",CROWD_DISC));host.append(box)}
+/* Saves a report in the shared table and adds it to the live cache straight away. */
+async function shareReport(row){
+  try{
+    const db=await ensureScamDb();if(!db)return false;
+    const r=await db.from("scams").insert([row]).select("id,query_val,scam_type,description,created_at").single();
+    if(r.error||!r.data)return false;
+    scamCacheSet(r.data);return true}
+  catch(e){return false}}
+/* Loads existing reports once, then listens for every new report (from any user) and updates the cache instantly. */
+async function startScamSync(){
+  try{
+    const db=await ensureScamDb();if(!db)return;
+    const r=await db.from("scams").select("id,query_val,scam_type,description,created_at").order("created_at",{ascending:false}).limit(5000);
+    if(!r.error&&r.data)r.data.forEach(scamCacheSet);
+    if(scamChannel)return;
+    scamChannel=db.channel("scams-db-changes")
+      .on("postgres_changes",{event:"*",schema:"public",table:"scams"},p=>{
+        if(p.eventType==="DELETE"){if(p.old&&p.old.id!=null)scamRows.delete(p.old.id)}
+        else scamCacheSet(p.new)})
+      .subscribe()}
+  catch(e){}}
+
 /* ===== result renderer ===== */
 function show(id,r,hl){
   if(deferShow){pend.push(()=>show(id,r,hl));return}
   const b=$(id);b.textContent="";["urlR","msgR","upiR","qrR"].forEach(x=>{if(x!==id)$(x).hidden=true});
-  const gm=mk("div");b.append(gm,mk("p","verdict",r.desc));updateRiskMeter(riskPercentOf(r),r.level,[],gm);if(r.note)b.append(mk("p","note",r.note));
+  const gm=mk("div");b.append(gm,mk("p","verdict",r.desc));updateRiskMeter(riskPercentOf(r),r.level,[],gm);
+  const cm=mk("div","crowd");b.append(cm);communityCheck(id,cm);if(r.note)b.append(mk("p","note",r.note));
   if(hl)b.append(hl);
   if(r.signals&&r.signals.length){b.append(mk("div","lbl","What stood out"));const ul=mk("ul","sig");r.signals.forEach(s=>ul.append(mk("li","",s)));b.append(ul)}
   b.append(mk("div","lbl","What to do"),mk("p","txt",r.rec));
@@ -671,17 +787,22 @@ function initLang(){
   setLang(saved)}
 /* ===== end language engine ===== */
 
-/* ===== community scam reports (form in a popup, history on its own page; saved in this browser only) ===== */
-const REPORT_KEY="tcs_reports";
-const REPORT_TYPES=["url","phone","sms","qr"];
-const REPORT_LABELS={url:"Link / URL",phone:"Phone number",sms:"SMS / Message",qr:"QR code"};
-const REPORT_HINTS={url:"https://example.com/offer",phone:"+91 9876543210",sms:"Paste the message text",qr:"Paste what the QR code contains"};
-const REPORT_DATE={day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"};
-function loadReports(){try{const r=JSON.parse(store.getItem(REPORT_KEY)||"[]");return Array.isArray(r)?r.filter(x=>x&&typeof x==="object"):[]}catch(e){return[]}}
+/* ===== community scam reports (form in a popup; history lives on report-history.html; saved in this browser only) ===== */
+const REPORT_KEY="communityReports";
+const REPORT_TYPES=["url","phone","upi","sms","qr"];
+const REPORT_HINTS={url:"https://example.com/offer",phone:"+91 9876543210",upi:"name@bank",sms:"Paste the message text",qr:"Paste what the QR code contains"};
+/* Reports live under the key "communityReports". Reports saved by an earlier version under "tcs_reports" are copied over once. */
+function loadReports(){
+  try{
+    let raw=store.getItem(REPORT_KEY);
+    if(raw===null){const old=store.getItem("tcs_reports");if(old!==null){raw=old;try{store.setItem(REPORT_KEY,old)}catch(e){}}}
+    const r=JSON.parse(raw||"[]");return Array.isArray(r)?r.filter(x=>x&&typeof x==="object"):[]}
+  catch(e){return[]}}
 /* Makes two spellings of the same entity compare equal (case, spaces, http/https, www, trailing slash, +91 / 0 prefix). */
 function normEntity(type,v){
   let s=String(v||"").trim().toLowerCase().replace(/\s+/g," ");
   if(type==="phone"){const d=s.replace(/\D/g,"");return d.length>10?d.slice(-10):d}
+  if(type==="upi")return s.replace(/\s/g,"");
   if(type==="url"||type==="qr")s=s.replace(/^[a-z][a-z0-9+.-]*:\/\//,"").replace(/^www\./,"").replace(/\/+$/,"");
   return s}
 /* ---- format checks ---- */
@@ -710,6 +831,7 @@ function reportError(type,value){
   if(!value)return"\u26A0\uFE0F Please enter the value you want to report.";
   if(type==="url"&&!validUrlEntity(value))return"\u26A0\uFE0F Please enter a valid URL or link.";
   if(type==="phone"&&!validPhoneEntity(value))return"\u26A0\uFE0F Please enter a valid phone number.";
+  if(type==="upi"&&!/^[a-z0-9._-]{2,64}@[a-z][a-z0-9]{1,30}$/i.test(value))return"\u26A0\uFE0F Please enter a valid UPI ID (like name@bank).";
   if(type==="sms"&&!validTextEntity(value,10))return"\u26A0\uFE0F Please enter at least 10 characters of the message.";
   if(type==="qr"&&!validTextEntity(value,5))return"\u26A0\uFE0F Please enter the QR code content (at least 5 characters).";
   return""}
@@ -720,8 +842,12 @@ function openReport(){
   $("reportType").value="url";$("reportValue").value="";$("reportDesc").value="";
   $("reportValue").placeholder=REPORT_HINTS.url;setReportMsg("");
   $("reportModal").hidden=false;setTimeout(()=>$("reportType").focus(),0)}
+function openReportWith(type,value){
+  openReport();
+  if(REPORT_TYPES.indexOf(type)>=0){$("reportType").value=type;$("reportValue").placeholder=REPORT_HINTS[type]||""}
+  $("reportValue").value=String(value||"").slice(0,300)}
 function closeReport(){$("reportModal").hidden=true;if(lastFocus&&lastFocus.focus)lastFocus.focus()}
-function submitReport(){
+async function submitReport(){
   const type=$("reportType").value,value=$("reportValue").value.trim(),desc=$("reportDesc").value.trim();
   if(REPORT_TYPES.indexOf(type)<0){setReportMsg("Please choose a threat type.");return}
   const problem=reportError(type,value);
@@ -733,29 +859,16 @@ function submitReport(){
   list.unshift({id:Date.now().toString(36),type:type,value:value.slice(0,300),norm:norm,desc:desc.slice(0,500),t:Date.now()});
   try{store.setItem(REPORT_KEY,JSON.stringify(list.slice(0,200)))}catch(e){setReportMsg("Could not save the report on this device.");return}
   closeReport();
-  alert("\u2705 Thank you! Your report has been saved.")}
-/* ---- reported history page (text is inserted with textContent, so nothing a user typed can run as code) ---- */
-function openReportHistoryPage(){
-  const L=$("repList"),list=loadReports();L.textContent="";
-  $("repHistCount").textContent=list.length?list.length+(list.length===1?" report":" reports")+" saved on this device. Newest first.":"Nothing reported yet.";
-  if(!list.length)L.append(mk("li","rep-empty","No reports yet. Use Report a Scam / Threat in Profile to add one."));
-  list.forEach(r=>{
-    const li=mk("li","rep-item"),top=mk("div","rep-top");
-    top.append(mk("span","rep-type",REPORT_LABELS[r.type]||"Report"),mk("span","rep-date",isFinite(r.t)?new Date(r.t).toLocaleString([],REPORT_DATE):""));
-    li.append(top,mk("div","rep-val",String(r.value||"")));
-    if(r.desc)li.append(mk("div","rep-desc",String(r.desc)));
-    L.append(li)});
-  view("reports")}
+  const shared=await shareReport({query_val:normScam(value),scam_type:type,description:desc.slice(0,500)});
+  alert(shared?"\u2705 Thank you! Your report was saved and shared with the community.":"\u2705 Your report was saved on this device, but it could not be shared with the community right now.")}
 $("mReport").addEventListener("click",openReport);
 $("reportSubmit").addEventListener("click",submitReport);
 $("reportCancel").addEventListener("click",closeReport);
 $("reportClose").addEventListener("click",closeReport);
-$("reportHistBtn").addEventListener("click",()=>{closeReport();openReportHistoryPage()});
-$("rhBack").addEventListener("click",()=>view("profile"));
 $("reportType").addEventListener("change",()=>{$("reportValue").placeholder=REPORT_HINTS[$("reportType").value]||"";setReportMsg("")});
 $("reportModal").addEventListener("click",e=>{if(e.target===$("reportModal"))closeReport()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("reportModal").hidden)closeReport()});
-window.openReport=openReport;window.openReportHistoryPage=openReportHistoryPage;
+window.openReport=openReport;
 
 /* ===== wire up ===== */
 function hideRes(id){const b=$(id);if(b.hidden)return;b.classList.add("fade");setTimeout(()=>{b.hidden=true;b.classList.remove("fade")},200)}
@@ -774,6 +887,6 @@ $("upiGo").addEventListener("click",()=>scanWith("upi",scanUpi));$("upi").addEve
 window.addEventListener("storage",e=>{if(e.key==="tcs_lang"){if(e.newValue&&e.newValue!==lang)setLang(e.newValue);return}if(e.key!==SK)return;const was=user;user=loadSession();paint();
   if(!user&&was){clearScreen();if(!$("v-history").hidden)view("profile");openModal()}else if(user&&!was)$("modal").hidden=true;
   if(!$("v-profile").hidden)drawProfile()});
-paint();steps(null);if(!user)openModal();try{initLang()}catch(e){}reportMismatch();syncSession();
+paint();steps(null);if(!user)openModal();try{initLang()}catch(e){}reportMismatch();syncSession();startScamSync();
 })();
 /* END OF script.js */
