@@ -3,7 +3,7 @@
 "use strict";
 
 /* ===== Supabase configuration ===== */
-const SUPABASE_URL="https://gdaombdrrwfwjmyckpkb.supabase.co";
+const SUPABASE_URL="https://iqnglyycpshxwpynhdro.supabase.co";
 const SUPABASE_KEY="sb_publishable_oFMxcWSB0zhxJUHjLUfiRA_mP7eYj3W";
 /* The two sites this app runs on. Add both in Supabase: Authentication > URL Configuration (Site URL + Redirect URLs). */
 const SITE_URLS=["https://trustcheckshield.vercel.app/","https://trustcheckshield.github.io/"];
