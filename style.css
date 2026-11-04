@@ -175,15 +175,21 @@ background:color-mix(in srgb,var(--rc) 10%,var(--card));border:1px solid color-m
 #reportModal .rp-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0 10px}
 #reportModal .rp-actions .btn{margin:0;width:100%;background:#7fc4a9;color:#10211a}
 #reportModal .rp-actions .btn.ghost{background:transparent;color:#7fc4a9;border:1px solid #3a5a4b}
-#reportModal .rp-link{display:block;width:100%;margin:0 0 14px;padding:8px;background:none;border:0;color:#7fc4a9;font:inherit;font-weight:600;text-decoration:underline;cursor:pointer}
+#reportModal .rp-link{display:block;width:100%;margin:0 0 14px;padding:8px;text-align:center;background:none;border:0;color:#7fc4a9;font:inherit;font-weight:600;text-decoration:underline;cursor:pointer}
 #reportModal .rp-disc{font-size:12px;line-height:1.5;color:#8fa398;margin:0}
 #reportModal .rp-disc strong{color:#b6c8be}
-.rep-list{list-style:none;padding:0;margin:0;display:grid;gap:10px}
-.rep-item{padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--soft)}
-.rep-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.rep-type{font-size:12px;font-weight:700;padding:2px 10px;border-radius:999px;background:var(--lowbg);color:var(--lowfg)}
-.rep-date{margin-left:auto;font-size:12px;color:var(--mute)}
-.rep-val{margin-top:6px;font-size:14px;word-break:break-all}
-.rep-desc{margin-top:4px;font-size:13px;color:var(--mute);word-break:break-word}
-.rep-empty{text-align:center;color:var(--mute);font-size:14px;padding:12px 0}
+/* ===== Community scam check ===== */
+.crowd{margin:10px 0}
+.crowd-load{font-size:13px;color:var(--mute)}
+.crowd-flag{padding:12px 14px;border-radius:12px;background:var(--highbg);border:1px solid var(--highfg);color:var(--highfg)}
+.cf-title{font-weight:800;font-size:16px}
+.cf-item{margin-top:10px;padding-top:10px;border-top:1px solid var(--highfg)}
+.cf-val{font-weight:700;word-break:break-all;color:var(--ink)}
+.cf-meta{font-size:12px;color:var(--mute);margin-top:2px}
+.cf-desc{font-size:13px;color:var(--ink);margin-top:4px;word-break:break-word}
+.crowd-none{padding:12px 14px;border-radius:12px;background:var(--soft);border:1px solid var(--line)}
+.cn-title{font-weight:700}
+.cn-sub{font-size:13px;color:var(--mute);margin:4px 0 10px}
+.crowd-disc{font-size:11px;line-height:1.4;color:var(--mute);margin-top:10px}
+.crowd-flag .crowd-disc{color:var(--mute)}
 /* END OF style.css */
