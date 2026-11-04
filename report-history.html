@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reported History · Trust Check Shield</title>
+<style>
+:root{--bg:#f1f4ed;--card:#fff;--ink:#1f332b;--mute:#566a61;--accent:#2d5a4c;--line:#dfe6db;--soft:#f7f9f4;--tagbg:#e6f4ea;--tagfg:#137333;--on-accent:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root{--bg:#121a17;--card:#1a2622;--ink:#e8efe9;--mute:#9db0a6;--accent:#7fc4a9;--line:#2b3a34;--soft:#16201c;--tagbg:#17301f;--tagfg:#7fd39a;--on-accent:#10211a}}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+.wrap{max-width:640px;margin:0 auto;padding:18px 16px 48px}
+.back{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:10px;background:var(--accent);color:var(--on-accent);font-weight:600;text-decoration:none}
+.back:focus-visible{outline:3px solid #d9822b;outline-offset:2px}
+h1{font:700 clamp(26px,6vw,34px)/1.15 "Iowan Old Style",Georgia,serif;color:var(--accent);margin:22px 0 6px}
+.lead{color:var(--mute);margin-bottom:18px}
+.list{list-style:none;padding:0;display:grid;gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+.top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tag{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--tagbg);color:var(--tagfg)}
+.date{margin-left:auto;font-size:12px;color:var(--mute)}
+.val{margin-top:10px;font-weight:600;word-break:break-all}
+.desc{margin-top:6px;font-size:14px;color:var(--mute);word-break:break-word;white-space:pre-wrap}
+.empty{text-align:center;color:var(--mute);padding:28px 12px;border:1px dashed var(--line);border-radius:16px}
+.note{margin-top:20px;font-size:12px;color:var(--mute);line-height:1.5}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="index.html">← Back to App</a>
+  <h1>Reported History</h1>
+  <p class="lead" id="count">Loading…</p>
+  <ul class="list" id="list"></ul>
+  <p class="note"><strong>Disclaimer:</strong> Reports are crowdsourced from community members and stored securely for awareness and simulation purposes. Trust Check Shield does not verify the absolute authenticity of user-submitted entries and assumes no liability for actions taken based on this data.</p>
+</div>
+<script>
+(function(){
+  "use strict";
+  var KEY="communityReports",LEGACY="tcs_reports";
+  var LABELS={url:"Link / URL",phone:"Phone number",upi:"UPI ID",sms:"SMS / Message",qr:"QR code"};
+  var DATE_FMT={day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"};
+
+  /* Reads the saved reports. Entries saved by an earlier version under "tcs_reports" are used if the new key is empty. */
+  function readReports(){
+    var raw=null;
+    try{raw=localStorage.getItem(KEY);if(raw===null)raw=localStorage.getItem(LEGACY)}catch(e){return null}
+    try{var r=JSON.parse(raw||"[]");return Array.isArray(r)?r.filter(function(x){return x&&typeof x==="object"}):[]}
+    catch(e){return[]}}
+
+  /* Accepts the field names this app uses and a few common alternatives. */
+  function normalise(r){
+    var type=String(r.type||r.threatType||"");
+    var ts=Number(r.t||r.date||r.timestamp);
+    return{
+      label:LABELS[type]||(type?type:"Report"),
+      value:String(r.value!=null?r.value:(r.entity!=null?r.entity:"")),
+      desc:String(r.desc!=null?r.desc:(r.description!=null?r.description:"")),
+      when:isFinite(ts)&&ts>0?new Date(ts).toLocaleString([],DATE_FMT):"",
+      sort:isFinite(ts)?ts:0}}
+
+  function el(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e}
+
+  var list=document.getElementById("list"),count=document.getElementById("count");
+  var data=readReports();
+  if(data===null){
+    count.textContent="This browser is blocking saved data, so the history cannot be shown.";
+  }else{
+    var items=data.map(normalise).sort(function(a,b){return b.sort-a.sort});
+    count.textContent=items.length?items.length+(items.length===1?" report":" reports")+" saved on this device. Newest first.":"Nothing reported yet.";
+    if(!items.length){
+      var li0=el("li","empty","No reports yet. Open the app, go to Profile and choose Report a Scam / Threat to add one.");
+      list.appendChild(li0);
+    }
+    items.forEach(function(it){
+      /* textContent is used everywhere, so nothing a user typed can run as code */
+      var li=el("li","card"),top=el("div","top");
+      top.appendChild(el("span","tag",it.label));
+      top.appendChild(el("span","date",it.when));
+      li.appendChild(top);
+      li.appendChild(el("div","val",it.value));
+      if(it.desc)li.appendChild(el("div","desc",it.desc));
+      list.appendChild(li);
+    });
+  }
+})();
+</script>
+</body>
+</html>
