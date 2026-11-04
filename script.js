@@ -4,7 +4,7 @@
 
 /* ===== Supabase configuration ===== */
 const SUPABASE_URL="https://iqnglyycpshxwpynhdro.supabase.co";
-const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkYW9tYmRycndmd2pteWNrcGtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0MjMwNjgsImV4cCI6MjEwNzk5OTA2OH0.PbJlubdtI_QHgahdj0SUXwF_7baguD9qGH_LPPAer00";
+const SUPABASE_KEY="sb_publishable_oFMxcWSB0zhxJUHjLUfiRA_mP7eYj3W";
 /* The two sites this app runs on. Add both in Supabase: Authentication > URL Configuration (Site URL + Redirect URLs). */
 const SITE_URLS=["https://trustcheckshield.vercel.app/","https://trustcheckshield.github.io/"];
 /* Direct connection by default. Set USE_PROXY to true ONLY if your network blocks supabase.co AND vercel.json is uploaded (Vercel site only). */
@@ -246,7 +246,7 @@ function playScan(tool,queue){
 
 /* ===== community scam database (Supabase: table "scams", live updates) ===== */
 const SCAM_URL="https://iqnglyycpshxwpynhdro.supabase.co";
-const SCAN_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkYW9tYmRycndmd2pteWNrcGtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0MjMwNjgsImV4cCI6MjEwNzk5OTA2OH0.PbJlubdtI_QHgahdj0SUXwF_7baguD9qGH_LPPAer00";
+const SCAN_KEY="sb_publishable_oFMxcWSB0zhxJUHjLUfiRA_mP7eYj3W";
 const SCAM_MIN_REPORTS=1; /* raise to 3 or more so a single prank report cannot flag an entity */
 const SCAM_LABELS={url:"Link / URL",phone:"Phone number",sms:"SMS / Message",qr:"QR code",upi:"UPI ID"};
 const CROWD_SRC={urlR:["url","url"],msgR:["msg","msg"],upiR:["upi","upi"],qrR:["qr","qrTxt"]};
