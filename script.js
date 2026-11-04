@@ -245,15 +245,19 @@ function playScan(tool,queue){
   requestAnimationFrame(frame)}
 
 /* ===== community scam database (Supabase: table "scams", live updates) ===== */
-const SCAM_URL="https://iqnglyycpshxwpynhdro.supabase.co";
-const SCAM_KEY="sb_publishable_0r0e18IK_og3nFb5bPZifw_fq-MPpy3";
+/* The community table lives in the SAME Supabase project as the login, so the same URL and key are used. */
+const SCAM_URL=SUPABASE_URL;
+const SCAM_KEY=SUPABASE_KEY;
 const SCAM_MIN_REPORTS=1; /* raise to 3 or more so a single prank report cannot flag an entity */
 const SCAM_LABELS={url:"Link / URL",phone:"Phone number",sms:"SMS / Message",qr:"QR code",upi:"UPI ID"};
 const CROWD_SRC={urlR:["url","url"],msgR:["msg","msg"],upiR:["upi","upi"],qrR:["qr","qrTxt"]};
 const CROWD_DISC="Disclaimer: Verification results are based on crowdsourced community submissions. Trust Check Shield does not independently guarantee accuracy and bears no legal liability.";
-let scamDb=null,scamChannel=null;const scamRows=new Map();
+let scamDb=null,scamChannel=null,scamLastError="";const scamRows=new Map();
+function scamKeyOk(){return/^sb_publishable_[A-Za-z0-9_-]{20,}$/.test(SCAM_KEY)||/^eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(SCAM_KEY)}
 /* Separate client for this project. It never stores a login session. */
 function getScamDb(){
+  if(SCAM_URL===SUPABASE_URL&&SCAM_KEY===SUPABASE_KEY){if(!scamKeyOk()){scamLastError="KEY_NOT_SET";return null}return getSupabase()}
+  if(!scamKeyOk()){scamLastError="KEY_NOT_SET";return null}
   if(!scamDb&&window.supabase&&typeof window.supabase.createClient==="function"){
     try{scamDb=window.supabase.createClient(SCAM_URL,SCAM_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}})}catch(e){scamDb=null}}
   return scamDb}
@@ -261,6 +265,30 @@ async function ensureScamDb(){
   if(getScamDb())return scamDb;
   for(let i=0;i<SUPABASE_CDNS.length&&!window.supabase;i++)await loadScript(SUPABASE_CDNS[i]);
   return getScamDb()}
+/* ===== input cleaning: removes markdown, quotes, brackets, zero-width characters and extra spaces, keeping only the entity ===== */
+const WRAP_CHARS="\"'`\u201C\u201D\u2018\u2019<>[](){}*~|";
+function stripWrap(s){
+  const skip=c=>WRAP_CHARS.indexOf(c)>=0||/\s/.test(c);
+  let a=0,b=s.length;
+  while(a<b&&skip(s[a]))a++;
+  while(b>a&&(skip(s[b-1])||",;:!?".indexOf(s[b-1])>=0))b--;
+  return s.slice(a,b)}
+/* kind: "url", "upi" or "phone". Returns only the clean value, for example "[Pay](mailto:a@ybl)" gives "a@ybl". */
+function cleanEntity(kind,raw){
+  let s=String(raw==null?"":raw).replace(/[\u200B-\u200D\u2060\uFEFF]/g,"").replace(/[\u00A0\u2000-\u200A\u202F\u3000]/g," ").trim();
+  const md=s.match(/\[[^\]]*\]\(\s*([^)\s]+)\s*\)/);
+  if(md)s=md[1];
+  s=stripWrap(s.replace(/\s+/g," "));
+  if(kind==="url")return extractUrl(s)||s;
+  if(kind==="upi"){const m=s.match(/[a-z0-9._-]{2,64}@[a-z][a-z0-9]{1,30}/i);return m?m[0]:s.replace(/\s+/g,"")}
+  if(kind==="phone"){const m=s.match(/\+?\d[\d\s().-]{7,}\d/),t=(m?m[0]:s).replace(/[\s().-]/g,"");return/\d/.test(t)?t:s}
+  return s}
+/* The Number & UPI box takes either one; pick the right cleaner. */
+function cleanUpiOrPhone(raw){return String(raw||"").indexOf("@")>=0?cleanEntity("upi",raw):cleanEntity("phone",raw)}
+/* Report form values: links, UPI IDs and phones are cleaned the same way; message and QR text only lose quotes and extra spaces. */
+function cleanReportValue(type,v){
+  if(type==="url"||type==="upi"||type==="phone")return cleanEntity(type,v);
+  return stripWrap(String(v==null?"":v).replace(/[\u200B-\u200D\u2060\uFEFF]/g,"").replace(/\s+/g," ").trim())}
 /* One spelling for every entity: phone numbers keep their last 10 digits, links lose http(s)://, www., ?query, #fragment and the trailing slash. */
 function normScam(v){
   let s=String(v||"").trim().toLowerCase().replace(/\s+/g," ");
@@ -273,8 +301,8 @@ function normScam(v){
 /* Only links, phone numbers and UPI IDs are looked up. Message text, Wi-Fi codes and other QR text are never sent. */
 function crowdEntities(tool,raw){
   const out=new Set(),add=v=>{const n=normScam(v);if(n.length>=5)out.add(n)},r=String(raw||"").trim();
-  if(tool==="url"){const c=extractUrl(r);add(c||r)}
-  else if(tool==="upi")add(r);
+  if(tool==="url"){const c=extractUrl(cleanEntity("url",r));add(c||r)}
+  else if(tool==="upi")add(cleanUpiOrPhone(r));
   else if(tool==="msg"){
     (r.match(new RegExp(LINKRE.source,"gi"))||[]).slice(0,4).forEach(add);
     (r.replace(/[\s().-]/g,"").match(/(?:\+?91|0)?[6-9]\d{9}/g)||[]).slice(0,3).forEach(add)}
@@ -307,6 +335,15 @@ function scamMatches(norms,extra){
       h.count++;if(String(r.t||"")>String(h.t||"")){h.t=r.t;h.type=r.type;h.desc=r.desc||h.desc}
       hits.set(q,h)}}));
   return Array.from(hits.values()).sort((a,b)=>b.count-a.count)}
+/* Turns a database error into a plain-language reason with the fix. */
+function scamErrorText(msg){
+  const m=String(msg||"");
+  if(m==="KEY_NOT_SET")return"The Supabase key is not set. Paste your full publishable key into SUPABASE_KEY at the top of script.js.";
+  if(/invalid api key|apikey|jwt|unauthorized|401/i.test(m))return"The database key was rejected (Invalid API key). Copy the full publishable key again from Supabase and paste it into SUPABASE_KEY.";
+  if(/could not find the table|PGRST205|42P01|does not exist/i.test(m))return"The scams table is missing. Run scams-setup.sql in the Supabase SQL Editor.";
+  if(/permission denied|row-level security|42501/i.test(m))return"The table exists but the access rules are missing. Run scams-setup.sql in the Supabase SQL Editor.";
+  if(/failed to fetch|networkerror|load failed|timeout|fetch/i.test(m))return"This network cannot reach supabase.co (offline, blocked, or the URL is wrong). Try mobile data or another Wi-Fi.";
+  return"Reason: "+(m||"unknown error")+"."}
 /* Fills the community box under a result card. */
 async function communityCheck(resId,host){
   const src=CROWD_SRC[resId];if(!src)return;
@@ -314,7 +351,7 @@ async function communityCheck(resId,host){
   if(!norms.length)return;
   host.append(mk("div","crowd-load","Checking community reports..."));
   let extra=[],offline=false;
-  try{extra=await scamServerLookup(norms)}catch(e){offline=true}
+  try{extra=await scamServerLookup(norms)}catch(e){offline=true;scamLastError=String((e&&(e.message||e.code))||e)}
   const hits=scamMatches(norms,extra).filter(h=>h.count>=SCAM_MIN_REPORTS);
   host.textContent="";
   if(hits.length){
@@ -328,7 +365,7 @@ async function communityCheck(resId,host){
     box.append(mk("div","crowd-disc",CROWD_DISC));host.append(box);return}
   const box=mk("div","crowd-none");
   if(offline&&!scamRows.size){
-    box.append(mk("div","cn-title","Community database could not be reached"),mk("div","cn-sub","Check your connection and try again. The scan above still ran on your device."))}
+    box.append(mk("div","cn-title","Community database could not be reached"),mk("div","cn-sub",scamErrorText(scamLastError)+" The scan above still ran on your device."))}
   else{
     box.append(mk("div","cn-title","\u2139\uFE0F No active reports found"),mk("div","cn-sub","This only means nobody has reported it here yet. It does not prove it is safe."));
     const b=mk("button","btn ghost","Report this as a New Scam");b.type="button";
@@ -350,7 +387,8 @@ async function startScamSync(){
   try{
     const db=await ensureScamDb();if(!db)return;
     const r=await db.from("scams").select("id,query_val,scam_type,description,created_at").order("created_at",{ascending:false}).limit(5000);
-    if(!r.error&&r.data)r.data.forEach(scamCacheSet);
+    if(r.error)scamLastError=String(r.error.message||r.error.code||"");
+    else if(r.data)r.data.forEach(scamCacheSet);
     if(scamChannel)return;
     scamChannel=db.channel("scams-db-changes")
       .on("postgres_changes",{event:"*",schema:"public",table:"scams"},p=>{
@@ -507,7 +545,7 @@ function steps(r){
   box.append(stepCard("01 / PASTE","Analysis for "+r.host,c1),stepCard("02 / NOTICE","What stood out",c2),stepCard("03 / DECIDE","Your next step",d));
   $("stepsSub").textContent="These steps now match the link you checked."}
 function scanUrl(){
-  if(!gate())return;const raw=$("url").value,cl=extractUrl(raw),u=cl?parse(cl):null;
+  if(!gate())return;const raw=$("url").value,cl=extractUrl(cleanEntity("url",raw)),u=cl?parse(cl):null;
   if(!u){err("urlE","No web address was found in that text. Paste a link such as https://example.com/page or example.com/page.");$("urlR").hidden=true;return}
   $("urlE").hidden=true;const r=analyze(u);
   if(cl!==raw.trim())r.note="Cleaned up and checked as: "+u.href;
@@ -636,7 +674,7 @@ function upiId(id){
   if((name.match(/\d/g)||[]).length>=8&&!/^\d{10}$/.test(name)){s+=1;sig.push("The ID has many digits and does not look like a phone number.")}
   return{s:s,sig:sig}}
 function checkUpi(v){
-  const s=v.trim();
+  const s=cleanUpiOrPhone(v);
   if(s.includes("@")){
     if(!UPIRE.test(s))return null;const x=upiId(s),level=rate(x.s,4,2);
     return{level:level,pct:pointsToPercent(x.s,2,4,false,textSoft(s)),signals:x.sig,
@@ -653,7 +691,9 @@ function checkUpi(v){
 function scanUpi(){
   if(!gate())return;const v=$("upi").value,r=checkUpi(v);
   if(!r){err("upiE","Enter a 10-digit mobile number, a number with a + country code, or a UPI ID such as name@bank.");$("upiR").hidden=true;return}
-  $("upiE").hidden=true;show("upiR",r);logScan("Number / UPI",v.trim(),r.level)}
+  $("upiE").hidden=true;
+  const cu=cleanUpiOrPhone(v);if(cu!==v.trim())r.note="Cleaned up and checked as: "+cu;
+  show("upiR",r);logScan("Number / UPI",cu,r.level)}
 
 /* ===== QR ===== */
 function qrAnalyze(t){
@@ -848,7 +888,8 @@ function openReportWith(type,value){
   $("reportValue").value=String(value||"").slice(0,300)}
 function closeReport(){$("reportModal").hidden=true;if(lastFocus&&lastFocus.focus)lastFocus.focus()}
 async function submitReport(){
-  const type=$("reportType").value,value=$("reportValue").value.trim(),desc=$("reportDesc").value.trim();
+  const type=$("reportType").value,value=cleanReportValue(type,$("reportValue").value),desc=$("reportDesc").value.trim();
+  $("reportValue").value=value;
   if(REPORT_TYPES.indexOf(type)<0){setReportMsg("Please choose a threat type.");return}
   const problem=reportError(type,value);
   if(problem){setReportMsg(problem);return}
