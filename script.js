@@ -341,7 +341,8 @@ function scamErrorText(msg){
   if(m==="KEY_NOT_SET")return"The Supabase key is not set. Paste your full publishable key into SUPABASE_KEY at the top of script.js.";
   if(/invalid api key|apikey|jwt|unauthorized|401/i.test(m))return"The database key was rejected (Invalid API key). Copy the full publishable key again from Supabase and paste it into SUPABASE_KEY.";
   if(/could not find the table|PGRST205|42P01|does not exist/i.test(m))return"The scams table is missing. Run scams-setup.sql in the Supabase SQL Editor.";
-  if(/permission denied|row-level security|42501/i.test(m))return"The table exists but the access rules are missing. Run scams-setup.sql in the Supabase SQL Editor.";
+  if(/permission denied|row-level security|42501/i.test(m))return"The table exists but its access rules (policies) are missing or blocking this action. Run scams-setup.sql in the Supabase SQL Editor.";
+  if(/violates check constraint|23514/i.test(m))return"The table rejected the report (a length or type rule). Make sure the table was created with scams-setup.sql.";
   if(/failed to fetch|networkerror|load failed|timeout|fetch/i.test(m))return"This network cannot reach supabase.co (offline, blocked, or the URL is wrong). Try mobile data or another Wi-Fi.";
   return"Reason: "+(m||"unknown error")+"."}
 /* Fills the community box under a result card. */
@@ -378,10 +379,11 @@ async function communityCheck(resId,host){
 async function shareReport(row){
   try{
     const db=await ensureScamDb();if(!db)return false;
+    scamLastError="";
     const r=await db.from("scams").insert([row]).select("id,query_val,scam_type,description,created_at").single();
-    if(r.error||!r.data)return false;
+    if(r.error||!r.data){scamLastError=String((r.error&&(r.error.message||r.error.code))||"no data returned");return false}
     scamCacheSet(r.data);return true}
-  catch(e){return false}}
+  catch(e){scamLastError=String((e&&e.message)||e);return false}}
 /* Loads existing reports once, then listens for every new report (from any user) and updates the cache instantly. */
 async function startScamSync(){
   try{
@@ -901,7 +903,7 @@ async function submitReport(){
   try{store.setItem(REPORT_KEY,JSON.stringify(list.slice(0,200)))}catch(e){setReportMsg("Could not save the report on this device.");return}
   closeReport();
   const shared=await shareReport({query_val:normScam(value),scam_type:type,description:desc.slice(0,500)});
-  alert(shared?"\u2705 Thank you! Your report was saved and shared with the community.":"\u2705 Your report was saved on this device, but it could not be shared with the community right now.")}
+  alert(shared?"\u2705 Thank you! Your report was saved and shared with the community.":"\u2705 Your report was saved on this device, but it could not be shared with the community.\n\nReason: "+scamErrorText(scamLastError))}
 $("mReport").addEventListener("click",openReport);
 $("reportSubmit").addEventListener("click",submitReport);
 $("reportCancel").addEventListener("click",closeReport);
