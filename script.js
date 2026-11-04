@@ -246,7 +246,7 @@ function playScan(tool,queue){
 
 /* ===== community scam database (Supabase: table "scams", live updates) ===== */
 const SCAM_URL="https://iqnglyycpshxwpynhdro.supabase.co";
-const SCAM_KEY="sb_publishable_0r0e18IK_og3nFb5bPZifw_fq-MPpy3";
+const SCAN_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkYW9tYmRycndmd2pteWNrcGtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0MjMwNjgsImV4cCI6MjEwNzk5OTA2OH0.PbJlubdtI_QHgahdj0SUXwF_7baguD9qGH_LPPAer00";
 const SCAM_MIN_REPORTS=1; /* raise to 3 or more so a single prank report cannot flag an entity */
 const SCAM_LABELS={url:"Link / URL",phone:"Phone number",sms:"SMS / Message",qr:"QR code",upi:"UPI ID"};
 const CROWD_SRC={urlR:["url","url"],msgR:["msg","msg"],upiR:["upi","upi"],qrR:["qr","qrTxt"]};
