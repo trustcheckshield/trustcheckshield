@@ -310,7 +310,7 @@ function crowdEntities(tool,raw){
     if(/^upi:\/\//i.test(r)){try{const pa=new URL(r).searchParams.get("pa");if(pa)add(pa)}catch(e){}}
     else if(parse(r))add(r)}
   /* official verified domains (google.com, sbi.co.in ...) are never looked up, so a false report cannot flag them */
-  return Array.from(out).filter(n=>{const h=n.split("/")[0];return!(/^[a-z0-9.-]+\.[a-z]{2,}$/.test(h)&&trustedOrg(h))}).slice(0,6)}
+  return Array.from(out).filter(n=>{const h=n.split("/")[0];return!(/^[a-z0-9.-]+\.[a-z]{2,}$/.test(h)&&trustedOrg(h)&&!USERCONTENT.some(o=>isHost(h,o)))}).slice(0,6)}
 function scamCacheSet(r){
   if(r&&r.id!=null&&r.query_val)scamRows.set(r.id,{id:r.id,q:normScam(r.query_val),type:r.scam_type,desc:r.description||"",t:r.created_at})}
 const likeEsc=s=>s.replace(/[\\%_]/g,"\\$&");
@@ -335,16 +335,23 @@ function scamMatches(norms,extra){
       h.count++;if(String(r.t||"")>String(h.t||"")){h.t=r.t;h.type=r.type;h.desc=r.desc||h.desc}
       hits.set(q,h)}}));
   return Array.from(hits.values()).sort((a,b)=>b.count-a.count)}
+/* One readable string from any error object (code, message, details, hint). */
+function errStr(e){
+  if(e==null)return"";
+  if(typeof e==="string")return e;
+  const parts=[e.code,e.message,e.details,e.hint].filter(Boolean).map(String);
+  return parts.length?parts.join(" | "):(e.name?String(e.name):"")}
 /* Turns a database error into a plain-language reason with the fix. */
 function scamErrorText(msg){
   const m=String(msg||"");
+  if(m==="CLIENT_NOT_READY")return"The Supabase library did not load (blocked or slow network). Reload the page, or try mobile data or another Wi-Fi.";
   if(m==="KEY_NOT_SET")return"The Supabase key is not set. Paste your full publishable key into SUPABASE_KEY at the top of script.js.";
   if(/invalid api key|apikey|jwt|unauthorized|401/i.test(m))return"The database key was rejected (Invalid API key). Copy the full publishable key again from Supabase and paste it into SUPABASE_KEY.";
   if(/could not find the table|PGRST205|42P01|does not exist/i.test(m))return"The scams table is missing. Run scams-setup.sql in the Supabase SQL Editor.";
   if(/permission denied|row-level security|42501/i.test(m))return"The table exists but its access rules (policies) are missing or blocking this action. Run scams-setup.sql in the Supabase SQL Editor.";
   if(/violates check constraint|23514/i.test(m))return"The table rejected the report (a length or type rule). Make sure the table was created with scams-setup.sql.";
   if(/failed to fetch|networkerror|load failed|timeout|fetch/i.test(m))return"This network cannot reach supabase.co (offline, blocked, or the URL is wrong). Try mobile data or another Wi-Fi.";
-  return"Reason: "+(m||"unknown error")+"."}
+  return m?"Reason: "+m+".":"The database gave no details. Reload the page and try again."}
 /* Fills the community box under a result card. */
 async function communityCheck(resId,host){
   const src=CROWD_SRC[resId];if(!src)return;
@@ -352,7 +359,7 @@ async function communityCheck(resId,host){
   if(!norms.length)return;
   host.append(mk("div","crowd-load","Checking community reports..."));
   let extra=[],offline=false;
-  try{extra=await scamServerLookup(norms)}catch(e){offline=true;scamLastError=String((e&&(e.message||e.code))||e)}
+  try{extra=await scamServerLookup(norms)}catch(e){offline=true;scamLastError=errStr(e)||"request failed"}
   const hits=scamMatches(norms,extra).filter(h=>h.count>=SCAM_MIN_REPORTS);
   host.textContent="";
   if(hits.length){
@@ -378,12 +385,13 @@ async function communityCheck(resId,host){
 /* Saves a report in the shared table and adds it to the live cache straight away. */
 async function shareReport(row){
   try{
-    const db=await ensureScamDb();if(!db)return false;
     scamLastError="";
+    const db=await ensureScamDb();
+    if(!db){scamLastError=scamLastError||"CLIENT_NOT_READY";return false}
     const r=await db.from("scams").insert([row]).select("id,query_val,scam_type,description,created_at").single();
-    if(r.error||!r.data){scamLastError=String((r.error&&(r.error.message||r.error.code))||"no data returned");return false}
+    if(r.error||!r.data){scamLastError=errStr(r.error)||"no data returned";return false}
     scamCacheSet(r.data);return true}
-  catch(e){scamLastError=String((e&&e.message)||e);return false}}
+  catch(e){scamLastError=errStr(e)||"request failed";return false}}
 /* Loads existing reports once, then listens for every new report (from any user) and updates the cache instantly. */
 async function startScamSync(){
   try{
@@ -896,6 +904,10 @@ async function submitReport(){
   const problem=reportError(type,value);
   if(problem){setReportMsg(problem);return}
   setReportMsg("");
+  if(type==="url"){
+    const pu=parse(extractUrl(value)||""),ph=pu?pu.hostname.toLowerCase():"",org=ph?trustedOrg(ph):null;
+    if(org&&!USERCONTENT.some(o=>isHost(ph,o))){
+      setReportMsg("\u26A0\uFE0F "+ph+" is an official verified website of "+org[1]+", so it cannot be reported as a scam here. If an app or page on it is harmful, report it to "+org[1]+" directly.");return}}
   const norm=normEntity(type,value),list=loadReports();
   if(list.some(r=>r.norm===norm)){
     alert("\u26A0\uFE0F You have already reported this entity. Multiple reports for the same item from your device are not allowed.");return}
@@ -903,7 +915,7 @@ async function submitReport(){
   try{store.setItem(REPORT_KEY,JSON.stringify(list.slice(0,200)))}catch(e){setReportMsg("Could not save the report on this device.");return}
   closeReport();
   const shared=await shareReport({query_val:normScam(value),scam_type:type,description:desc.slice(0,500)});
-  alert(shared?"\u2705 Thank you! Your report was saved and shared with the community.":"\u2705 Your report was saved on this device, but it could not be shared with the community.\n\nReason: "+scamErrorText(scamLastError))}
+  alert(shared?"\u2705 Thank you! Your report was saved and shared with the community.":"\u2705 Your report was saved on this device, but it could not be shared with the community.\n\n"+scamErrorText(scamLastError))}
 $("mReport").addEventListener("click",openReport);
 $("reportSubmit").addEventListener("click",submitReport);
 $("reportCancel").addEventListener("click",closeReport);
