@@ -10,7 +10,7 @@ const SITE_URLS=["https://trustcheckshield.vercel.app/","https://trustcheckshiel
 /* Direct connection by default. Set USE_PROXY to true ONLY if your network blocks supabase.co AND vercel.json is uploaded (Vercel site only). */
 const USE_PROXY=false;
 const SUPABASE_BASE=(USE_PROXY&&/\.vercel\.app$/.test(location.hostname))?location.origin+"/supabase":SUPABASE_URL;
-const SUPABASE_CDNS=["https://unpkg.com/@supabase/supabase-js@2","https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"];
+const SUPABASE_CDNS=["supabase.min.js","https://unpkg.com/@supabase/supabase-js@2","https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"];
 let supabaseClient=null;
 function getSupabase(){
   if(!supabaseClient&&window.supabase&&typeof window.supabase.createClient==="function"){
@@ -314,15 +314,30 @@ function crowdEntities(tool,raw){
 function scamCacheSet(r){
   if(r&&r.id!=null&&r.query_val)scamRows.set(r.id,{id:r.id,q:normScam(r.query_val),type:r.scam_type,desc:r.description||"",t:r.created_at})}
 const likeEsc=s=>s.replace(/[\\%_]/g,"\\$&");
+/* ---- direct database calls: plain fetch, no library needed, so a blocked or slow CDN cannot break lookups or reports ---- */
+const SCAM_REST=SCAM_URL+"/rest/v1/scams";
+const SCAM_COLS="id,query_val,scam_type,description,created_at";
+function scamHeaders(extra){
+  const h={apikey:SCAM_KEY};
+  if(/^eyJ/.test(SCAM_KEY))h.Authorization="Bearer "+SCAM_KEY;
+  return Object.assign(h,extra||{})}
+async function scamFetch(url,opts,ms){
+  if(!scamKeyOk()){scamLastError="KEY_NOT_SET";throw new Error("KEY_NOT_SET")}
+  const ctl=typeof AbortController==="function"?new AbortController():null,timer=setTimeout(()=>{if(ctl)ctl.abort()},ms||8000);
+  try{
+    const res=await fetch(url,Object.assign({},opts||{},ctl?{signal:ctl.signal}:{}));
+    const text=await res.text();let body=null;try{body=text?JSON.parse(text):null}catch(e){}
+    if(!res.ok){const er=body&&typeof body==="object"?errStr(body):"";throw new Error(er||("HTTP "+res.status))}
+    return body}
+  catch(e){if(e&&e.name==="AbortError")throw new Error("timeout");throw e}
+  finally{clearTimeout(timer)}}
 /* Asks the database directly (exact + partial). Used together with the live cache. */
 async function scamServerLookup(norms){
-  const db=getScamDb();if(!db)throw new Error("no client");
-  const cols="id,query_val,scam_type,description,created_at";
   const hosts=Array.from(new Set(norms.map(n=>n.split("/")[0]).filter((h,i)=>h!==norms[i]&&h.indexOf(".")>0)));
-  const jobs=norms.map(n=>db.from("scams").select(cols).ilike("query_val","%"+likeEsc(n)+"%").limit(20))
-    .concat(hosts.map(h=>db.from("scams").select(cols).eq("query_val",h).limit(20)));
-  const res=await Promise.race([Promise.all(jobs),new Promise((_,no)=>setTimeout(()=>no(new Error("timeout")),6000))]);
-  const rows=[];res.forEach(x=>{if(x.error)throw x.error;(x.data||[]).forEach(d=>rows.push(d))});
+  const urls=norms.map(n=>SCAM_REST+"?select="+SCAM_COLS+"&query_val=ilike."+encodeURIComponent("*"+likeEsc(n.replace(/\*/g,""))+"*")+"&limit=20")
+    .concat(hosts.map(h=>SCAM_REST+"?select="+SCAM_COLS+"&query_val=eq."+encodeURIComponent(h)+"&limit=20"));
+  const res=await Promise.all(urls.map(u=>scamFetch(u,{headers:scamHeaders()})));
+  const rows=[];res.forEach(a=>{(Array.isArray(a)?a:[]).forEach(d=>rows.push(d))});
   return rows}
 /* Finds matches in the cache plus any rows just fetched. Groups by reported value and counts the reports. */
 function scamMatches(norms,extra){
@@ -384,22 +399,26 @@ async function communityCheck(resId,host){
   box.append(mk("div","crowd-disc",CROWD_DISC));host.append(box)}
 /* Saves a report in the shared table and adds it to the live cache straight away. */
 async function shareReport(row){
+  scamLastError="";
   try{
-    scamLastError="";
-    const db=await ensureScamDb();
-    if(!db){scamLastError=scamLastError||"CLIENT_NOT_READY";return false}
-    const r=await db.from("scams").insert([row]).select("id,query_val,scam_type,description,created_at").single();
-    if(r.error||!r.data){scamLastError=errStr(r.error)||"no data returned";return false}
-    scamCacheSet(r.data);return true}
+    const out=await scamFetch(SCAM_REST+"?select="+SCAM_COLS,{method:"POST",headers:scamHeaders({"Content-Type":"application/json",Prefer:"return=representation"}),body:JSON.stringify([row])});
+    const saved=Array.isArray(out)?out[0]:out;
+    if(!saved){scamLastError="no data returned";return false}
+    scamCacheSet(saved);return true}
   catch(e){scamLastError=errStr(e)||"request failed";return false}}
-/* Loads existing reports once, then listens for every new report (from any user) and updates the cache instantly. */
-async function startScamSync(){
+/* Loads every report into the local cache, and refreshes it every minute so all devices stay up to date. */
+async function refreshScamCache(){
   try{
-    const db=await ensureScamDb();if(!db)return;
-    const r=await db.from("scams").select("id,query_val,scam_type,description,created_at").order("created_at",{ascending:false}).limit(5000);
-    if(r.error)scamLastError=String(r.error.message||r.error.code||"");
-    else if(r.data)r.data.forEach(scamCacheSet);
-    if(scamChannel)return;
+    const rows=await scamFetch(SCAM_REST+"?select="+SCAM_COLS+"&order=created_at.desc&limit=5000",{headers:scamHeaders()});
+    if(Array.isArray(rows)){scamRows.clear();rows.forEach(scamCacheSet)}
+    return true}
+  catch(e){scamLastError=errStr(e)||"request failed";return false}}
+/* Live updates (instant, any user): used when the Supabase library is available. The every-minute refresh above covers the rest. */
+async function startScamSync(){
+  await refreshScamCache();
+  setInterval(()=>{if(!document.hidden)refreshScamCache()},60000);
+  try{
+    const db=await ensureScamDb();if(!db||scamChannel)return;
     scamChannel=db.channel("scams-db-changes")
       .on("postgres_changes",{event:"*",schema:"public",table:"scams"},p=>{
         if(p.eventType==="DELETE"){if(p.old&&p.old.id!=null)scamRows.delete(p.old.id)}
