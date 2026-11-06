@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Data Security - Trust Check Shield</title>
+<meta name="robots" content="index,follow">
+<link rel="stylesheet" href="legal.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a class="back" href="index.html">&larr; Back to App</a><span class="brand">Trust Check Shield</span></div>
+  <h1>Data Security</h1>
+  <p class="meta">Effective date: <span class="ph">[EFFECTIVE DATE, e.g. 15 November 2026]</span></p>
+  <nav class="nav" aria-label="Legal pages"><a href="privacy-policy.html">Privacy Policy</a><a href="terms-of-service.html">Terms of Service</a><a href="grievance-redressal.html">Grievance Officer</a><a href="refund-policy.html">Refund Policy</a><a href="data-security.html" aria-current="page">Data Security</a></nav>
+  <div class="card">
+    <h2>Our approach</h2>
+    <p>We try to collect as little data as possible and protect what we hold. These are the practices we use today.</p>
+
+    <h2>Encryption in transit (HTTPS / SSL)</h2>
+    <p>The website and all calls to our database are sent over HTTPS (TLS), so data between your device and our servers is encrypted.</p>
+
+    <h2>Database access rules (Row Level Security)</h2>
+    <p>Our Supabase database has Row Level Security turned on for the reports table. In plain terms:</p>
+    <ul>
+      <li>anyone using the app can read reports and add a new report;</li>
+      <li>nobody can edit a report through the public app;</li>
+      <li>only a signed-in user can delete reports linked to their own account;</li>
+      <li>account deletion runs through a protected database function that works only for the signed-in user.</li>
+    </ul>
+
+    <h2>Safe API usage</h2>
+    <ul>
+      <li>Only a public, restricted &ldquo;publishable&rdquo; key is used in the browser. Secret or admin keys are never placed in website code.</li>
+      <li>The app talks to the database through Supabase&rsquo;s API, not by sending raw SQL from the browser.</li>
+      <li>Values you enter are checked and encoded before they are used in a request, and text from users is shown as plain text, never run as code.</li>
+    </ul>
+
+    <h2>Sign-in</h2>
+    <p>We use passwordless sign-in: a one-time code sent to your email that works for a short time. There are no passwords for us to store or lose.</p>
+
+    <h2>Data minimisation</h2>
+    <ul>
+      <li>Message text, photos and non-link QR content are checked on your device and never uploaded.</li>
+      <li>Links are shortened to remove query strings and fragments before lookup, because these can contain private tokens.</li>
+      <li>Official verified websites are not looked up or flagged by the community check.</li>
+    </ul>
+
+    <h2>Your part</h2>
+    <ul>
+      <li>Never share your one-time code. We will never ask for it.</li>
+      <li>Sign out on shared devices; clearing browser data removes local history.</li>
+      <li>Keep your email account protected with a strong password and 2-step verification.</li>
+    </ul>
+
+    <h2>Limits</h2>
+    <p>No system is perfectly secure, and we cannot guarantee that unauthorised access will never occur. If a breach affects your personal data, we will tell affected users and the authorities as required by law.</p>
+
+    <h2>Report a security problem</h2>
+    <p>If you find a vulnerability, please email <a href="mailto:pritam44760@gmail.com?subject=Security%20issue%20-%20Trust%20Check%20Shield">pritam44760@gmail.com</a> with the details and give us reasonable time to fix it before sharing it publicly.</p>
+  </div>
+
+  <p class="foot"><a href="privacy-policy.html">Privacy Policy</a> <a href="terms-of-service.html">Terms of Service</a> <a href="grievance-redressal.html">Grievance Officer</a> <a href="refund-policy.html">Refund Policy</a> <a href="data-security.html">Data Security</a></p>
+</div>
+</body>
+</html>
