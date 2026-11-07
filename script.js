@@ -845,7 +845,7 @@ function drawProfile(){
     const dz=mk("button","btn danger","Delete my account & reports");dz.type="button";dz.addEventListener("click",deleteAccount);a.append(dz);
     a.append(mk("p","note","Permanently removes your account and the reports linked to it."))}}
 $("mHist").addEventListener("click",()=>{if(!user){openModal();return}view("history")});
-$("mPriv").addEventListener("click",()=>{location.href="privacy-policy.html"});
+$("mPriv").addEventListener("click",()=>{location.href="privacy.html"});
 $("hBack").addEventListener("click",()=>view("profile"));
 $("pBack").addEventListener("click",()=>view("profile"));
 
@@ -896,7 +896,7 @@ function initLang(){
   setLang(saved)}
 /* ===== end language engine ===== */
 
-/* ===== community scam reports (form in a popup; history lives on report-history.html; saved in this browser only) ===== */
+/* ===== community scam reports (form in a popup; history lives on reporthistory.html; saved in this browser only) ===== */
 const REPORT_KEY="communityReports";
 const REPORT_TYPES=["url","phone","upi","sms","qr"];
 const REPORT_HINTS={url:"https://example.com/offer",phone:"+91 9876543210",upi:"name@bank",sms:"Paste the message text",qr:"Paste what the QR code contains"};
