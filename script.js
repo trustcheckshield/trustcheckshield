@@ -92,6 +92,7 @@ function userFromSb(u){
   const nm=String(md.full_name||md.name||"").trim().split(" ")[0]||(first.charAt(0).toUpperCase()+first.slice(1));
   return{id:email,name:nm,via:"Email OTP",contact:["Email ID",email]}}
 async function sendOTP(){
+  if(!consentOk()){setMsg(CONSENT_MSG,"bad");return}
   const email=$("modalEmail").value.trim().toLowerCase(),name=$("modalName").value.trim(),su=authMode==="signup";
   if(!email){setMsg("Please enter your email address.","bad");return}
   if(!EMAIL_RE.test(email)){setMsg("Enter a valid email ID, such as name@example.com.","bad");return}
@@ -317,9 +318,10 @@ const likeEsc=s=>s.replace(/[\\%_]/g,"\\$&");
 /* ---- direct database calls: plain fetch, no library needed, so a blocked or slow CDN cannot break lookups or reports ---- */
 const SCAM_REST=SCAM_URL+"/rest/v1/scams";
 const SCAM_COLS="id,query_val,scam_type,description,created_at";
-function scamHeaders(extra){
+function scamHeaders(extra,token){
   const h={apikey:SCAM_KEY};
   if(/^eyJ/.test(SCAM_KEY))h.Authorization="Bearer "+SCAM_KEY;
+  if(token)h.Authorization="Bearer "+token;
   return Object.assign(h,extra||{})}
 async function scamFetch(url,opts,ms){
   if(!scamKeyOk()){scamLastError="KEY_NOT_SET";throw new Error("KEY_NOT_SET")}
@@ -370,6 +372,7 @@ function scamErrorText(msg){
 /* Fills the community box under a result card. */
 async function communityCheck(resId,host){
   const src=CROWD_SRC[resId];if(!src)return;
+  if(!consentOk()){host.append(mk("div","crowd-load","Accept the privacy notice at the bottom of the page to turn on community checks."));return}
   const raw=$(src[1]).value,norms=crowdEntities(src[0],raw);
   if(!norms.length)return;
   host.append(mk("div","crowd-load","Checking community reports..."));
@@ -401,7 +404,10 @@ async function communityCheck(resId,host){
 async function shareReport(row){
   scamLastError="";
   try{
-    const out=await scamFetch(SCAM_REST+"?select="+SCAM_COLS,{method:"POST",headers:scamHeaders({"Content-Type":"application/json",Prefer:"return=representation"}),body:JSON.stringify([row])});
+    /* signed-in users: the report is linked to their account so they can delete it later */
+    let token=null;
+    try{const sb=getSupabase();if(sb){const g=await sb.auth.getSession();token=g&&g.data&&g.data.session?g.data.session.access_token:null}}catch(e){}
+    const out=await scamFetch(SCAM_REST+"?select="+SCAM_COLS,{method:"POST",headers:scamHeaders({"Content-Type":"application/json",Prefer:"return=representation"},token),body:JSON.stringify([row])});
     const saved=Array.isArray(out)?out[0]:out;
     if(!saved){scamLastError="no data returned";return false}
     scamCacheSet(saved);return true}
@@ -425,6 +431,38 @@ async function startScamSync(){
         else scamCacheSet(p.new)})
       .subscribe()}
   catch(e){}}
+
+/* ===== consent, privacy and account deletion ===== */
+/* True when the visitor accepted the privacy banner (consent.js). If consent.js is missing, features stay on. */
+function consentOk(){return!window.TCSConsent||window.TCSConsent.ok()}
+const CONSENT_MSG="Please accept the Privacy Policy and confirm you are 18 or older in the banner at the bottom of the page first.";
+/* Removes everything this app stored on the device except the consent record. */
+function wipeLocalData(){
+  try{
+    const drop=[];
+    for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);
+      if(k&&k!=="tcs_consent"&&(k.indexOf("tcs_")===0||k.indexOf("history_")===0||k==="communityReports"||k.indexOf("sb-")===0))drop.push(k)}
+    drop.forEach(k=>localStorage.removeItem(k))}
+  catch(e){}}
+/* Permanently deletes the signed-in account and the reports linked to it (needs legal-setup.sql in Supabase). */
+async function deleteAccount(){
+  if(!user){openModal();return}
+  const sb=getSupabase();
+  if(!sb){alert("Could not connect to the server. Reload the page and try again.");return}
+  const typed=prompt("This permanently deletes your account and the reports linked to it. It cannot be undone.\n\nType DELETE to confirm.");
+  if(typed===null)return;
+  if(typed.trim()!=="DELETE"){alert("Nothing was deleted. You must type DELETE exactly.");return}
+  try{
+    const r=await sb.rpc("delete_my_account");
+    if(r.error){
+      const m=errStr(r.error);
+      alert("Your account could not be deleted. "+(/delete_my_account|PGRST202|does not exist/i.test(m)?"The deletion function is not installed yet. Run legal-setup.sql in Supabase, or email the Grievance Officer.":/not signed in|JWT|401/i.test(m)?"Your sign-in has expired. Sign in again and retry.":"Reason: "+m));
+      return}
+    try{await sb.auth.signOut({scope:"local"})}catch(e){}
+    wipeLocalData();
+    alert("Your account and the reports linked to it have been deleted.");
+    location.reload()}
+  catch(e){alert("Your account could not be deleted. Reason: "+errStr(e))}}
 
 /* ===== result renderer ===== */
 function show(id,r,hl){
@@ -803,9 +841,11 @@ function drawProfile(){
     top.append(mk("div","avatar",user.name.charAt(0).toUpperCase()),d);a.append(top);
     const kv=mk("div","kv");
     [["Status","Logged in"],["Sign-in method",user.via],[user.contact[0],user.contact[1]],["Checks saved here",String(h.length)]].forEach(p=>kv.append(mk("span","k",p[0]),mk("span","v",p[1])));
-    a.append(kv);const b=mk("button","btn ghost","Logout");b.type="button";b.addEventListener("click",logout);a.append(b)}}
+    a.append(kv);const b=mk("button","btn ghost","Logout");b.type="button";b.addEventListener("click",logout);a.append(b);
+    const dz=mk("button","btn danger","Delete my account & reports");dz.type="button";dz.addEventListener("click",deleteAccount);a.append(dz);
+    a.append(mk("p","note","Permanently removes your account and the reports linked to it."))}}
 $("mHist").addEventListener("click",()=>{if(!user){openModal();return}view("history")});
-$("mPriv").addEventListener("click",()=>view("privacy"));
+$("mPriv").addEventListener("click",()=>{location.href="privacy-policy.html"});
 $("hBack").addEventListener("click",()=>view("profile"));
 $("pBack").addEventListener("click",()=>view("profile"));
 
@@ -917,6 +957,7 @@ function openReportWith(type,value){
   $("reportValue").value=String(value||"").slice(0,300)}
 function closeReport(){$("reportModal").hidden=true;if(lastFocus&&lastFocus.focus)lastFocus.focus()}
 async function submitReport(){
+  if(!consentOk()){setReportMsg(CONSENT_MSG);return}
   const type=$("reportType").value,value=cleanReportValue(type,$("reportValue").value),desc=$("reportDesc").value.trim();
   $("reportValue").value=value;
   if(REPORT_TYPES.indexOf(type)<0){setReportMsg("Please choose a threat type.");return}
@@ -961,6 +1002,7 @@ $("upiGo").addEventListener("click",()=>scanWith("upi",scanUpi));$("upi").addEve
 window.addEventListener("storage",e=>{if(e.key==="tcs_lang"){if(e.newValue&&e.newValue!==lang)setLang(e.newValue);return}if(e.key!==SK)return;const was=user;user=loadSession();paint();
   if(!user&&was){clearScreen();if(!$("v-history").hidden)view("profile");openModal()}else if(user&&!was)$("modal").hidden=true;
   if(!$("v-profile").hidden)drawProfile()});
-paint();steps(null);if(!user)openModal();try{initLang()}catch(e){}reportMismatch();syncSession();startScamSync();
+paint();steps(null);if(!user)openModal();try{initLang()}catch(e){}reportMismatch();syncSession();
+if(consentOk())startScamSync();else window.addEventListener("tcs-consent",()=>{startScamSync()},{once:true});
 })();
 /* END OF script.js */
