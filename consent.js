@@ -3,7 +3,7 @@
    Exposes window.TCSConsent { ok(), open(), withdraw() } and fires a "tcs-consent" event when consent is given. */
 (function(){
 "use strict";
-var KEY="tcs_consent",VERSION=1;
+var KEY="tcs_consent",VERSION=1; 
 function $(id){return document.getElementById(id)}
 function read(){
   try{var v=JSON.parse(localStorage.getItem(KEY)||"null");
