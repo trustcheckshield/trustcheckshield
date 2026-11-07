@@ -192,4 +192,22 @@ background:color-mix(in srgb,var(--rc) 10%,var(--card));border:1px solid color-m
 .cn-sub{font-size:13px;color:var(--mute);margin:4px 0 10px}
 .crowd-disc{font-size:11px;line-height:1.4;color:var(--mute);margin-top:10px}
 .crowd-flag .crowd-disc{color:var(--mute)}
+/* ===== Consent banner, legal footer, danger button ===== */
+.consent{position:fixed;left:0;right:0;bottom:0;z-index:1200;padding:10px 10px calc(10px + env(safe-area-inset-bottom,0px));pointer-events:none}
+.consent-box{pointer-events:auto;position:relative;max-width:720px;margin:0 auto;padding:16px 16px 14px;border-radius:18px;background:#122018;color:#e8efe9;border:1px solid #3a5a4b;box-shadow:0 -6px 30px rgba(0,0,0,.45);max-height:80vh;overflow:auto}
+.consent-title{font-weight:800;font-size:16px;color:#7fc4a9;margin:0 28px 6px 0}
+.consent-text{font-size:13px;line-height:1.55;color:#cfe0d6;margin:0 0 10px}
+.consent-text a{color:#7fc4a9}
+.consent-age{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.45;margin:0 0 10px;cursor:pointer}
+.consent-age input{width:20px;height:20px;margin:1px 0 0;flex:none;accent-color:#7fc4a9}
+.consent-msg{font-size:13px;margin:0 0 10px;padding:8px 10px;border-radius:10px;background:#1a2622;color:#cfeee2}
+.consent-actions{display:flex;gap:8px;flex-wrap:wrap}
+.consent-actions .btn{flex:1 1 140px;margin:0;background:#7fc4a9;color:#10211a}
+.consent-actions .btn.ghost{background:transparent;color:#7fc4a9;border:1px solid #3a5a4b}
+.consent-actions .btn:disabled{opacity:.5;cursor:not-allowed}
+.consent-x{position:absolute;top:6px;right:8px;background:none;border:0;font-size:24px;line-height:1;color:#9db0a6;cursor:pointer;padding:6px}
+.legal-foot{margin-top:26px;padding-top:14px;border-top:1px solid var(--line);text-align:center;font-size:12px;line-height:1.9;color:var(--mute)}
+.legal-foot a{color:var(--accent-green);margin:0 2px}
+.lf-note{margin-top:4px}
+.btn.danger{margin-top:10px;background:transparent;color:var(--highfg);border:1px solid var(--highfg)}
 /* END OF style.css */
