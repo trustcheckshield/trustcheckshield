@@ -210,6 +210,10 @@
     </div>
     <label for="modalEmail">Email address</label>
     <input id="modalEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="name@example.com">
+    <label class="terms-check" id="modalTermsBox" for="modalTerms">
+      <input type="checkbox" id="modalTerms">
+      <span>I am 18 or older and I accept the <a href="terms.html" target="_blank" rel="noopener noreferrer">Terms of Service</a> &amp; <a href="privacy.html" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.</span>
+    </label>
     <button class="btn" id="modalSendBtn" type="button" onclick="sendOTP()">Send OTP</button>
     <div id="modalOtpSection" hidden>
       <label for="modalOtp">OTP code</label>
