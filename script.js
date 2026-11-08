@@ -54,7 +54,7 @@ function logScan(type,input,level){const k=hkey();if(!k)return;const h=hist();h.
 
 /* ===== auth (email OTP via Supabase) ===== */
 function setMsg(t,kind){const m=$("modalMsg");m.textContent=t||"";m.className="mmsg"+(kind?" "+kind:"");m.hidden=!t}
-function resetModal(){clearInterval(otpTimer);["modalEmail","modalName","modalOtp"].forEach(i=>$(i).value="");$("modalOtpSection").hidden=true;$("modalSendBtn").disabled=false;$("modalSendBtn").textContent="Send OTP";$("modalVerifyBtn").disabled=false;setAuthMode("login")}
+function resetModal(){clearInterval(otpTimer);["modalEmail","modalName","modalOtp"].forEach(i=>$(i).value="");$("modalTerms").checked=false;$("modalTermsBox").classList.remove("err");$("modalOtpSection").hidden=true;$("modalSendBtn").disabled=false;$("modalSendBtn").textContent="Send OTP";$("modalVerifyBtn").disabled=false;setAuthMode("login")}
 function openModal(){lastFocus=document.activeElement;resetModal();$("modal").hidden=false;setTimeout(()=>$("modalEmail").focus(),0)}
 function closeModal(){$("modal").hidden=true;if(lastFocus&&lastFocus.focus)lastFocus.focus()}
 function paint(){
@@ -92,7 +92,6 @@ function userFromSb(u){
   const nm=String(md.full_name||md.name||"").trim().split(" ")[0]||(first.charAt(0).toUpperCase()+first.slice(1));
   return{id:email,name:nm,via:"Email OTP",contact:["Email ID",email]}}
 async function sendOTP(){
-  if(!consentOk()){setMsg(CONSENT_MSG,"bad");return}
   const email=$("modalEmail").value.trim().toLowerCase(),name=$("modalName").value.trim(),su=authMode==="signup";
   if(!email){setMsg("Please enter your email address.","bad");return}
   if(!EMAIL_RE.test(email)){setMsg("Enter a valid email ID, such as name@example.com.","bad");return}
@@ -117,6 +116,9 @@ async function sendOTP(){
     $("modalOtp").focus();startCooldown(60)}
   catch(e){setMsg("Network error: "+(e&&e.message?e.message:e)+". If this keeps happening, your network may be blocking supabase.co.","bad");btn.disabled=false}}
 async function verifyOTP(){
+  if(!$("modalTerms").checked){
+    $("modalTermsBox").classList.add("err");$("modalTerms").focus();
+    alert("\u26A0\uFE0F Action Required: Please accept the Terms of Service & Privacy Policy to log in.");return}
   const email=$("modalEmail").value.trim().toLowerCase(),otp=$("modalOtp").value.trim();
   if(!email){setMsg("Please enter your email address.","bad");return}
   if(!/^\d{6,8}$/.test(otp)){setMsg("Enter the full OTP code from your email (6 to 8 digits).","bad");return}
@@ -127,6 +129,7 @@ async function verifyOTP(){
     const r=await sb.auth.verifyOtp({email:email,token:otp,type:"email"});
     if(r.error){setMsg(/expired|invalid/i.test(r.error.message)?"That OTP is wrong or has expired. Request a new one.":"Verification error: "+r.error.message,"bad");return}
     const su=r.data&&r.data.user;
+    grantConsentFromLogin();
     login(userFromSb(su&&su.email?su:{email:email,user_metadata:{full_name:$("modalName").value.trim()}}))}
   catch(e){setMsg("Network error: "+(e&&e.message?e.message:e),"bad")}
   finally{btn.disabled=false}}
@@ -135,10 +138,11 @@ async function syncSession(){
   try{
     const sb=await ensureSupabase();if(!sb)return;
     const r=await sb.auth.getSession(),ses=r&&r.data&&r.data.session;
-    if(ses&&ses.user&&!user)login(userFromSb(ses.user));
-    sb.auth.onAuthStateChange((ev,sess)=>{if(ev==="SIGNED_IN"&&sess&&sess.user&&!user)login(userFromSb(sess.user))})}
+    if(ses&&ses.user&&!user&&consentOk())login(userFromSb(ses.user));
+    sb.auth.onAuthStateChange((ev,sess)=>{if(ev==="SIGNED_IN"&&sess&&sess.user&&!user&&consentOk())login(userFromSb(sess.user))})}
   catch(e){}}
 window.openModal=openModal;window.closeModal=closeModal;window.sendOTP=sendOTP;window.verifyOTP=verifyOTP;window.doLogout=logout;window.setAuthMode=setAuthMode;
+$("modalTerms").addEventListener("change",()=>{if($("modalTerms").checked)$("modalTermsBox").classList.remove("err")});
 $("modalName").addEventListener("keydown",e=>{if(e.key==="Enter")sendOTP()});
 $("modal").addEventListener("click",e=>{if(e.target===$("modal"))closeModal()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("modal").hidden)closeModal()});
@@ -436,6 +440,12 @@ async function startScamSync(){
 /* True when the visitor accepted the privacy banner (consent.js). If consent.js is missing, features stay on. */
 function consentOk(){return!window.TCSConsent||window.TCSConsent.ok()}
 const CONSENT_MSG="Please accept the Privacy Policy and confirm you are 18 or older in the banner at the bottom of the page first.";
+/* Ticking the login box (18+, Terms, Privacy) is a full acceptance, so the bottom banner is not shown again. */
+function grantConsentFromLogin(){
+  if(!window.TCSConsent||window.TCSConsent.ok())return;
+  try{localStorage.setItem("tcs_consent",JSON.stringify({v:1,accepted:true,age18:true,t:Date.now()}))}catch(e){}
+  $("consentBanner").hidden=true;
+  try{window.dispatchEvent(new Event("tcs-consent"))}catch(e){}}
 /* Removes everything this app stored on the device except the consent record. */
 function wipeLocalData(){
   try{
