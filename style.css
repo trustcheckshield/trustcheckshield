@@ -210,4 +210,9 @@ background:color-mix(in srgb,var(--rc) 10%,var(--card));border:1px solid color-m
 .legal-foot a{color:var(--accent-green);margin:0 2px}
 .lf-note{margin-top:4px}
 .btn.danger{margin-top:10px;background:transparent;color:var(--highfg);border:1px solid var(--highfg)}
+/* ===== Terms checkbox in the login popup ===== */
+#modal .box .terms-check{display:flex;align-items:flex-start;gap:10px;margin:0 0 12px;padding:8px 10px;border:1px solid transparent;border-radius:10px;font-size:13px;font-weight:400;line-height:1.5;color:#cfe0d6;cursor:pointer}
+#modal .box .terms-check input{width:20px;height:20px;flex:none;margin:2px 0 0;padding:0;accent-color:#7fc4a9}
+#modal .box .terms-check a{color:#7fc4a9;font-weight:600}
+#modal .box .terms-check.err{border-color:#f2918a;background:#3b1b19}
 /* END OF style.css */
