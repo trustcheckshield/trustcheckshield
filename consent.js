@@ -1,7 +1,7 @@
 /* Trust Check Shield - consent and 18+ confirmation.
    Shows the bottom banner until the visitor confirms they are 18 or older and accepts the Privacy Policy and Terms.
    Exposes window.TCSConsent { ok(), open(), withdraw() } and fires a "tcs-consent" event when consent is given. */
-(function(){ 
+(function(){
 "use strict";
 var KEY="tcs_consent",VERSION=1; 
 function $(id){return document.getElementById(id)}
