@@ -23,7 +23,7 @@
       <tr><th>Data</th><th>Why</th></tr>
       <tr><td><strong>Email address</strong> and, if you give it when signing up, your name</td><td>To create your account and send you a one-time sign-in code. We do not use passwords.</td></tr>
       <tr><td><strong>Scam reports</strong>: threat type, the link / phone number / UPI ID / message text / QR content, your description, and the time. If you are signed in, the report is linked to your account ID.</td><td>To show community warnings and to let you remove your own reports.</td></tr>
-      <tr><td><strong>Items you check</strong>: the link (without its query string or fragment), phone number or UPI ID</td><td>Sent to our database to look for matching reports. Message text, photos, Wi-Fi codes and other QR text are never sent.</td></tr>
+      <tr><td><strong>Items you check</strong>: the link (without its query string or fragment), phone number or UPI ID</td><td>Sent to our database to look for matching reports. Links are also sent (without the query string or fragment) to Google&rsquo;s Gemini AI for an estimate of domain age and warning signs. Message text, photos, Wi-Fi codes and other QR text are never sent.</td></tr>
       <tr><td><strong>Data kept on your device</strong> (browser local storage): sign-in session, your last 50 checks (type, a short snippet, risk level, time), language, your consent choice, and a copy of reports you submitted</td><td>To keep you signed in and show your history. This stays on your device and is not uploaded.</td></tr>
       <tr><td><strong>Technical and session data</strong> such as IP address, browser type and timestamps</td><td>Our hosting and database providers record these in routine server logs for security and abuse prevention. The app itself does not add analytics or advertising trackers.</td></tr>
     </table>
@@ -45,6 +45,7 @@
     <p>We use these service providers (&ldquo;processors&rdquo;) to run the app:</p>
     <ul>
       <li><strong>Supabase</strong> &ndash; database and sign-in. Our project is hosted in the Mumbai, India region.</li>
+      <li><strong>Google (Gemini API)</strong> &ndash; analyses links you check to estimate domain age and red flags. Links on official verified websites are not sent.</li>
       <li><strong>Google (Gmail)</strong> &ndash; delivers the one-time code emails to your inbox.</li>
       <li><strong>Vercel and GitHub</strong> &ndash; host the website files.</li>
     </ul>
