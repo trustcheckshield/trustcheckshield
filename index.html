@@ -17,7 +17,7 @@
   <!-- HOME -->
   <main id="v-home">
     <h1>What would you like to check?</h1>
-    <p class="lead">Choose a tool. Scans run in your browser. The link, number or UPI ID you check is also looked up in the community scam database.</p>
+    <p class="lead">Choose a tool. Scans run in your browser. Links you check are also sent to Google's Gemini AI for analysis, and links, numbers and UPI IDs are looked up in the community scam database.</p>
     <div class="tools" role="group" aria-label="Security tools">
       <button class="tool" type="button" data-t="url" aria-pressed="true"><span class="ic">🔗</span><b>Link / URL Inspector</b><span class="d">Links, short links, APK, EXE and ZIP downloads</span></button>
       <button class="tool" type="button" data-t="msg" aria-pressed="false"><span class="ic">💬</span><b>Universal Message Scam Checker</b><span class="d">KYC, job, UPI and gaming reward scams</span></button>
@@ -129,7 +129,7 @@
         <div class="row" style="margin:0"><a class="btn" id="call" href="tel:1930" target="_top" rel="noopener">Call 1930</a><a class="btn ghost" href="https://cybercrime.gov.in" target="_blank" rel="noopener noreferrer">Report at cybercrime.gov.in</a><a class="btn ghost" href="https://sancharsaathi.gov.in" target="_blank" rel="noopener noreferrer">Sanchar Saathi</a></div>
         <p style="margin-top:12px;font-size:13px">If the dialer does not open, dial <strong>1930</strong> yourself or <button class="chip" id="copy1930" type="button">Copy number</button></p>
       </div>
-      <details class="faq"><summary>How does TrustCheck Shield work?</summary><p>It looks for known scam patterns in the text you give it, using rules that run in your browser. Links, phone numbers and UPI IDs you check are also searched in a community scam database, so they are sent to that service. Message text and photos are not uploaded.</p></details>
+      <details class="faq"><summary>How does TrustCheck Shield work?</summary><p>It looks for known scam patterns in the text you give it, using rules that run in your browser. Links, phone numbers and UPI IDs you check are also searched in a community scam database, so they are sent to that service. Links (without the part after "?") are also sent to Google's Gemini AI to estimate domain age and red flags. Message text and photos are not uploaded.</p></details>
       <details class="faq"><summary>Does Low Risk mean something is safe?</summary><p>No. Low Risk only means no common warning signs were found in the text. New scams can look clean, so stay careful.</p></details>
       <details class="faq"><summary>Why was a real site or message flagged?</summary><p>The rules are strict on purpose. Words such as login, verify and free are often used in scams, so they raise the risk even on honest pages. Check the sender or site another way.</p></details>
       <details class="faq"><summary>What if I already clicked or shared an OTP?</summary><p>Call your bank right away using the number on your card, and block the card or UPI. Change your passwords. Then report the fraud to the national helpline 1930 or at cybercrime.gov.in.</p></details>
@@ -157,7 +157,7 @@
     <h1>Privacy Policy</h1>
     <section class="card">
       <h2>Privacy Policy &amp; Disclaimer:</h2>
-      <p class="txt" style="color:var(--ink);margin-top:8px">TrustCheck Shield is an educational and threat analysis tool designed for awareness. Results are generated based on pattern analysis and public security databases. Users should verify through official sources before making financial decisions. Links, phone numbers and UPI IDs you check are looked up in a community scam database (Supabase).</p>
+      <p class="txt" style="color:var(--ink);margin-top:8px">TrustCheck Shield is an educational and threat analysis tool designed for awareness. Results are generated based on pattern analysis and public security databases. Users should verify through official sources before making financial decisions. Links, phone numbers and UPI IDs you check are looked up in a community scam database (Supabase), and links are analysed by Google's Gemini AI.</p>
     </section>
   </main>
 
@@ -184,7 +184,7 @@
   <div class="consent-box">
     <button class="consent-x" id="consentClose" type="button" aria-label="Close" hidden>&times;</button>
     <p class="consent-title" id="consentTitle">Your privacy</p>
-    <p class="consent-text">We do not use advertising or tracking cookies. We use your browser&rsquo;s local storage to keep you signed in and to save your language and scan history on your device. When you check a link, phone number or UPI ID, or submit a report, that item is sent to our database (Supabase). Read our <a href="privacy.html">Privacy Policy</a> and <a href="terms.html">Terms of Service</a>.</p>
+    <p class="consent-text">We do not use advertising or tracking cookies. We use your browser&rsquo;s local storage to keep you signed in and to save your language and scan history on your device. When you check a link, phone number or UPI ID, or submit a report, that item is sent to our database (Supabase). Links are also sent to Google&rsquo;s Gemini AI for analysis. Read our <a href="privacy.html">Privacy Policy</a> and <a href="terms.html">Terms of Service</a>.</p>
     <label class="consent-age"><input type="checkbox" id="consentAge"><span>I confirm that I am 18 years of age or older and I accept the Privacy Policy and Terms.</span></label>
     <div class="consent-msg" id="consentMsg" role="status" hidden></div>
     <div class="consent-actions">
