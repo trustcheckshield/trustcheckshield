@@ -62,7 +62,7 @@ function paint(){
   $("authBtn").setAttribute("onclick",user?"doLogout()":"openModal()");
   $("welcome").hidden=!user;if(user)$("welcome").textContent="Hi, "+user.name}
 function login(u){user=u;try{store.setItem(SK,JSON.stringify(u))}catch(e){}paint();$("modal").hidden=true;if(!$("v-profile").hidden)drawProfile()}
-function clearScreen(){scanEpoch++;SCAN_TOOLS.forEach(resetScanUI);["urlR","msgR","upiR","qrR"].forEach(i=>$(i).hidden=true);["url","msg","upi","qrTxt"].forEach(i=>$(i).value="");["urlE","msgE","upiE","qrE"].forEach(i=>$(i).hidden=true);steps(null);$("stepsSub").textContent="Check a link and these steps update to match it."}
+function clearScreen(){aiSeq++;scanEpoch++;SCAN_TOOLS.forEach(resetScanUI);["urlR","msgR","upiR","qrR"].forEach(i=>$(i).hidden=true);["url","msg","upi","qrTxt"].forEach(i=>$(i).value="");["urlE","msgE","upiE","qrE"].forEach(i=>$(i).hidden=true);steps(null);$("stepsSub").textContent="Check a link and these steps update to match it."}
 function logout(){user=null;try{store.removeItem(SK)}catch(e){}try{const sb=getSupabase();if(sb)sb.auth.signOut({scope:"local"})}catch(e){}paint();clearScreen();if(!$("v-history").hidden)view("profile");else if(!$("v-profile").hidden)drawProfile();openModal()}
 function gate(){if(user)return true;openModal();return false}
 let authMode="login",otpTimer=null;
@@ -606,6 +606,74 @@ function analyze(u){
   return r}
 
 function stepCard(n,h,items){const d=mk("div","step");const ul=mk("ul");items.forEach(i=>ul.append(mk("li","",i)));d.append(mk("div","n",n),mk("h4","",h),ul);return d}
+/* ===== ShieldBot AI check (Gemini, through the /api/shieldbot serverless function; the key never reaches the browser) ===== */
+const SHIELD_API=/\.vercel\.app$/.test(location.hostname)?"/api/shieldbot":"https://trustcheckshield.vercel.app/api/shieldbot";
+let aiSeq=0;
+function normalizeShield(b){
+  if(!b||typeof b!=="object")throw new Error("bad answer");
+  const t=String(b.risk_level||""),lvl=/high/i.test(t)?"High":/medium|moderate/i.test(t)?"Medium":/low|safe/i.test(t)?"Low":null;
+  if(!lvl)throw new Error("bad answer");
+  const list=(v,n)=>Array.isArray(v)?v.filter(x=>typeof x==="string"&&x.trim()).map(x=>x.trim().slice(0,220)).slice(0,n):[];
+  return{level:lvl,
+    summary:typeof b.summary==="string"?b.summary.trim().slice(0,240):"",
+    domain_age:typeof b.domain_age==="string"&&b.domain_age.trim()?b.domain_age.trim().slice(0,260):"Cannot be verified from the link alone.",
+    red_flags:list(b.red_flags,4),actions:list(b.actions,4)}}
+async function askShieldBot(url){
+  const ctl=typeof AbortController==="function"?new AbortController():null,timer=setTimeout(()=>{if(ctl)ctl.abort()},20000);
+  try{
+    const res=await fetch(SHIELD_API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url:url}),signal:ctl?ctl.signal:undefined});
+    let body=null;try{body=await res.json()}catch(e){}
+    if(!res.ok)throw new Error((body&&body.error)||("HTTP "+res.status));
+    return normalizeShield(body)}
+  catch(e){if(e&&e.name==="AbortError")throw new Error("timeout");throw e}
+  finally{clearTimeout(timer)}}
+function shieldNote(e){
+  const m=String((e&&e.message)||e);
+  if(/HTTP 429|too many|quota/i.test(m))return"the AI limit was reached. Try again in a minute.";
+  if(/timeout|took too long/i.test(m))return"it took too long.";
+  if(/failed to fetch|network|load failed|reach/i.test(m))return"no connection to the AI service.";
+  if(/HTTP 404/i.test(m))return"the AI service is not set up on this site yet.";
+  if(/not set|GEMINI/i.test(m))return"the AI key is not set on the server.";
+  return"temporary problem."}
+/* Starts the AI request right away (no query string or fragment is sent). Official verified domains are never sent. */
+function startAi(r,u){
+  if(r.official)return{state:"off"};
+  if(!consentOk())return{state:"consent"};
+  const ai={state:"loading",data:null,note:""};
+  ai.promise=askShieldBot(u.protocol+"//"+u.host+(u.pathname==="/"?"":u.pathname))
+    .then(d=>{ai.state="ok";ai.data=d},e=>{ai.state="fail";ai.note=shieldNote(e)});
+  return ai}
+/* 02 / NOTICE: domain age estimate and red flags (AI), then the local findings. */
+function noticeItems(r){
+  const base=r.signals.length?r.signals.slice():["No unusual patterns were found in the host name, path or query string.","No downloads, test files, number addresses or lookalike names were found.","This only covers the address text."];
+  const ai=r.ai||{};
+  if(ai.state==="ok"){
+    const seen=new Set(),out=[];
+    const add=t=>{const k=t.toLowerCase().replace(/[^a-z0-9]+/g," ").trim();if(k&&!seen.has(k)){seen.add(k);out.push(t)}};
+    add("Domain age (estimate): "+ai.data.domain_age);
+    ai.data.red_flags.forEach(add);
+    r.signals.slice(0,2).forEach(add);
+    return out.slice(0,6)}
+  if(ai.state==="loading")return base.slice(0,3).concat(["Checking domain age and red flags with AI..."]);
+  if(ai.state==="fail")return base.slice(0,3).concat(["AI analysis unavailable: "+ai.note]);
+  if(ai.state==="consent")return base.slice(0,3).concat(["AI analysis turns on after you accept the privacy notice."]);
+  return base}
+/* 03 / DECIDE: clear safety steps. The risk verdict itself lives only in the top badge. */
+function decideItems(r){
+  const ai=r.ai||{};
+  if(ai.state==="ok"&&ai.data.actions.length)return ai.data.actions.slice();
+  const d=r.official?["The address matches an official "+r.org+" domain.","Check that the page asks only for what you expect.","Sign in only on addresses that end in "+r.orgDomain+"."]
+    :r.flags.slice(0,2).map(f=>REC[f]);
+  if(d.length<3)d.push(r.level==="Low"?"Check who runs the site before you download or pay.":"If it came in a message, do not reply to it.");
+  if(d.length<2)d.push("Never share passwords or one-time codes on a link you did not open yourself.");
+  return d}
+function stepsDeck(r){
+  const box=$("steps");box.textContent="";
+  const clip=(x,n)=>x.length>n?x.slice(0,n)+"…":x;
+  /* 01 / PASTE: read in the browser at once */
+  const c1=["Protocol: "+r.proto+(r.proto==="HTTPS"?" (encrypted).":" (not encrypted)."),"Host name: "+r.host+".","Main domain: "+r.main+".","Path: "+(clip(r.path,34)||"/")+(r.ext?" (file type ."+r.ext+")":"")+".","Query string: "+(r.qs?clip(r.qs,34):"none")+"."];
+  box.append(stepCard("01 / PASTE","Analysis for "+r.host,c1),stepCard("02 / NOTICE","What stood out",noticeItems(r)),stepCard("03 / DECIDE","What to do",decideItems(r)));
+  $("stepsSub").textContent="These steps now match the link you checked."}
 function steps(r){
   if(deferShow&&r){pend.push(()=>steps(r));return}
   const box=$("steps");box.textContent="";
@@ -613,20 +681,34 @@ function steps(r){
     stepCard("01 / PASTE","Bring the link here",["Paste a complete website, download or APK link.","The text stays in your browser.","The check reads the protocol, host name, path and query string."]),
     stepCard("02 / NOTICE","Review the address patterns",["Looks for APK, EXE, SCR and ZIP downloads and antivirus test files.","Looks for number addresses, short links and fake subdomains.","Looks for words such as login, verify, free and mod, and for forwarding tricks."]),
     stepCard("03 / DECIDE","Choose your next step",["Use the result as one input, not the final word.","Never share passwords or one-time codes on a link you did not open yourself.","Check who runs a site before you download anything from it."]));return}
-  const clip=(x,n)=>x.length>n?x.slice(0,n)+"…":x;
-  const c1=["Protocol: "+r.proto+(r.proto==="HTTPS"?" (encrypted).":" (not encrypted)."),"Host name: "+r.host+".","Main domain: "+r.main+".","Path: "+(clip(r.path,34)||"/")+(r.ext?" (file type ."+r.ext+")":"")+".","Query string: "+(r.qs?clip(r.qs,34):"none")+"."];
-  const c2=r.signals.length?r.signals:["No unusual patterns were found in the host name, path or query string.","No downloads, test files, number addresses or lookalike names were found.","This only covers the address text."];
-  const d=r.official?["Verdict: Low Risk. The address matches an official "+r.org+" domain.","Check that the page asks only for what you expect.","Sign in only on addresses that end in "+r.orgDomain+"."]
-    :["Verdict: "+LBL[r.level]+(r.level==="Low"?", based on the address text only.":".")].concat(r.flags.slice(0,2).map(f=>REC[f]));
-  if(d.length<3)d.push(r.level==="Low"?"Check who runs the site before you download or pay.":"If it came in a message, do not reply to it.");
-  box.append(stepCard("01 / PASTE","Analysis for "+r.host,c1),stepCard("02 / NOTICE","What stood out",c2),stepCard("03 / DECIDE","Your next step",d));
-  $("stepsSub").textContent="These steps now match the link you checked."}
+  stepsDeck(r)}
+/* When the AI answer is in: the top badge shows the AI risk level, the summary line follows, and cards 02 and 03 are refilled. */
+function applyAi(r){
+  const ai=r.ai;
+  stepsDeck(r);
+  if(!ai||ai.state!=="ok")return;
+  const lvl=ai.data.level,band=lvl==="Low"?[1,30]:lvl==="Medium"?[31,70]:[71,100];
+  let score=riskPercentOf(r);
+  if(score<band[0]||score>band[1])score=lvl==="Low"?15:lvl==="Medium"?50:85;
+  const wrap=$("urlR").querySelector(".rp-wrap");
+  if(wrap&&wrap.parentElement)updateRiskMeter(score,lvl,[],wrap.parentElement);
+  const vp=$("urlR").querySelector("p.verdict");if(vp&&ai.data.summary)vp.textContent=ai.data.summary;
+  const k=hkey();if(k){const h=hist();if(h.length&&h[0].type==="Link"){h[0].level=lvl;try{store.setItem(k,JSON.stringify(h))}catch(e){}}}}
+function hookAi(r){
+  const job=()=>{
+    const ai=r.ai;if(!ai||!ai.promise||r.aiSeq!==aiSeq)return;
+    ai.promise.then(()=>{if(r.aiSeq===aiSeq)applyAi(r)})};
+  if(deferShow)pend.push(job);else job()}
 function scanUrl(){
   if(!gate())return;const raw=$("url").value,cl=extractUrl(cleanEntity("url",raw)),u=cl?parse(cl):null;
   if(!u){err("urlE","No web address was found in that text. Paste a link such as https://example.com/page or example.com/page.");$("urlR").hidden=true;return}
   $("urlE").hidden=true;const r=analyze(u);
   if(cl!==raw.trim())r.note="Cleaned up and checked as: "+u.href;
-  show("urlR",r);steps(r);logScan("Link",u.href,r.level)}
+  r.aiSeq=++aiSeq;r.ai=startAi(r,u);          /* AI request starts now, while the scan animation plays */
+  stepsDeck(r);                               /* 01 / PASTE appears immediately; 02 and 03 show "checking..." */
+  show("urlR",r);steps(r);hookAi(r);          /* queued: replayed after the animation, then updated when the AI answers */
+  logScan("Link",u.href,r.level)}
+
 
 /* ===== message analysis ===== */
 const PLAT={"WhatsApp":"On WhatsApp, be wary of unknown numbers, job offers, gaming groups and \"wrong number\" chats. Block and report the sender inside the app.",
@@ -1015,4 +1097,4 @@ window.addEventListener("storage",e=>{if(e.key==="tcs_lang"){if(e.newValue&&e.ne
 paint();steps(null);if(!user)openModal();try{initLang()}catch(e){}reportMismatch();syncSession();
 if(consentOk())startScamSync();else window.addEventListener("tcs-consent",()=>{startScamSync()},{once:true});
 })();
-/* END OF script.js */
+/
