@@ -1097,4 +1097,4 @@ window.addEventListener("storage",e=>{if(e.key==="tcs_lang"){if(e.newValue&&e.ne
 paint();steps(null);if(!user)openModal();try{initLang()}catch(e){}reportMismatch();syncSession();
 if(consentOk())startScamSync();else window.addEventListener("tcs-consent",()=>{startScamSync()},{once:true});
 })();
-/END OF script.js */
+/* END OF script.js */
