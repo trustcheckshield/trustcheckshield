@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>TrustCheck Shield</title>
 <link rel="stylesheet" href="style.css">
+<script>
+/* Safety net: if script.js is missing, old or blocked, tapping a button shows a clear message instead of a cryptic error. script.js replaces these once it loads. */
+["openModal","closeModal","sendOTP","verifyOTP","setAuthMode","doLogout","openReport"].forEach(function(n){
+  if(!window[n])window[n]=function(){alert("The app script (script.js) did not load. Reload the page. If this keeps happening, upload the latest script.js to your site.")}});
+</script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
